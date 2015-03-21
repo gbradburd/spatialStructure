@@ -1,0 +1,124 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[authoryear]{natbib}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bigints}
+\usepackage{array}
+\usepackage{geometry}
+
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+
+\setlength{\parskip}{\baselineskip}
+\setlength{\parindent}{0pt}
+
+\newcommand{\e}[1]{{\mathbb E}\left[ #1 \right]}
+\newcommand{\var}[1]{{\mathbb V \textnormal{ar}}\left[ #1 \right]}
+\newcommand{\gb}[1]{{\it\color{ForestGreen}{(#1)}}}
+\newcommand{\plr}[1]{{\it\color{RedViolet}{(#1)}}}
+\newcommand{\gc}[1]{{\it\color{blue}{(#1)}}}
+
+\geometry{a4paper}
+
+\title{Inference of Continuous and Discrete Population Structure Through Space and Time}
+\date{\vspace{-5ex}}
+\author{Gideon S. Bradburd$^{1,a}$, Peter L. Ralph$^{2,b}$, Graham M. Coop$^{1,c}$}
+
+\begin{document}
+
+\maketitle
+
+\textsuperscript{1}Center for Population Biology, Department of Evolution and Ecology, University of California, Davis, CA 95616
+
+\textsuperscript{2}Department of Molecular and Computational Biology, University of Southern California, Los Angeles, CA 90089
+
+\textsuperscript{a}gbradburd@ucdavis.edu; 
+\textsuperscript{b}pralph@usc.edu;
+\textsuperscript{c}gmcoop@ucdavis.edu\\\\\
+
+\newpage
+
+\section{Model}
+Ok so we have $N$ individuals sampled throughout time and space, 
+and, for each individual, we have the genotype at each of $L$ loci.
+We are interested in modeling both continuous patterns of population differentiation 
+(isolation across space and over time), as well as discrete population structure.
+In space, discrete structure might be due to a barrier to dispersal, 
+or to a recent expansion event that has brought relatively differentiated groups into geographic contact.
+In time, discrete structure might correspond to population replacement, 
+or the sudden influx of gene flow from somewhere not nearby.
+
+To model these dual patterns of structure (continuous in time and space, as well as discrete), 
+we say that there are $K$ populations in space-time.  
+Within each population (which are roughly analogous to the clusters in STRUCTURE),
+covariance decays continuously with spatial and temporal distance. 
+The spatiotemporal covariance between individuals $i$ and $k$ takes the following form in population $k$:
+\begin{equation}
+\label{eq:pop_cov}
+F^{(k)}_{i,j} = \alpha^{(k)}_0 \text{exp} \left(	  \left( \frac{D_{i,j}}{\alpha^{(k)}_D} + \frac{\tau_{i,j}}{\alpha^{(k)}_{\tau}} \right) ^{\alpha^{(k)}_2} \right)
+\end{equation}
+
+\gb{Peter, this form of covariance is a placeholder.  
+I've been looking into different forms from Gneiting 2002, 
+but would love some feedback on considerations 
+when choosing which properties of which Matern functions are desirable}.
+
+Individuals are then admixed between those populations, 
+choosing membership $w^{(k)}$ in population $k$, 
+where $w^{(k)}$ is the probability that a sampled allele came from population $k$.
+
+We model the covariance in allele frequencies, $\Omega$, across loci between individuals $i$ and $j$
+as a sum of their spatiotemporal covariances within each cluster, weighted by their
+membership proportions in each cluster.
+
+\begin{equation}
+\label{eq:total_cov}
+\Omega_{i,j} = \sum\limits_K \left(w_i^{(k)}w_j^{(k)} \left( F^{(k)}_{i,j} + \mu^{(k)} \right)\right) + \delta
+\end{equation}
+
+Here, $\mu^{(k)}$ is the population-level effect of sharing some deviation away from an ancestral allele frequency, 
+and $delta$ is the global effect of sharing an ancestral allele frequency.
+
+\gb{Peter, our thoughts proceed as follows:\\
+say $X_i$ is the allele frequency at a given locus in population $i$,\\
+and $\epsilon$ is the ancestral frequency at that locus,\\
+and $\Delta X_i$ is the deviation in population $i$ from $\epsilon$ at that locus:\\
+\begin{align}
+\text{Cov}(f_i,f_j) &= \e{X_iX_j} - \e{X_i}\e{X_j}	\notag\\
+			&= \e{(\Delta X_i + \epsilon) (\Delta X_j + \epsilon)} - \e{X_i+ \epsilon}\e{X_j+ \epsilon} \notag\\
+			&= \e{(\Delta X_i \Delta X_j + \Delta X_i\epsilon + \Delta X_j\epsilon + \epsilon^2)} -(\e{X_i}+ \e{\epsilon})(\e{X_j}+ \e{\epsilon}) \notag\\
+			&= \e{\Delta X_i \Delta X_j}  + \e{\epsilon^2} - \e{\epsilon}^2 \notag\\
+			&= \e{\Delta X_i \Delta X_j}  + \var{\epsilon}
+\end{align}
+\\
+So in Eqn. \eqref{eq:total_cov}, the $\delta$ term is describing this $\var{\epsilon}$.
+If this math works, then it also means that we don't have to mean-center the loci;
+we can just model covariance in sample frequencies, 
+and add a single parameter to describe the increased covariance between samples across loci 
+due to the ancestral mean they share at each locus.}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
