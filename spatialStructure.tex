@@ -95,8 +95,9 @@ and $\epsilon$ is the ancestral frequency at that locus,\\
 and $\Delta X_i$ is the deviation in population $i$ from $\epsilon$ at that locus:\\
 \begin{align}
 \text{Cov}(f_i,f_j) &= \e{X_iX_j} - \e{X_i}\e{X_j}	\notag\\
-			&= \e{(\Delta X_i + \epsilon) (\Delta X_j + \epsilon)} - \e{X_i+ \epsilon}\e{X_j+ \epsilon} \notag\\
-			&= \e{(\Delta X_i \Delta X_j + \Delta X_i\epsilon + \Delta X_j\epsilon + \epsilon^2)} -(\e{X_i}+ \e{\epsilon})(\e{X_j}+ \e{\epsilon}) \notag\\
+			&= \e{(\Delta X_i + \epsilon) (\Delta X_j +
+                          \epsilon)} - \e{ \Delta X_i+ \epsilon}\e{\Delta X_j+ \epsilon} \notag\\
+			&= \e{(\Delta X_i \Delta X_j + \Delta X_i\epsilon + \Delta X_j\epsilon + \epsilon^2)} -(\e{\Delta X_i}+ \e{\epsilon})(\e{\Delta X_j}+ \e{\epsilon}) \notag\\
 			&= \e{\Delta X_i \Delta X_j}  + \e{\epsilon^2} - \e{\epsilon}^2 \notag\\
 			&= \e{\Delta X_i \Delta X_j}  + \var{\epsilon}
 \end{align}
