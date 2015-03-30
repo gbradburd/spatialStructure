@@ -32,3 +32,15 @@ MatrixXd doublesherman(const Map<MatrixXd> Ap, const Map<MatrixXd> u, const Map<
   return Ap - shermanterm - shermanterm.transpose() ;
 }
 // There's more savings to be had here, when v has only a single non-zero entry 
+
+
+// [[Rcpp::export]]
+double mylikelihood(const Map<MatrixXd> A, const Map<MatrixXd> B) {
+
+  MatrixXd Ai(A.rows(), A.cols());
+  double Adet;
+  Ai = A.inverse();
+  Adet = A.determinant();  
+
+  return (Ai*B).trace() * log(Adet);   //we could convert to array & do sum of element-wise products 
+}

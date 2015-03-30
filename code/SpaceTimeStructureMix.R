@@ -169,7 +169,7 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 	return(mcmc.quantities)
 }
 
-print.spacetimemix.mcmc.quantities <- function(mcmc.quantities){
+≈ <- function(mcmc.quantities){
 	print(str(mcmc.quantities))
 }
 
@@ -186,6 +186,40 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 #		mcmc.quantities$prior.probs <- calculate.prior.probabilities(parameter.list)
 	}
 	return(mcmc.quantities)
+}
+
+##update the w for the ith individual
+update.w.i<-function(i, data.list, parameter.list, model.options){
+	
+	num.clusters<-	model.options$n.clusters
+	these.two<-sample(num.clusters,2)
+	clst.1<-these.two[1]
+	clst.2<-these.two[2]
+	
+	parameter.list$admix.proportions[,clst.2]
+	old.w.1<-parameter.list$admix.proportions[i,clst.1]
+	old.w.2<-parameter.list$admix.proportions[i,clst.2]
+
+	delta.w<-rnorm(1,sd=BLAH)
+	new.w.1<- old.w.1 + delta.w
+	new.w.2<- old.w.2 - delta.w
+	
+	if( (new.w.1<0 | new.w.1>1) |  (new.w.2<0 | new.w.2>1) )  print("WE'LL NEED TO RETURN OUT HERE")
+
+		
+	covar.1 <- parameter.list$cluster.list[[clst.1]]$covariance  #will eventually need the cluster mean
+	covar.2 <- parameter.list$cluster.list[[clst.2]]$covariance  #will eventually need the cluster mean
+	
+	u <- delta.w * ( parameter.list$admix.proportions[,clst.1] * covar.1[i,]  - parameter.list$admix.proportions[,clst.2] * covar.2[i,]  )
+	u[i] <- u[i]  + delta.w^2 * (covar.1[i,i] + covar.2[i,i])/2 	### (wi^k + Dw) (wi^k + Dw) 
+	
+	v <- rep(0,1000)	
+	v[i] <- 1
+	
+	matrix.updated<-double.sherman_r(Ap, u, v,i )   #this function is current in Sherman in sandbox
+	new.determinant<-  matrix.updated$determinant.correction
+	
+	
 }
 
 
