@@ -21,7 +21,9 @@ admixed.covariance <- function(cluster.list,n.clusters){
 
 calculate.likelihood <- function(data,parameters){
 	A <- solve(parameters$admixed.covariance)
-	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
+
+	lnL <- -0.5 * data$n.loci * sum( parameters$inverse * data$sample.covariance ) - (data$n.loci/2) * parameters$determinant 
+#	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	return(lnL)
 }
 
@@ -204,7 +206,6 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 	new.w.2<- old.w.2 - delta.w
 	
 	if( !(new.w.1<0 | new.w.1>1)  &  !(new.w.2<0 | new.w.2>1) )  {
-
 			
 		covar.1 <- parameter.list$cluster.list[[clst.1]]$covariance[i,]  #will eventually need the cluster mean
 		covar.2 <- parameter.list$cluster.list[[clst.2]]$covariance[i,]  #will eventually need the cluster mean
@@ -219,8 +220,10 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 		old.inverse <-pamameter.list$inverse
 		old.determinant<-parameter.list$determinant
 		matrix.updated<-double.sherman_r(Ap, u, v,i )   #this function is current in Sherman in sandbox
-		new.determinant<-  matrix.updated$determinant.correction
-		mcmc.quantities$likelihood
+		parameter.list$determinant<-  old.determinant + matrix.updated$determinant.correction   ##update on log-scale
+		pamameter.list$inverse  <- matrix.updated$inverse
+		new.likelihood <- calculate.likelihood (data.list,parameters.list)  
+		new.likelihood - mcmc.quantities$likelihood
 	}
 	return(parameter.list)
 }
