@@ -21,7 +21,9 @@ admixed.covariance <- function(cluster.list,n.clusters){
 
 calculate.likelihood <- function(data,parameters){
 	A <- solve(parameters$admixed.covariance)
-	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
+
+	lnL <- -0.5 * data$n.loci * sum( parameters$inverse * data$sample.covariance ) - (data$n.loci/2) * parameters$determinant 
+#	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	return(lnL)
 }
 
@@ -189,14 +191,13 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 }
 
 ##update the w for the ith individual
-update.w.i<-function(i, data.list, parameter.list, model.options){
+update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantities){
 	
 	num.clusters<-	model.options$n.clusters
 	these.two<-sample(num.clusters,2)
 	clst.1<-these.two[1]
 	clst.2<-these.two[2]
 	
-	parameter.list$admix.proportions[,clst.2]
 	old.w.1<-parameter.list$admix.proportions[i,clst.1]
 	old.w.2<-parameter.list$admix.proportions[i,clst.2]
 
@@ -204,22 +205,27 @@ update.w.i<-function(i, data.list, parameter.list, model.options){
 	new.w.1<- old.w.1 + delta.w
 	new.w.2<- old.w.2 - delta.w
 	
-	if( (new.w.1<0 | new.w.1>1) |  (new.w.2<0 | new.w.2>1) )  print("WE'LL NEED TO RETURN OUT HERE")
-
+	if( !(new.w.1<0 | new.w.1>1)  &  !(new.w.2<0 | new.w.2>1) )  {
+			
+		covar.1 <- parameter.list$cluster.list[[clst.1]]$covariance[i,]  #will eventually need the cluster mean
+		covar.2 <- parameter.list$cluster.list[[clst.2]]$covariance[i,]  #will eventually need the cluster mean
 		
-	covar.1 <- parameter.list$cluster.list[[clst.1]]$covariance  #will eventually need the cluster mean
-	covar.2 <- parameter.list$cluster.list[[clst.2]]$covariance  #will eventually need the cluster mean
-	
-	u <- delta.w * ( parameter.list$admix.proportions[,clst.1] * covar.1[i,]  - parameter.list$admix.proportions[,clst.2] * covar.2[i,]  )
-	u[i] <- u[i]  + delta.w^2 * (covar.1[i,i] + covar.2[i,i])/2 	### (wi^k + Dw) (wi^k + Dw) 
-	
-	v <- rep(0,1000)	
-	v[i] <- 1
-	
-	matrix.updated<-double.sherman_r(Ap, u, v,i )   #this function is current in Sherman in sandbox
-	new.determinant<-  matrix.updated$determinant.correction
-	
-	
+		u <- delta.w * ( parameter.list$admix.proportions[i,clst.1] * covar.1  - parameter.list$admix.proportions[i,clst.2] * covar.2  )
+		u[i] <- u[i]  + delta.w^2 * (covar.1[i,i] + covar.2[i,i])/2 	### (wi^k + Dw) (wi^k + Dw) 
+		
+		v <- rep(0,data.list$n.ind)	
+		v[i] <- 1
+		
+		parameter.list$determinant  #log of determinant
+		old.inverse <-pamameter.list$inverse
+		old.determinant<-parameter.list$determinant
+		matrix.updated<-double.sherman_r(Ap, u, v,i )   #this function is current in Sherman in sandbox
+		parameter.list$determinant<-  old.determinant + matrix.updated$determinant.correction   ##update on log-scale
+		pamameter.list$inverse  <- matrix.updated$inverse
+		new.likelihood <- calculate.likelihood (data.list,parameters.list)  
+		new.likelihood - mcmc.quantities$likelihood
+	}
+	return(parameter.list)
 }
 
 
