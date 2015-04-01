@@ -190,9 +190,12 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 	return(mcmc.quantities)
 }
 
+
+require("gtools")   ##for dirchlet, we could write our own
+
 ##update the w for the ith individual
 update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantities){
-	
+	rejected.move <- 1
 	num.clusters<-	model.options$n.clusters
 	these.two<-sample(num.clusters,2)
 	clst.1<-these.two[1]
@@ -216,14 +219,32 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 		v <- rep(0,data.list$n.ind)	
 		v[i] <- 1
 		
-		parameter.list$determinant  #log of determinant
-		old.inverse <-pamameter.list$inverse
-		old.determinant<-parameter.list$determinant
-		matrix.updated<-double.sherman_r(Ap, u, v,i )   #this function is current in Sherman in sandbox
-		parameter.list$determinant<-  old.determinant + matrix.updated$determinant.correction   ##update on log-scale
-		pamameter.list$inverse  <- matrix.updated$inverse
-		new.likelihood <- calculate.likelihood (data.list,parameters.list)  
-		new.likelihood - mcmc.quantities$likelihood
+		
+		matrix.updated<-double.sherman_r(Ap =pamameter.list$inverse, u, v,i )   #this function is current in Sherman in sandbox
+
+		new.determinant <- parameter.list$determinant + matrix.updated$determinant.correction   ##update on log-scale
+		new.inverse <- matrix.updated$inverse
+		
+		calculate.likelihood(deteminant = new.determinant, inverse =  new.inverse )
+
+		likelihood.ratio <- new.likelihood - mcmc.quantities$likelihood 
+		new.admixture.vec<-parameter.list$admix.proportions[i,]
+		new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
+		
+		new.prior.prob <- log(ddirichlet(new.admixture.vec ,rep(CLUSTERPARAM  , num.clusters)))
+		prior.ratio <- new.prior.prob - mcmc.quantities$prior.probs$admix.proportions[i]  
+		###prior.prob of admixture should be avector not a matrix
+		
+		if( exp(likelihood.ratio +prior.ratio) > runif(1)  ){
+			mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
+			mcmc.quantities$likelihood <- new.likelihood
+			parameter.list$admix.proportions <- new.admixture.vec
+			parameter.list$determinant <- new.determinant
+			new.inverse
+			##WE NEED TO UPDATE W MATRIX AS WELL< BUT I DONT KNOW IF THAT"S WORTH WHILE DOIN HERE, or JUST WHEN WE UPDATE WHOLE MATRIX
+			parameters$admixed.covariance.inverse <- new.inverse 
+		}
+		
 	}
 	return(parameter.list)
 }
