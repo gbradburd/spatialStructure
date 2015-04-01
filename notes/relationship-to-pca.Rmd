@@ -1,0 +1,113 @@
+---
+title: "Relationship to PCA"
+date: March 31, 2015
+---
+
+```{r setup, include=FALSE}
+fig.dim <- 5
+knitr::opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim)
+# helper function to simulate data:
+sim_data <- function (nind, nloci, do.alleles=TRUE,
+        locs=cbind( lat=runif(nind), lon=runif(nind) ),
+        env=ifelse( locs[,1] > 0.5, 1, 0 ),
+        a0=0.7,aD=1,aE=0,a2=1,nugget=0.2) {
+    indivs <- paste("I",1:nind,sep="")
+    snps <- paste("SNP",1:nloci,sep="")
+    D <- sqrt( outer( locs[,1], locs[,1], "-" )^2 + outer( locs[,2], locs[,2], "-" )^2 )
+    E <- abs( outer( env, env, "-" ) )
+    covmat <- exp(-sqrt(aD*D^2+aE*E^2)^a2)/a0 + nugget * diag(nind)
+    untf.freqs <- matrix( rnorm(nind*nloci), nrow=nloci ) %*% chol(covmat)
+    mean.freqs <- 5*rnorm(nloci)
+    freqs <- 1/(1+exp(-untf.freqs+mean.freqs[row(untf.freqs)]))
+    genotypes <- matrix( rbinom(nloci*nind,size=2,prob=freqs), nrow=nloci )/2
+    bases <- c("A","C","G","T")
+    major <- sample(1:4,size=nloci,replace=TRUE)
+    minor <- 1+(((major-1)+sample(1:3,size=nloci,replace=TRUE))%%4)
+    alleles <- if (do.alleles) { matrix( paste(
+            bases[ cbind(major,minor)[cbind(as.vector(row(genotypes)),1+as.vector(genotypes>0)) ] ],
+            bases[ cbind(major,minor)[cbind(as.vector(row(genotypes)),1+as.vector(genotypes>1)) ] ],
+        sep="/" ), nrow=nloci ) } else { NULL }
+    colnames(alleles) <- colnames(genotypes) <- rownames(locs) <- indivs
+    rownames(alleles) <- rownames(genotypes) <- snps
+    return( list( locs=locs, env=env, covmat=covmat, 
+                    freqs=freqs, genotypes=genotypes, alleles=alleles, 
+                params=list(a0=a0,aD=aD,aE=aE,a2=a2,nugget=nugget) ) )
+}
+```
+
+
+Let's simulate some diploid data, basically under the model, in continuous space,
+and find the covariance matrix between genotypes (coded as fraction of alleles that are reference):
+```{r sim_data, cache=TRUE}
+nind <- 1000
+nloci <- 1e4
+simdata <- sim_data(nind=nind,nloci=nloci)
+covmat <- cov( simdata$genotypes )
+cols <- rainbow(nind)[rank(simdata$locs[,1])]
+pchs <- as.numeric(cut(simdata$locs[,2],breaks=12))
+```
+
+Here's what the PCs of this un-normalized matrix look like:
+on the left is the sampling scheme, with colors and point types indicating location on the (geographic) map,
+and on the right is the first two PCs.
+```{r plot_sim_pca_map}
+pca <- eigen(covmat)
+layout(t(1:2))
+plot(simdata$locs, col=cols, pch=pchs, main="locations" )
+plot(pca$vectors[,1:2], col=cols, pch=pchs, main="PC map", xlab="PC1", ylab="PC2" )
+```
+
+Also, the first 8 PCs as colors on the sample map:
+```{r pcs_on_map, fig.height=2*fig.dim}
+layout(matrix(1:9,nrow=3))
+par(mar=c(2,2,2,0.5)+.1)
+plot(pca$values/sum(pca$values),ylab="proportion", main="proportion of variance explained", xlab="PC#")
+for (k in 1:8) {
+    plot( simdata$locs, col=heat.colors(64)[cut(pca$vectors[,k],breaks=64)], main=paste("PC",k,sep='') )
+}
+```
+
+That first PC is almost constant, it turns out,
+and as we might guess from the map above,
+conveys mean covariance to everyone else:
+```{r first_pc, fig.width=fig.dim}
+plot(pca$vectors[,1],rowMeans(covmat),xlab="PC1",ylab="mean covariance")
+```
+
+Our gestalt is that the first PC is constant:
+since PCs are orthonormal, it should be about $1/\sqrt{n}$,
+where $n$ is the number of samples;
+the corresponding singular vector in genotype space
+is the vector of genotype frequencies,
+and the total amount of variance this explains would be equal to $n \sigma^2_f$,
+where $\simga^2_f$ is the variance in genotype frequency.
+We can check this:
+```{r check_eigenvalue}
+varfreq <- var( rowMeans(simdata$freqs) )
+cat("Variance in allele frequencies: ", varfreq, "\n")
+cat("Top eigenvalue divided by sample size: ", pca$values[1]/nind, "\n")
+```
+
+Now, we can get the PCA map we really want in several almost-equivalent ways:
+ignoring the top eigenvector:
+```{r lazy_pca}
+plot(pca$vectors[,2:3],col=cols,pch=pchs)
+```
+or doing PCA after subtracting allele means:
+```{r normalized_pca}
+npca <- eigen( cov(sweep(simdata$genotypes,1,rowMeans(simdata$genotypes),"-")) )
+plot(npca$vectors[,2:3],col=cols,pch=pchs)
+```
+or, which is exactly equivalent to the previous version,
+doing PCA on the covariance matrix pre- and post-multiplied by the projection matrix:
+```{r normalized_pca_2}
+pmat <- diag(nind)-1/nind
+npca2 <- eigen( pmat%*%covmat%*%pmat )
+plot(npca2$vectors[,2:3],col=cols,pch=pchs)
+```
+
+Agreement with parametric form:
+-------------------------------
+
+The data simluated above used logit-transformed correlated normals.
+Next, we could check that the relationship to distance still holds reasonably well.
