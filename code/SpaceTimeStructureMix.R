@@ -20,12 +20,20 @@ admixed.covariance <- function(cluster.list,n.clusters){
 }
 
 calculate.likelihood <- function(data,parameters){
-	A <- solve(parameters$admixed.covariance)
+	#A <- solve(parameters$admixed.covariance)
 
-	lnL <- -0.5 * data$n.loci * sum( parameters$inverse * data$sample.covariance ) - (data$n.loci/2) * parameters$determinant 
+	lnL <- -0.5 * data$n.loci * sum( parameters$admixed.covariance.inverse * data$sample.covariance ) - (data$n.loci/2) * parameters$determinant 
 #	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	return(lnL)
 }
+
+##GRAHAM REWROTE THIS TO TAKE COVAR & DET as functions
+calculate.likelihood.2 <- function(data, covar.inverse, covar.det){
+	lnL <- -0.5 * data$n.loci * (sum( covar.inverse * data$sample.covariance ) -  covar.det)
+#	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
+	return(lnL)
+}
+
 
 declare.cluster.list <- function(){
 	cluster.list <- list(
@@ -184,7 +192,7 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 	if(!is.null(initial.parameters)){
 		stop("not built yet")
 	} else {
-		mcmc.quantities$likelihood <- calculate.likelihood(data.list,parameter.list)
+		mcmc.quantities$likelihood <-   calculate.likelihood.2(data.list, parameter.list$admixed.covariance.inverse,  parameter.list$determinant )[1]     #calculate.likelihood(data.list,parameter.list)    #GRAHAM PUT THIS IN
 #		mcmc.quantities$prior.probs <- calculate.prior.probabilities(parameter.list)
 	}
 	return(mcmc.quantities)
@@ -195,6 +203,7 @@ require("gtools")   ##for dirchlet, we could write our own
 
 ##update the w for the ith individual
 update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantities){
+
 	rejected.move <- 1
 	num.clusters<-	model.options$n.clusters
 	these.two<-sample(num.clusters,2)
@@ -204,7 +213,7 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 	old.w.1<-parameter.list$admix.proportions[i,clst.1]
 	old.w.2<-parameter.list$admix.proportions[i,clst.2]
 
-	delta.w<-rnorm(1,sd=BLAH)
+	delta.w<-rnorm(1,sd=0.01)  ##WILL NEED TO DEFINE
 	new.w.1<- old.w.1 + delta.w
 	new.w.2<- old.w.2 - delta.w
 	
@@ -214,18 +223,27 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 		covar.2 <- parameter.list$cluster.list[[clst.2]]$covariance[i,]  #will eventually need the cluster mean
 		
 		u <- delta.w * ( parameter.list$admix.proportions[i,clst.1] * covar.1  - parameter.list$admix.proportions[i,clst.2] * covar.2  )
-		u[i] <- u[i]  + delta.w^2 * (covar.1[i,i] + covar.2[i,i])/2 	### (wi^k + Dw) (wi^k + Dw) 
+		u[i] <- u[i]  + delta.w^2 * (covar.1[i] + covar.2[i])/2 	### (wi^k + Dw) (wi^k + Dw) 
 		
 		v <- rep(0,data.list$n.ind)	
 		v[i] <- 1
 		
 		
-		matrix.updated<-double.sherman_r(Ap =pamameter.list$inverse, u, v,i )   #this function is current in Sherman in sandbox
-
-		new.determinant <- parameter.list$determinant + matrix.updated$determinant.correction   ##update on log-scale
-		new.inverse <- matrix.updated$inverse
+		matrix.updated.once<-  sherman_r (parameter.list$admixed.covariance.inverse,u,v)  
+		matrix.updated.twice<-  sherman_r (matrix.updated.once$new.inverse,v,u)  
 		
-		calculate.likelihood(deteminant = new.determinant, inverse =  new.inverse )
+			recover()
+		#double.sherman_r(Ap =parameter.list$admixed.covariance.inverse, u, v,i )   #this function is current in Sherman in sandbox
+
+		new.determinant <-  parameter.list$determinant + log(abs(matrix.updated.once$determ.update)) + log(abs(matrix.updated.twice$determ.update))
+		new.inverse <- matrix.updated.twice$new.inverse
+		
+		determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )
+		all(abs(matrix.updated.twice$new.inverse - solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )<EPS))   #TEST
+		calculate.likelihood.2(data.list, solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) ) ,  determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )$modulus )   #TEST
+		calculate.likelihood.2(data.list, new.inverse ,  new.determinant )  #TEST
+		
+	    new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]     
 
 		likelihood.ratio <- new.likelihood - mcmc.quantities$likelihood 
 		new.admixture.vec<-parameter.list$admix.proportions[i,]
@@ -238,9 +256,12 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 		if( exp(likelihood.ratio +prior.ratio) > runif(1)  ){
 			mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
 			mcmc.quantities$likelihood <- new.likelihood
-			parameter.list$admix.proportions <- new.admixture.vec
+			parameter.list$admix.proportions[i,] <- new.admixture.vec
 			parameter.list$determinant <- new.determinant
-			new.inverse
+		
+			parameter.list$cluster.list[[clst.1]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.1] %*%t(parameter.list$admix.proportions[,clst.1] )
+			parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.2] %*%t(parameter.list$admix.proportions[,clst.2] )
+			
 			##WE NEED TO UPDATE W MATRIX AS WELL< BUT I DONT KNOW IF THAT"S WORTH WHILE DOIN HERE, or JUST WHEN WE UPDATE WHOLE MATRIX
 			parameters$admixed.covariance.inverse <- new.inverse 
 		}

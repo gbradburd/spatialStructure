@@ -6,7 +6,7 @@ EPS <- 1e-8
 
 double.sherman_r <- function(Ap, u, v,i ){   #, faster=TRUE) {
 
-#	if(!faster) Sherman.correction<-(Ap %*% u %*% t(v) %*% Ap)/drop(1 + t(v) %*% Ap %*% u)
+#	if(!faster) Sherman.correction<-(Ap %*% u %*% t(v) %*% Ap)  /drop(1 + t(v) %*% Ap %*% u)
 	
 	 ##  t(v) %*% Ap  =  Ap[i,]
 	
