@@ -171,7 +171,7 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 	return(mcmc.quantities)
 }
 
-≈ <- function(mcmc.quantities){
+print.mcmc.quantities <- function(mcmc.quantities){
 	print(str(mcmc.quantities))
 }
 
