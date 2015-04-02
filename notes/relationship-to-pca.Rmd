@@ -33,6 +33,7 @@ sim_data <- function (nind, nloci, do.alleles=TRUE,
                     freqs=freqs, genotypes=genotypes, alleles=alleles, 
                 params=list(a0=a0,aD=aD,aE=aE,a2=a2,nugget=nugget) ) )
 }
+require(fields)
 ```
 
 
@@ -111,3 +112,39 @@ Agreement with parametric form:
 
 The data simluated above used logit-transformed correlated normals.
 Next, we could check that the relationship to distance still holds reasonably well.
+Here's how the transformation has changed the covariance:
+```{r cov_relationship, fig.width=fig.dim}
+ut <- upper.tri(covmat,diag=FALSE)
+plot( simdata$covmat[ut], covmat[ut], xlab="untransformed covariance", ylab="observed covariance" )
+```
+Hm.  The relationship is not simple.
+
+
+Here is the IBD plot, with colors denoting environmental distance, 
+and the curves showing the covariance (of the *untransformed* frequencies)
+using the true parameters, at environmental distance 0 and 1
+(the same, now, as we have $\alpha_E=0$):
+```{r plot_cov}
+geodist <- rdist(simdata$locs)
+envdist <- rdist(simdata$env)
+gvals <- seq(0,max(geodist),length.out=100)
+pred.cov <- function (D,E,diag=FALSE,aD=1,aE=0,a2=1,a0=0.7,nugget=0.2) { 
+    exp(-sqrt(aD*D^2+aE*E^2)^a2)/a0 + diag*nugget
+}
+predvals.0 <- pred.cov(gvals,E=0)
+predvals.1 <- pred.cov(gvals,E=1)
+ecols <- adjustcolor(rainbow(16,start=4/6,end=0),.2)[as.numeric(cut(envdist[ut],breaks=16))]
+plot(geodist[ut], covmat[ut], col=ecols, pch=20, ylab="covariance", xlab="geog distance", ylim=range(0,covmat[ut],predvals.0))
+lines( gvals, predvals.0, lwd=2 )
+lines( gvals, predvals.1, lwd=2, lty=2 )
+```
+Hm, better not plot them on the same scale,
+now including a quick, least-squares fit of covariance to $\exp(-\alpha_D D)/\alpha_0)$:
+```{r plot_cov_zoomed}
+layout(t(1:2))
+quick.lm <- lm(log(covmat[ut])~geodist[ut])
+plot(geodist[ut], covmat[ut], col=ecols, pch=20, ylab="covariance", xlab="geog distance" )
+lines(gvals, exp(coef(quick.lm)[2]*gvals+coef(quick.lm)[1]), lwd=2 )
+plot( gvals, predvals.0, lwd=2 )
+lines( gvals, predvals.1, lwd=2, lty=2 )
+```
