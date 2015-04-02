@@ -14,3 +14,6 @@
 
 #	"code" is a folder for the code that will execute
 #	this model
+
+#   "notes" is a folder for small writeups and reports
+
