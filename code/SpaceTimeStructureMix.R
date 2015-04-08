@@ -232,18 +232,20 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 		matrix.updated.once<-  sherman_r (parameter.list$admixed.covariance.inverse,u,v)  
 		matrix.updated.twice<-  sherman_r (matrix.updated.once$new.inverse,v,u)  
 		
-			recover()
+		#	recover()
 		#double.sherman_r(Ap =parameter.list$admixed.covariance.inverse, u, v,i )   #this function is current in Sherman in sandbox
 
 		new.determinant <-  parameter.list$determinant + log(abs(matrix.updated.once$determ.update)) + log(abs(matrix.updated.twice$determ.update))
 		new.inverse <- matrix.updated.twice$new.inverse
+
+#TEST MATRIX stuff, keep for mo.
+#				determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )
+	#	all(abs(matrix.updated.twice$new.inverse - solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )<EPS))   #TEST
+	#	calculate.likelihood.2(data.list, solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) ) ,  determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )$modulus )   #TEST
+	#	calculate.likelihood.2(data.list, new.inverse ,  new.determinant )  #TEST
+
 		
-		determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )
-		all(abs(matrix.updated.twice$new.inverse - solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )<EPS))   #TEST
-		calculate.likelihood.2(data.list, solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) ) ,  determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )$modulus )   #TEST
-		calculate.likelihood.2(data.list, new.inverse ,  new.determinant )  #TEST
-		
-	    new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]     
+	   new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]     
 
 		likelihood.ratio <- new.likelihood - mcmc.quantities$likelihood 
 		new.admixture.vec<-parameter.list$admix.proportions[i,]
@@ -260,8 +262,7 @@ update.w.i<-function(i, data.list, parameter.list, model.options, mcmc.quantitie
 			parameter.list$determinant <- new.determinant
 		
 			parameter.list$cluster.list[[clst.1]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.1] %*%t(parameter.list$admix.proportions[,clst.1] )
-			parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.2] %*%t(parameter.list$admix.proportions[,clst.2] )
-			
+			parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.2] %*%t(parameter.list$admix.proportions[,clst.2]	
 			##WE NEED TO UPDATE W MATRIX AS WELL< BUT I DONT KNOW IF THAT"S WORTH WHILE DOIN HERE, or JUST WHEN WE UPDATE WHOLE MATRIX
 			parameters$admixed.covariance.inverse <- new.inverse 
 		}
@@ -299,6 +300,9 @@ geo.dist <- fields::rdist(spatial.coords)
 time.dist <- fields::rdist(temporal.coords)
 
 par.cov <- spatial.covariance(geo.dist,time.dist,2,3,1,2)
+
+admix<-sample(0:1,size=k,replace=TRUE)
+par.cov<-admix %*% t(admix) * par.cov + (1-admix) %*% t(1-admix) * par.cov
 
 sim.data <- list("geo.coords" = spatial.coords,
 			"time.coords" = temporal.coords,
