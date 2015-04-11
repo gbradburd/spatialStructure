@@ -264,13 +264,20 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 }
 
 
+sherman_r <- function(Ap, u, v) {
+  determ.update <- drop(1 + t(v) %*% Ap %*% u)
+  
+  list(new.inverse = Ap - (Ap %*% u %*% t(v) %*% Ap)/determ.update, determ.update=determ.update)
+  
+  }
+
 require("gtools")   ##for dirchlet, we could write our own
 
 ##update the w for the ith individual
 update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.list, model.options, mcmc.quantities){
 	
 	rejected.move <- 1
-	num.clusters<-	length(super.list$param$cluster.list)
+	num.clusters<-	length(super.list$parameter.list$cluster.list)
 	these.two<-sample(num.clusters,2)
 	clst.1<-these.two[1]
 	clst.2<-these.two[2]
@@ -315,27 +322,27 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	   new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]     
 
 		likelihood.ratio <- new.likelihood - super.list$mcmc.quantities$likelihood 
-		new.admixture.vec<-parameter.list$admix.proportions[i,]
+		new.admixture.vec<-super.list$parameter.list$admix.proportions[i,]
 		new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
 		
-		new.prior.prob <- log(ddirichlet(new.admixture.vec ,rep(CLUSTERPARAM  , num.clusters)))
+		new.prior.prob <- log(ddirichlet(new.admixture.vec ,rep(0.5,num.clusters) ))
 		prior.ratio <- new.prior.prob - mcmc.quantities$prior.probs$admix.proportions[i]  
 		###prior.prob of admixture should be avector not a matrix
 		
 		if( exp(likelihood.ratio +prior.ratio) > runif(1)  ){
-			mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
-			mcmc.quantities$likelihood <- new.likelihood
-			parameter.list$admix.proportions[i,] <- new.admixture.vec
-			parameter.list$determinant <- new.determinant
+			super.list$mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
+			super.list$mcmc.quantities$likelihood <- new.likelihood
+			super.list$parameter.list$admix.proportions[i,] <- new.admixture.vec
+			super.list$parameter.list$determinant <- new.determinant
 		
-			parameter.list$cluster.list[[clst.1]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.1] %*%t(parameter.list$admix.proportions[,clst.1] )
-			parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.2] %*%t(parameter.list$admix.proportions[,clst.2])	
+			super.list$parameter.list$cluster.list[[clst.1]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.1] %*%t(parameter.list$admix.proportions[,clst.1] )
+			super.list$parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.2] %*%t(parameter.list$admix.proportions[,clst.2])	
 			##WE NEED TO UPDATE W MATRIX AS WELL BUT I DONT KNOW IF THAT"S WORTH WHILE DOIN HERE
 			
-			parameter.list$inverse <- new.inverse 
+			super.list$parameter.list$inverse <- new.inverse 
 		}
 	}
-	return(parameter.list)
+	return(super.list)
 }
 
 slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.quantities){
@@ -373,9 +380,9 @@ MCMC <- function(	data,
 	super.list$mcmc.quantities <- initialize.mcmc.quantities(data.list,super.list$parameter.list,model.options,mcmc.options,initial.parameters)
 	
 	for(i in 1:mcmc.options$ngen){
-	for(i in sample())
-		update.w.i(i=i, data.list,super.list)
-	
+	for(i in sample(1:100)){  ##need num. samples here
+		super.list<-update.w.i(i=i, data.list,super.list)
+	}
 	}
 	# for(i in 1:mcmc.options$ngen){
 		# super.list <- Update(super.list)
