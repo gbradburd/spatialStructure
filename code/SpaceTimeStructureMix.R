@@ -31,12 +31,11 @@ calculate.likelihood <- function(data,parameters){
 ##GRAHAM REWROTE THIS TO TAKE COVAR & DET as functions
 calculate.likelihood.2 <- function(data, covar.inverse, covar.det){
 
-	lnL <- -0.5 * data$n.loci * (sum( covar.inverse * data$sample.covariance ) -  covar.det)
+	lnL <- -0.5 * data$n.loci * (sum( covar.inverse * data$sample.covariance ) +  covar.det)
 #	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	return(lnL)
 }
 
-=======
 declare.super.list <- function(){
 	super.list <- list(
 		"parameter.list",
