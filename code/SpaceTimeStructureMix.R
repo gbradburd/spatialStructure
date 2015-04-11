@@ -285,7 +285,7 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	old.w.1<-super.list$parameter.list$admix.proportions[i,clst.1]
 	old.w.2<-super.list$parameter.list$admix.proportions[i,clst.2]
 
-
+	recover()
 	delta.w<-rnorm(1,sd=0.01)  ##WILL NEED TO DEFINE
 #	delta.w <- rnorm(1,sd= exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$admix.proportions[i]))
 	new.w.1 <- old.w.1 + delta.w
@@ -320,26 +320,26 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 
 		
 	   new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]     
-
 		likelihood.ratio <- new.likelihood - super.list$mcmc.quantities$likelihood 
 		new.admixture.vec<-super.list$parameter.list$admix.proportions[i,]
 		new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
 		
 		new.prior.prob <- log(ddirichlet(new.admixture.vec ,rep(0.5,num.clusters) ))
-		prior.ratio <- new.prior.prob - mcmc.quantities$prior.probs$admix.proportions[i]  
+		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$admix.proportions[i]  
 		###prior.prob of admixture should be avector not a matrix
-		
-		if( exp(likelihood.ratio +prior.ratio) > runif(1)  ){
+		accept.ratio<-exp(likelihood.ratio +prior.ratio)
+		if( accept.ratio > runif(1)  ){
 			super.list$mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
 			super.list$mcmc.quantities$likelihood <- new.likelihood
 			super.list$parameter.list$admix.proportions[i,] <- new.admixture.vec
 			super.list$parameter.list$determinant <- new.determinant
 		
-			super.list$parameter.list$cluster.list[[clst.1]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.1] %*%t(parameter.list$admix.proportions[,clst.1] )
-			super.list$parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <-  parameter.list$admix.proportions[,clst.2] %*%t(parameter.list$admix.proportions[,clst.2])	
+			super.list$parameter.list$cluster.list[[clst.1]]$admix.prop.matrix <-  super.list$parameter.list$admix.proportions[,clst.1] %*%t(super.list$parameter.list$admix.proportions[,clst.1] )
+			super.list$parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <-  super.list$parameter.list$admix.proportions[,clst.2] %*%t(super.list$parameter.list$admix.proportions[,clst.2])	
 			##WE NEED TO UPDATE W MATRIX AS WELL BUT I DONT KNOW IF THAT"S WORTH WHILE DOIN HERE
 			
 			super.list$parameter.list$inverse <- new.inverse 
+			cat("updated ", i)	
 		}
 	}
 	return(super.list)
@@ -361,7 +361,7 @@ slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.qu
 		admix.proportions.prime[i,clst.2] <- new.w.2
 		admixed.covariance.prime <- admixed.covariance(parameter.list$cluster.list,model.options$n.clusters,parameter.list$shared.mean)
 # Update <- function(super.list){
-	
+		
 # }
 #data <- geo.coords,time.coords,sample.covariance
 #model.options <- round.earth,n.clusters
