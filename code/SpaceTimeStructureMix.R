@@ -127,7 +127,13 @@ initialize.param.list <- function(data,model.options,initial.parameters=NULL){
 						"cluster.list" = generate.clusters(model.options$n.clusters),
 						"admixed.covariance" = NULL)
 	if(!is.null(initial.parameters)){
-		stop("this part isn't built yet")
+		parameters$shared.mean <- initial.parameters$shared.mean
+		parameters$admix.proportions <- initial.parameters$admix.proportions
+		parameters$nuggets <- initial.parameters$nuggets
+		parameters$cluster.list <- initial.parameters$cluster.list
+		parameters$admixed.covariance <- admixed.covariance(parameters$cluster.list,model.options$n.clusters,parameters$shared.mean)
+		parameters$inverse <- solve(parameters$admixed.covariance)
+		parameters$determinant <- determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	} else {
 		parameters$shared.mean <- min(data$sample.covariance)
 		parameters$admix.proportions <- gtools::rdirichlet(n = n.ind,alpha = rep(1,model.options$n.clusters))
@@ -242,9 +248,9 @@ prior.prob.exponent <- function(exponent){
 initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mcmc.options,initial.parameters=NULL){
 	# recover()
 	mcmc.quantities <- make.mcmc.quantities(data.list$n.ind,model.options,mcmc.options)
-	if(!is.null(initial.parameters)){
-		stop("not built yet")
-	} else {
+	# if(!is.null(initial.parameters)){
+		# stop("not built yet")
+	# } else {
 
 		mcmc.quantities$likelihood <-   calculate.likelihood.2(data.list, parameter.list$inverse,  parameter.list$determinant )[1]     #calculate.likelihood(data.list,parameter.list)    #GRAHAM PUT THIS IN
 #		mcmc.quantities$prior.probs <- calculate.prior.probabilities(parameter.list)
@@ -258,10 +264,9 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 		mcmc.quantities$prior.probs$sill <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"sill",prior.prob.sill)
 		mcmc.quantities$prior.probs$exponent <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"exponent",prior.prob.exponent)
 		mcmc.quantities$posterior.prob <- mcmc.quantities$likelihood + sum(unlist(mcmc.quantities$prior.probs))
-	}
+	# }
 	return(mcmc.quantities)
 }
-
 
 sherman_r <- function(Ap, u, v) {
   determ.update <- drop(1 + t(v) %*% Ap %*% u)
@@ -359,6 +364,7 @@ slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.qu
 		admix.proportions.prime[i,clst.1] <- new.w.1
 		admix.proportions.prime[i,clst.2] <- new.w.2
 		admixed.covariance.prime <- admixed.covariance(parameter.list$cluster.list,model.options$n.clusters,parameter.list$shared.mean)
+}}
 # Update <- function(super.list){
 		
 # }
@@ -425,6 +431,130 @@ MCMC(sim.data,model.options,mcmc.options)
 
 
 
+#Gid sims
+slow.update.w.j <- function(j, data.list, super.list){
+#	recover()
+#	these.two <- sample(super.list$model.options$n.clusters,2)
+#	clst.1 <- these.two[1]
+#	clst.2 <- these.two[2]
+#
+	delta.w <- rnorm(1,sd= 0.01)#exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$admix.proportions[i]))
+	parameter.list.prime <- super.list$parameter.list
+	mcmc.quantities.prime <- super.list$mcmc.quantities
+	new.w.1 <- super.list$parameter.list$admix.proportions[j,1] + delta.w
+	new.w.2 <- super.list$parameter.list$admix.proportions[j,2] - delta.w
+#	
+	if( !(new.w.1<0 | new.w.1>1)  &  !(new.w.2<0 | new.w.2>1) )  {
+		parameter.list.prime$admix.proportions[j,1] <- new.w.1
+		parameter.list.prime$admix.proportions[j,2] <- new.w.2
+		parameter.list.prime$cluster.list$Cluster_1$admix.prop.matrix <- parameter.list.prime$admix.proportions[,1] %*% t(parameter.list.prime$admix.proportions[,1])
+		parameter.list.prime$cluster.list$Cluster_2$admix.prop.matrix <- parameter.list.prime$admix.proportions[,2] %*% t(parameter.list.prime$admix.proportions[,2])
+		parameter.list.prime$admixed.covariance <- admixed.covariance(parameter.list.prime$cluster.list,super.list$model.options$n.clusters,super.list$parameter.list$shared.mean)
+		parameter.list.prime$inverse <- MASS::ginv(parameter.list.prime$admixed.covariance)
+		parameter.list.prime$determinant <- determinant(parameter.list.prime$admixed.covariance,logarithm=TRUE)$modulus
+		mcmc.quantities.prime$likelihood <- calculate.likelihood.2(data.list,parameter.list.prime$inverse,parameter.list.prime$determinant)
+		mcmc.quantities.prime$prior.probs$admix.proportions <- prior.prob.admix.proportions(parameter.list.prime,super.list$model.options)
+		mcmc.quantities.prime$posterior.prob <- mcmc.quantities.prime$likelihood + sum(unlist(mcmc.quantities.prime$prior.probs))
+#		
+		if(exp(mcmc.quantities.prime$posterior.prob - super.list$mcmc.quantities$posterior.prob) >= runif(1)){
+			super.list$parameter.list <- parameter.list.prime
+			super.list$mcmc.quantities <- mcmc.quantities.prime
+		}
+	}
+	return(super.list)
+}
+
+
+#GIDEON PLAYGROUND
+MCMC.gid <- function(	data,
+						model.options,
+						mcmc.options,
+						initial.parameters=NULL){
+	recover()
+	data.list <- make.data.list(data,model.options)
+	super.list <- declare.super.list()
+	super.list$parameter.list <- initialize.param.list(data.list,model.options,initial.parameters)
+	super.list$output.list <- make.output.list(data.list$n.ind,model.options,mcmc.options)
+	super.list$mcmc.quantities <- initialize.mcmc.quantities(data.list,super.list$parameter.list,model.options,mcmc.options,initial.parameters)
+	super.list$model.options <- model.options
+	tmp1 <- numeric(10000)
+	tmp2 <- numeric(10000)
+	super.list$mcmc.quantities$likelihood
+	super.list$mcmc.quantities$posterior.prob
+	par(mfrow=c(2,2))
+	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
+	for(i in 1:10000){
+		j <- sample(1:data.list$n.ind,1)
+		super.list <- slow.update.w.j(j,data.list,super.list)
+		tmp1[i] <- sum((super.list$parameter.list$admix.proportions - data$sim.admix.props)^2)
+		tmp2[i] <- sum((super.list$parameter.list$admixed.covariance - data.list$sample.covariance)^2)
+	}
+	super.list$mcmc.quantities$likelihood
+	super.list$mcmc.quantities$posterior.prob
+	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
+	plot(tmp1) ; plot(tmp2)
+	# for(i in 1:mcmc.options$ngen){
+		# super.list <- Update(super.list)
+		
+	# }
+	save(parameter.list,mcmc.quantities,file="~/desktop/testobj.Robj")
+}
+
+#SIMULATE TOY DATA
+k <- 10
+n.loci <- 1e3
+spatial.coords <- cbind(runif(k),runif(k))
+temporal.coords <- sample(1:100,k,replace=TRUE)
+geo.dist <- fields::rdist(spatial.coords)
+time.dist <- fields::rdist(temporal.coords)
+sim.admix.props <- sample(0:1,size=k,replace=TRUE)
+	sim.admix.props[which(sim.admix.props==1)] <- 0.99
+	sim.admix.props[which(sim.admix.props==0)] <- 0.01
+	sim.admix.props <- cbind(sim.admix.props,1-sim.admix.props)
+sim.cluster.list <- list("Cluster_1" = list("admix.prop.matrix" = sim.admix.props[,1] %*% t(sim.admix.props[,1]),
+											"covariance" = spatial.covariance(geo.dist,time.dist,2,0.3,1.1,2)),
+						 "Cluster_2" = list("admix.prop.matrix" = sim.admix.props[,2] %*% t(sim.admix.props[,2]),
+											"covariance" = spatial.covariance(geo.dist,time.dist,1,1.2,1.3,2.5)))
+sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,2,0)
+											
+#generate initial parameters 
+# that are the same as those used to simulate data,
+# EXCEPT for the admixture proportions, which are simulated from a dirichlet
+fake.admix.props <- gtools::rdirichlet(n = k,alpha = rep(1,2))
+initial.parameters <- list("shared.mean" = 0,
+							"admix.proportions" = fake.admix.props,
+							"nuggets" = rep(0,k),
+							"cluster.list" = generate.clusters(2))
+#initial parameters cluster 1
+	initial.parameters$cluster.list$Cluster_1$covariance.params$geo.effect <- 2
+	initial.parameters$cluster.list$Cluster_1$covariance.params$time.effect <- 0.3
+	initial.parameters$cluster.list$Cluster_1$covariance.params$exponent <- 1.1
+	initial.parameters$cluster.list$Cluster_1$covariance.params$sill <- 2
+	initial.parameters$cluster.list$Cluster_1$covariance <- spatial.covariance(geo.dist,time.dist,2,0.3,1.1,2)
+	initial.parameters$cluster.list$Cluster_1$admix.prop.matrix <- fake.admix.props[,1] %*% t(fake.admix.props[,1])
+
+#initial parameters cluster 2
+	initial.parameters$cluster.list$Cluster_2$covariance.params$geo.effect <- 1
+	initial.parameters$cluster.list$Cluster_2$covariance.params$time.effect <- 1.2
+	initial.parameters$cluster.list$Cluster_2$covariance.params$exponent <- 1.3
+	initial.parameters$cluster.list$Cluster_2$covariance.params$sill <- 2.5
+	initial.parameters$cluster.list$Cluster_2$covariance <- spatial.covariance(geo.dist,time.dist,1,1.2,1.3,2.5)
+	initial.parameters$cluster.list$Cluster_2$admix.prop.matrix <- fake.admix.props[,2] %*% t(fake.admix.props[,2])
+
+
+
+
+sim.data <- list("geo.coords" = spatial.coords,
+				"time.coords" = temporal.coords,
+				"sample.covariance" = sim.admixed.cov.mat,
+				"n.loci" = n.loci,
+				"sim.admix.props" = sim.admix.props)
+model.options = list("round.earth" = FALSE,
+						"n.clusters" = 2)
+mcmc.options = list("ngen" = 100,
+					"samplefreq" = 10,
+					"printfreq" = 5)
+MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
 
 
 
