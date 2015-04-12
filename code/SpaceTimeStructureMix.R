@@ -306,7 +306,7 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 											new.admix.proportions[,these.two[2]] %*% t(new.admix.proportions[,these.two[2]]))
 		new.admixed.covariance <- update.admixed.covariance(super.list$parameter.list$cluster.list,num.clusters,
 															super.list$parameter.list$shared.mean,
-															updated.clusters = c(1,2),
+															updated.clusters = these.two,
 															admix.prop.matrix.primes = new.admix.prop.matrices)
 		test <- solve(new.admixed.covariance)	 #GID CHECK
 		covar.1 <- super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,]  #will eventually need the cluster mean
