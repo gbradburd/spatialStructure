@@ -284,7 +284,7 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	old.w.1<-super.list$parameter.list$admix.proportions[i,clst.1]
 	old.w.2<-super.list$parameter.list$admix.proportions[i,clst.2]
 
-	recover()
+
 	delta.w<-rnorm(1,sd=0.01)  ##WILL NEED TO DEFINE
 #	delta.w <- rnorm(1,sd= exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$admix.proportions[i]))
 	new.w.1 <- old.w.1 + delta.w
@@ -361,7 +361,8 @@ slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.qu
 		admixed.covariance.prime <- admixed.covariance(parameter.list$cluster.list,model.options$n.clusters,parameter.list$shared.mean)
 # Update <- function(super.list){
 		
-# }
+ }
+ }
 #data <- geo.coords,time.coords,sample.covariance
 #model.options <- round.earth,n.clusters
 #mcmc.options <- ngen,samplefreq,printfreq
