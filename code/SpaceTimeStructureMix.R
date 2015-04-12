@@ -318,33 +318,32 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 		 #GID CHECK to see if graham inverse is same as gid inverse
 		new.admix.proportions <- super.list$parameter.list$admix.proportions
 		new.admix.proportions[i,these.two] <- c(new.w.1,new.w.2)
-		new.admix.prop.matrices <- list(new.admix.proportions[,these.two[1]] %*% t(new.admix.proportions[,these.two[1]]),
-											new.admix.proportions[,these.two[2]] %*% t(new.admix.proportions[,these.two[2]]))
-		new.admixed.covariance <- update.admixed.covariance(super.list$parameter.list$cluster.list,num.clusters,
-															super.list$parameter.list$shared.mean,
-															updated.clusters = these.two,
-															admix.prop.matrix.primes = new.admix.prop.matrices)
-		test <- solve(new.admixed.covariance)	 #GID CHECK
 		covar.1 <- super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,]  #will eventually need the cluster mean
 		covar.2 <- super.list$parameter.list$cluster.list[[clst.2]]$covariance[i,]  #will eventually need the cluster mean
 		
-
-		u <- delta.w * ( super.list$parameter.list$admix.proportions[i,clst.1] * covar.1  - super.list$parameter.list$admix.proportions[i,clst.2] * covar.2  )
+		u <- delta.w * ( super.list$parameter.list$admix.proportions[,clst.1] * covar.1  - super.list$parameter.list$admix.proportions[,clst.2] * covar.2  )
 		u[i] <- u[i]  + delta.w^2 * (covar.1[i] + covar.2[i])/2 	### (wi^k + Dw) (wi^k + Dw) 
-		
 		v <- rep(0,data.list$n.ind)
 		v[i] <- 1
-		
 		
 		matrix.updated.once<-  sherman_r (super.list$parameter.list$inverse,u,v)  
 		matrix.updated.twice<-  sherman_r (matrix.updated.once$new.inverse,v,u)  
 		
-		#	recover()
-		#double.sherman_r(Ap =parameter.list$admixed.covariance.inverse, u, v,i )   #this function is current in Sherman in sandbox
-
 		new.determinant <-  super.list$parameter.list$determinant + log(abs(matrix.updated.once$determ.update)) + log(abs(matrix.updated.twice$determ.update))
 		new.inverse <- matrix.updated.twice$new.inverse
-		identical(test,new.inverse) #GID CHECK
+		
+		if(FALSE){ #TEST matrix inversion
+			new.admix.prop.matrices <- list(new.admix.proportions[,these.two[1]] %*% t(new.admix.proportions[,these.two[1]]),
+											new.admix.proportions[,these.two[2]] %*% t(new.admix.proportions[,these.two[2]]))
+			new.admixed.covariance <- update.admixed.covariance(super.list$parameter.list$cluster.list,num.clusters,
+															super.list$parameter.list$shared.mean,
+															updated.clusters = these.two,
+															admix.prop.matrix.primes = new.admix.prop.matrices)
+			test <- solve(new.admixed.covariance)	 #GID CHECK
+
+			summary(c(abs(test-new.inverse)))  #GID CHECK
+		}
+		
 #TEST MATRIX stuff, keep for mo.
 #				determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )
 	#	all(abs(matrix.updated.twice$new.inverse - solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )<EPS))   #TEST
@@ -399,6 +398,7 @@ MCMC.coop <- function(	data,
 	tmp2 <- numeric(10000)
 	super.list$mcmc.quantities$likelihood
 	super.list$mcmc.quantities$posterior.prob
+
 	par(mfrow=c(2,2))
 	plot(c(data.list$sample.covariance),c(super.list$parameter.list$admixed.covariance)) ; abline(0,1,col="red")
 	for(i in 1:10000){
