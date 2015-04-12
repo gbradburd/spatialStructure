@@ -19,6 +19,13 @@ admixed.covariance <- function(cluster.list,n.clusters,shared.mean){
 	Reduce("+",lapply(cluster.list,FUN=cluster.admixed.covariance)) + shared.mean
 }
 
+update.admixed.covariance <- function(cluster.list,n.clusters,shared.mean,updated.clusters,admix.prop.matrix.primes){
+	cluster.list[[updated.clusters[1]]]$admix.prop.matrix <- admix.prop.matrix.primes[[1]]
+	cluster.list[[updated.clusters[2]]]$admix.prop.matrix <- admix.prop.matrix.primes[[2]]
+	admixed.covariance.prime <- admixed.covariance(cluster.list,n.cluster,shared.mean)
+	return(admixed.covariance.prime)
+}
+
 calculate.likelihood <- function(data,parameters){
 	#A <- solve(parameters$admixed.covariance)
 
@@ -213,7 +220,7 @@ prior.prob.nuggets <- function(parameter.list){
 
 prior.prob.admix.proportions <- function(parameter.list,model.options){
 	log(ddirichlet(parameter.list$admix.proportions,
-					alpha=rep(1,model.options$n.clusters)))
+					alpha=rep(0.5,model.options$n.clusters)))
 }
 
 prior.prob.shared.mean <- function(parameter.list){
@@ -274,7 +281,7 @@ sherman_r <- function(Ap, u, v) {
 require("gtools")   ##for dirchlet, we could write our own
 
 ##update the w for the ith individual
-update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.list, model.options, mcmc.quantities){
+update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list, model.options, mcmc.quantities){
 	recover()
 	rejected.move <- 1
 	num.clusters<-	length(super.list$parameter.list$cluster.list)
@@ -292,10 +299,20 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	new.w.2 <- old.w.2 - delta.w
 	
 	if( !(new.w.1<0 | new.w.1>1)  &  !(new.w.2<0 | new.w.2>1) )  {
-			
+		 #GID CHECK to see if graham inverse is same as gid inverse
+		new.admix.proportions <- super.list$parameter.list$admix.proportions
+		new.admix.proportions[i,these.two] <- c(new.w.1,new.w.2)
+		new.admix.prop.matrices <- list(new.admix.proportions[,these.two[1]] %*% t(new.admix.proportions[,these.two[1]]),
+											new.admix.proportions[,these.two[2]] %*% t(new.admix.proportions[,these.two[2]]))
+		new.admixed.covariance <- update.admixed.covariance(super.list$parameter.list$cluster.list,num.clusters,
+															super.list$parameter.list$shared.mean,
+															updated.clusters = these.two,
+															admix.prop.matrix.primes = new.admix.prop.matrices)
+		test <- solve(new.admixed.covariance)	 #GID CHECK
 		covar.1 <- super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,]  #will eventually need the cluster mean
 		covar.2 <- super.list$parameter.list$cluster.list[[clst.2]]$covariance[i,]  #will eventually need the cluster mean
 		
+
 		u <- delta.w * ( super.list$parameter.list$admix.proportions[i,clst.1] * covar.1  - super.list$parameter.list$admix.proportions[i,clst.2] * covar.2  )
 		u[i] <- u[i]  + delta.w^2 * (covar.1[i] + covar.2[i])/2 	### (wi^k + Dw) (wi^k + Dw) 
 		
@@ -311,7 +328,7 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 
 		new.determinant <-  super.list$parameter.list$determinant + log(abs(matrix.updated.once$determ.update)) + log(abs(matrix.updated.twice$determ.update))
 		new.inverse <- matrix.updated.twice$new.inverse
-
+		identical(test,new.inverse) #GID CHECK
 #TEST MATRIX stuff, keep for mo.
 #				determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )
 	#	all(abs(matrix.updated.twice$new.inverse - solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )<EPS))   #TEST
@@ -319,7 +336,8 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	#	calculate.likelihood.2(data.list, new.inverse ,  new.determinant )  #TEST
 
 		new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]
-		likelihood.ratio <- new.likelihood - super.list$mcmc.quantities$likelihood
+		old.likelihood <- super.list$mcmc.quantities$likelihood
+		likelihood.ratio <- new.likelihood - old.likelihood
 		new.admixture.vec<-super.list$parameter.list$admix.proportions[i,]
 		new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
 		
@@ -327,9 +345,10 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$admix.proportions[i]
 		###prior.prob of admixture should be avector not a matrix
 		accept.ratio<-exp(likelihood.ratio +prior.ratio)
-		if( accept.ratio > runif(1)  ){
+		if( accept.ratio >= runif(1)  ){
 			super.list$mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
 			super.list$mcmc.quantities$likelihood <- new.likelihood
+			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob - new.likelihood - super.list$mcmc.quantities$prior.probs$admix.proportions[i] + new.prior.prob
 			super.list$parameter.list$admix.proportions[i,] <- new.admixture.vec
 			super.list$parameter.list$determinant <- new.determinant
 		
@@ -364,9 +383,9 @@ MCMC.coop <- function(	data,
 	tmp2 <- numeric(10000)
 	super.list$mcmc.quantities$likelihood
 	super.list$mcmc.quantities$posterior.prob
-	##GRAHAM FIXED MERGE ERROR HERE
-	#par(mfrow=c(2,2))
-	#plot(c(data.list$sample.covariance),c(super.list$parameter.list$admixed.covariance)) ; abline(0,1,col="red")
+
+	par(mfrow=c(2,2))
+	plot(c(data.list$sample.covariance),c(super.list$parameter.list$admixed.covariance)) ; abline(0,1,col="red")
 	for(i in 1:10000){
 		j <- 1#sample(1:data.list$n.ind,1)
 		super.list <-update.w.i( i=j, data.list,super.list)
@@ -376,8 +395,8 @@ MCMC.coop <- function(	data,
 	}
 	super.list$mcmc.quantities$likelihood
 	super.list$mcmc.quantities$posterior.prob
-	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
-
+	# plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
+#
 	new.covar<-admixed.covariance(super.list$parameter.list$cluster.list,super.list$model.options$n.clusters,super.list$parameter.list$shared.mean)
 	plot(data.list$sample.covariance,new.covar) ; abline(0,1,col="red")
 	plot(data.list$geo.dist,new.covar)
@@ -472,9 +491,13 @@ MCMC.gid <- function(	data,
 	super.list$mcmc.quantities$likelihood
 	super.list$mcmc.quantities$posterior.prob
 	par(mfrow=c(2,2))
-	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
+		plot(data.list$sample.covariance,
+				super.list$parameter.list$admixed.covariance,
+				xlab="sim.cov",
+				ylab="est.cov",
+				main="Initial: sim vs. est cov") ; abline(0,1,col="red")
 	for(i in 1:10000){
-		j <- 1#sample(1:data.list$n.ind,1)
+		j <- sample(1:data.list$n.ind,1)
 		#super.list <-update.w.i( i=j, data.list,super.list)
 		super.list <- slow.update.w.j(j,data.list,super.list)
 		tmp1[i] <- sum((super.list$parameter.list$admix.proportions - data$sim.admix.props)^2)
@@ -482,8 +505,13 @@ MCMC.gid <- function(	data,
 	}
 	super.list$mcmc.quantities$likelihood
 	super.list$mcmc.quantities$posterior.prob
-	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
-	plot(tmp1) ; plot(tmp2)
+	plot(data.list$sample.covariance,
+		super.list$parameter.list$admixed.covariance,
+				xlab="sim.cov",
+				ylab="est.cov",
+				main="Post-run: sim vs. est cov") ; abline(0,1,col="red")
+	plot(tmp1,xlab="mcmc iterations",ylab = "sum sq. diff",main="between est and sim admix props")
+	plot(tmp2,xlab="mcmc iterations",ylab = "sum sq. diff", main="between est and sim admixed cov")
 	# for(i in 1:mcmc.options$ngen){
 		# super.list <- Update(super.list)
 		
@@ -512,7 +540,7 @@ sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,2,0)
 # that are the same as those used to simulate data,
 # EXCEPT for the admixture proportions, which are simulated from a dirichlet
 fake.admix.props <- gtools::rdirichlet(n = k,alpha = rep(1,2))
-fake.admix.props[2:k,] <- sim.admix.props[2:k,]
+#fake.admix.props[2:k,] <- sim.admix.props[2:k,] #sets all but one ind's admix prop to true value, to check label-switchery
 initial.parameters <- list("shared.mean" = 0,
 							"admix.proportions" = fake.admix.props,
 							"nuggets" = rep(0,k),
