@@ -49,7 +49,6 @@ print.super.list <- function(super.list){
 	print(str(super.list))
 }
 
-
 declare.cluster.list <- function(){
 	cluster.list <- list(
 		"covariance.params" = list(	"geo.effect" = NULL,
@@ -251,11 +250,8 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 	# if(!is.null(initial.parameters)){
 		# stop("not built yet")
 	# } else {
-
-		mcmc.quantities$likelihood <-   calculate.likelihood.2(data.list, parameter.list$inverse,  parameter.list$determinant )[1]     #calculate.likelihood(data.list,parameter.list)    #GRAHAM PUT THIS IN
-#		mcmc.quantities$prior.probs <- calculate.prior.probabilities(parameter.list)
-
-		#mcmc.quantities$likelihood <- calculate.likelihood(data.list,parameter.list)
+#
+		mcmc.quantities$likelihood <-   calculate.likelihood.2(data.list, parameter.list$inverse,  parameter.list$determinant )     #calculate.likelihood(data.list,parameter.list)    #GRAHAM PUT THIS IN
 		mcmc.quantities$prior.probs$nuggets <- prior.prob.nuggets(parameter.list)
 		mcmc.quantities$prior.probs$admix.proportions <- prior.prob.admix.proportions(parameter.list,model.options)
 		mcmc.quantities$prior.probs$shared.mean <- prior.prob.shared.mean(parameter.list)
@@ -385,8 +381,8 @@ MCMC <- function(	data,
 	super.list$mcmc.quantities <- initialize.mcmc.quantities(data.list,super.list$parameter.list,model.options,mcmc.options,initial.parameters)
 	
 	for(i in 1:mcmc.options$ngen){
-	for(i in sample(1:100)){  ##need num. samples here
-		super.list<-update.w.i(i=i, data.list,super.list)
+	for(j in sample(1:100)){  ##need num. samples here
+		super.list<-update.w.i(i=j, data.list,super.list)
 	}
 	}
 	# for(i in 1:mcmc.options$ngen){
@@ -404,10 +400,10 @@ geo.dist <- fields::rdist(spatial.coords)
 time.dist <- fields::rdist(temporal.coords)
 
 par.cov <- spatial.covariance(geo.dist,time.dist,2,3,1,2)
-sim.means <- rbeta(n.loci,0.10,0.10)
-sim.freqs <- lapply(1:n.loci, FUN=function(i){MASS::mvrnorm(n = 1, mu = rep(sim.means[i],k), Sigma = par.cov)})
-sim.freqs <- do.call(cbind,sim.freqs)
-sample.covariance <- cov(t(sim.freqs))
+# sim.means <- rbeta(n.loci,0.10,0.10)
+# sim.freqs <- lapply(1:n.loci, FUN=function(i){MASS::mvrnorm(n = 1, mu = rep(sim.means[i],k), Sigma = par.cov)})
+# sim.freqs <- do.call(cbind,sim.freqs)
+# sample.covariance <- cov(t(sim.freqs))
 
 admix<-sample(0:1,size=k,replace=TRUE)
 par.cov.underlying<-par.cov
