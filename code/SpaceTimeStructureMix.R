@@ -213,7 +213,7 @@ prior.prob.nuggets <- function(parameter.list){
 
 prior.prob.admix.proportions <- function(parameter.list,model.options){
 	log(ddirichlet(parameter.list$admix.proportions,
-					alpha=rep(0.5,model.options$n.clusters)))
+					alpha=rep(1,model.options$n.clusters)))
 }
 
 prior.prob.shared.mean <- function(parameter.list){
@@ -275,7 +275,7 @@ require("gtools")   ##for dirchlet, we could write our own
 
 ##update the w for the ith individual
 update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.list, model.options, mcmc.quantities){
-	
+	recover()
 	rejected.move <- 1
 	num.clusters<-	length(super.list$parameter.list$cluster.list)
 	these.two<-sample(num.clusters,2)
@@ -299,7 +299,7 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 		u <- delta.w * ( super.list$parameter.list$admix.proportions[i,clst.1] * covar.1  - super.list$parameter.list$admix.proportions[i,clst.2] * covar.2  )
 		u[i] <- u[i]  + delta.w^2 * (covar.1[i] + covar.2[i])/2 	### (wi^k + Dw) (wi^k + Dw) 
 		
-		v <- rep(0,data.list$n.ind)	
+		v <- rep(0,data.list$n.ind)
 		v[i] <- 1
 		
 		
@@ -318,14 +318,13 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	#	calculate.likelihood.2(data.list, solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) ) ,  determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )$modulus )   #TEST
 	#	calculate.likelihood.2(data.list, new.inverse ,  new.determinant )  #TEST
 
-		
-	   new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]     
-		likelihood.ratio <- new.likelihood - super.list$mcmc.quantities$likelihood 
+		new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]
+		likelihood.ratio <- new.likelihood - super.list$mcmc.quantities$likelihood
 		new.admixture.vec<-super.list$parameter.list$admix.proportions[i,]
 		new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
 		
 		new.prior.prob <- log(ddirichlet(new.admixture.vec ,rep(0.5,num.clusters) ))
-		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$admix.proportions[i]  
+		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$admix.proportions[i]
 		###prior.prob of admixture should be avector not a matrix
 		accept.ratio<-exp(likelihood.ratio +prior.ratio)
 		if( accept.ratio > runif(1)  ){
@@ -345,26 +344,6 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	return(super.list)
 }
 
-slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.quantities){
-	recover()
-	these.two <- sample(model.options$n.clusters,2)
-	clst.1 <- these.two[1]
-	clst.2 <- these.two[2]
-
-	delta.w <- rnorm(1,sd= exp(mcmc.quantities$adaptive.mcmc$log.stps$admix.proportions[i]))
-	new.w.1 <- parameter.list$admix.proportions[i,clst.1] + delta.w
-	new.w.2 <- parameter.list$admix.proportions[i,clst.2] - delta.w
-	
-	if( !(new.w.1<0 | new.w.1>1)  &  !(new.w.2<0 | new.w.2>1) )  {
-		admix.proportions.prime <- parameter.list$admix.proportions
-		admix.proportions.prime[i,clst.1] <- new.w.1
-		admix.proportions.prime[i,clst.2] <- new.w.2
-		admixed.covariance.prime <- admixed.covariance(parameter.list$cluster.list,model.options$n.clusters,parameter.list$shared.mean)
-}}
-# Update <- function(super.list){
-		
- }
- }
 #data <- geo.coords,time.coords,sample.covariance
 #model.options <- round.earth,n.clusters
 #mcmc.options <- ngen,samplefreq,printfreq
@@ -385,29 +364,24 @@ MCMC.coop <- function(	data,
 	tmp2 <- numeric(10000)
 	super.list$mcmc.quantities$likelihood
 	super.list$mcmc.quantities$posterior.prob
-	par(mfrow=c(2,2))
-	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
+	#par(mfrow=c(2,2))
+	#plot(c(data.list$sample.covariance),c(super.list$parameter.list$admixed.covariance)) ; abline(0,1,col="red")
 	for(i in 1:10000){
-		j <- sample(1:data.list$n.ind,1)
+		j <- 1#sample(1:data.list$n.ind,1)
 		super.list <-update.w.i( i=j, data.list,super.list)
 		#super.list <- slow.update.w.j(j,data.list,super.list)
 		tmp1[i] <- sum((super.list$parameter.list$admix.proportions - data$sim.admix.props)^2)
 		tmp2[i] <- sum((super.list$parameter.list$admixed.covariance - data.list$sample.covariance)^2)
 	}
 	super.list$mcmc.quantities$likelihood
-#	super.list$mcmc.quantities$posterior.prob
-	plot(data.list$sample.covariance,initial.parameters$admixed.covariance) ; abline(0,1,col="red")
+	super.list$mcmc.quantities$posterior.prob
+	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
 
 	new.covar<-admixed.covariance(super.list$parameter.list$cluster.list,super.list$model.options$n.clusters,super.list$parameter.list$shared.mean)
 	plot(data.list$sample.covariance,new.covar) ; abline(0,1,col="red")
 	plot(data.list$geo.dist,new.covar)
 	points(data.list$geo.dist,data.list$sample.covariance,col="red")
 	plot(super.list$parameter.list$admix.proportions,data$sim.admix.props,type="n"); text(super.list$parameter.list$admix.proportions,data$sim.admix.props, 1:10)
-#	plot(tmp1) ; plot(tmp2)
-	# for(i in 1:mcmc.options$ngen){
-		# super.list <- Update(super.list)
-		
-	# }
 	save(parameter.list,mcmc.quantities,file="~/desktop/testobj.Robj")
 }
 
@@ -439,7 +413,7 @@ model.options = list("round.earth" = FALSE,
 mcmc.options = list("ngen" = 100,
 					"samplefreq" = 10,
 					"printfreq" = 5)
-MCMC(sim.data,model.options,mcmc.options)
+MCMC.coop(sim.data,model.options,mcmc.options)
 
 
 
@@ -499,7 +473,7 @@ MCMC.gid <- function(	data,
 	par(mfrow=c(2,2))
 	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
 	for(i in 1:10000){
-		j <- sample(1:data.list$n.ind,1)
+		j <- 1#sample(1:data.list$n.ind,1)
 		#super.list <-update.w.i( i=j, data.list,super.list)
 		super.list <- slow.update.w.j(j,data.list,super.list)
 		tmp1[i] <- sum((super.list$parameter.list$admix.proportions - data$sim.admix.props)^2)
@@ -537,6 +511,7 @@ sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,2,0)
 # that are the same as those used to simulate data,
 # EXCEPT for the admixture proportions, which are simulated from a dirichlet
 fake.admix.props <- gtools::rdirichlet(n = k,alpha = rep(1,2))
+fake.admix.props[2:k,] <- sim.admix.props[2:k,]
 initial.parameters <- list("shared.mean" = 0,
 							"admix.proportions" = fake.admix.props,
 							"nuggets" = rep(0,k),
@@ -571,6 +546,7 @@ mcmc.options = list("ngen" = 100,
 					"samplefreq" = 10,
 					"printfreq" = 5)
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
+MCMC.coop(sim.data,model.options,mcmc.options,initial.parameters)
 
 
 
@@ -610,5 +586,32 @@ initiate.adaptive.mcmc <- function(mcmc.quantities){
 	mcmc.quantities$adaptive.mcmc$log.stps <- rapply(mcmc.quantities$adaptive.mcmc$log.stps,function(x){0},how="replace")
 	return(mcmc.quantities)
 }
+slow.admixed.covariance <- function(cluster.list,n.clusters,shared.mean){
+	admixed.cov <- cluster.list[[1]]$covariance * cluster.list[[1]]$admix.prop.matrix
+	for(i in 2:n.clusters){
+		admixed.cov <- admixed.cov + cluster.list[[i]]$covariance * cluster.list[[i]]$admix.prop.matrix
+	}
+	return(admixed.cov)
+}
+slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.quantities){
+	recover()
+	these.two <- sample(model.options$n.clusters,2)
+	clst.1 <- these.two[1]
+	clst.2 <- these.two[2]
+
+	delta.w <- rnorm(1,sd= exp(mcmc.quantities$adaptive.mcmc$log.stps$admix.proportions[i]))
+	new.w.1 <- parameter.list$admix.proportions[i,clst.1] + delta.w
+	new.w.2 <- parameter.list$admix.proportions[i,clst.2] - delta.w
+	
+	if( !(new.w.1<0 | new.w.1>1)  &  !(new.w.2<0 | new.w.2>1) )  {
+		admix.proportions.prime <- parameter.list$admix.proportions
+		admix.proportions.prime[i,clst.1] <- new.w.1
+		admix.proportions.prime[i,clst.2] <- new.w.2
+		admixed.covariance.prime <- admixed.covariance(parameter.list$cluster.list,model.options$n.clusters,parameter.list$shared.mean)
+}}
+# Update <- function(super.list){
+		
+ }
+ }
 
 }
