@@ -313,9 +313,8 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 		covar.2 <- super.list$parameter.list$cluster.list[[clst.2]]$covariance[i,]  #will eventually need the cluster mean
 		
 
-		u <- delta.w * ( super.list$parameter.list$admix.proportions[i,clst.1] * covar.1  - super.list$parameter.list$admix.proportions[i,clst.2] * covar.2  )
+		u <- delta.w * ( super.list$parameter.list$admix.proportions[,clst.1] * covar.1  - super.list$parameter.list$admix.proportions[,clst.2] * covar.2  )
 		u[i] <- u[i]  + delta.w^2 * (covar.1[i] + covar.2[i])/2 	### (wi^k + Dw) (wi^k + Dw) 
-		
 		v <- rep(0,data.list$n.ind)
 		v[i] <- 1
 		
