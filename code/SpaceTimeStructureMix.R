@@ -290,7 +290,7 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 	old.w.2<-super.list$parameter.list$admix.proportions[i,clst.2]
 
 
-	delta.w<-rnorm(1,sd=0.01)  ##WILL NEED TO DEFINE
+	delta.w<-rnorm(1,sd=0.05)  ##WILL NEED TO DEFINE
 #	delta.w <- rnorm(1,sd= exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$admix.proportions[i]))
 	new.w.1 <- old.w.1 + delta.w
 	new.w.2 <- old.w.2 - delta.w
@@ -343,7 +343,7 @@ update.w.i<-function( i=i, data.list,super.list){ #  i, data.list, parameter.lis
 			##WE NEED TO UPDATE W MATRIX AS WELL BUT I DONT KNOW IF THAT"S WORTH WHILE DOIN HERE
 			
 			super.list$parameter.list$inverse <- new.inverse 
-			cat("updated ", i)	
+#			cat("updated ", i)	
 		}
 	}
 	return(super.list)
@@ -374,22 +374,40 @@ slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.qu
 #mcmc.options <- ngen,samplefreq,printfreq
 #initial.parameters <- initial.params, initial.params.lstps
 
-MCMC <- function(	data,
-					model.options,
-					mcmc.options,
-					initial.parameters=NULL){
+MCMC.coop <- function(	data,
+						model.options,
+						mcmc.options,
+						initial.parameters=NULL){
 	recover()
 	data.list <- make.data.list(data,model.options)
 	super.list <- declare.super.list()
 	super.list$parameter.list <- initialize.param.list(data.list,model.options,initial.parameters)
 	super.list$output.list <- make.output.list(data.list$n.ind,model.options,mcmc.options)
 	super.list$mcmc.quantities <- initialize.mcmc.quantities(data.list,super.list$parameter.list,model.options,mcmc.options,initial.parameters)
-	
-	for(i in 1:mcmc.options$ngen){
-	for(i in sample(1:100)){  ##need num. samples here
-		super.list<-update.w.i(i=i, data.list,super.list)
+	super.list$model.options <- model.options
+	tmp1 <- numeric(10000)
+	tmp2 <- numeric(10000)
+	super.list$mcmc.quantities$likelihood
+	super.list$mcmc.quantities$posterior.prob
+	par(mfrow=c(2,2))
+	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
+	for(i in 1:10000){
+		j <- sample(1:data.list$n.ind,1)
+		super.list <-update.w.i( i=j, data.list,super.list)
+		#super.list <- slow.update.w.j(j,data.list,super.list)
+		tmp1[i] <- sum((super.list$parameter.list$admix.proportions - data$sim.admix.props)^2)
+		tmp2[i] <- sum((super.list$parameter.list$admixed.covariance - data.list$sample.covariance)^2)
 	}
-	}
+	super.list$mcmc.quantities$likelihood
+#	super.list$mcmc.quantities$posterior.prob
+	plot(data.list$sample.covariance,initial.parameters$admixed.covariance) ; abline(0,1,col="red")
+
+	new.covar<-admixed.covariance(super.list$parameter.list$cluster.list,super.list$model.options$n.clusters,super.list$parameter.list$shared.mean)
+	plot(data.list$sample.covariance,new.covar) ; abline(0,1,col="red")
+	plot(data.list$geo.dist,new.covar)
+	points(data.list$geo.dist,data.list$sample.covariance,col="red")
+	plot(super.list$parameter.list$admix.proportions,data$sim.admix.props,type="n"); text(super.list$parameter.list$admix.proportions,data$sim.admix.props, 1:10)
+#	plot(tmp1) ; plot(tmp2)
 	# for(i in 1:mcmc.options$ngen){
 		# super.list <- Update(super.list)
 		
@@ -486,6 +504,7 @@ MCMC.gid <- function(	data,
 	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
 	for(i in 1:10000){
 		j <- sample(1:data.list$n.ind,1)
+		#super.list <-update.w.i( i=j, data.list,super.list)
 		super.list <- slow.update.w.j(j,data.list,super.list)
 		tmp1[i] <- sum((super.list$parameter.list$admix.proportions - data$sim.admix.props)^2)
 		tmp2[i] <- sum((super.list$parameter.list$admixed.covariance - data.list$sample.covariance)^2)
@@ -503,9 +522,9 @@ MCMC.gid <- function(	data,
 
 #SIMULATE TOY DATA
 k <- 10
-n.loci <- 1e3
+n.loci <- 1e5
 spatial.coords <- cbind(runif(k),runif(k))
-temporal.coords <- sample(1:100,k,replace=TRUE)
+temporal.coords <- rep(0,k)  # sample(1:100,k,replace=TRUE)  #GRAHAM CHANGES
 geo.dist <- fields::rdist(spatial.coords)
 time.dist <- fields::rdist(temporal.coords)
 sim.admix.props <- sample(0:1,size=k,replace=TRUE)
