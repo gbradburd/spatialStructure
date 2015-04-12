@@ -391,7 +391,7 @@ MCMC.coop <- function(	data,
 	super.list$mcmc.quantities$posterior.prob
 	par(mfrow=c(2,2))
 	plot(data.list$sample.covariance,super.list$parameter.list$admixed.covariance) ; abline(0,1,col="red")
-	for(i in 1:10000){
+	for(i in 1:1e5){
 		j <- sample(1:data.list$n.ind,1)
 		super.list <-update.w.i( i=j, data.list,super.list)
 		#super.list <- slow.update.w.j(j,data.list,super.list)
