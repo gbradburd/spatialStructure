@@ -297,20 +297,41 @@ sherman_r <- function(Ap, u, v) {
 
 update.shared.mean<-function(data.list,super.list){ 
 	delta.shared.mean<-rnorm(1,sd=0.05) 
-	
-	if(delta.shared.mean+ super.list$parameter.list$shared.mean >=0 ){  ##assuming for mo. that we want to bar shared mean being below zero
-		u = rep(delta.shared.mean,  nrow(super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,] ))  
-		v = rep(1,  nrow(super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,] )) 
-		sherman_r (super.list$parameter.list$inverse,u,v)   
+	recover()
+	new.shared.mean<-delta.shared.mean+ super.list$parameter.list$shared.mean
+	if(new.shared.mean >=0 ){  ##assuming for mo. that we want to bar shared mean being below zero
+		u = rep(delta.shared.mean,  nrow(super.list$parameter.list$cluster.list[[1]]$covariance ))  ##WILL NEED NUM OF INDS HERE.
+		v = rep(1,  nrow(super.list$parameter.list$cluster.list[[1]]$covariance )) ##WILL NEED NUM OF INDS HERE.
+		inverse.updated<-sherman_r (super.list$parameter.list$inverse,u,v)   
 		new.determinant <-  super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
 		new.inverse <- inverse.updated$new.inverse
+
+		if(FALSE){ #TEST matrix inversion
+			new.admixed.covariance <- admixed.covariance(super.list$parameter.list$cluster.list,length(super.list$parameter.list$cluster.list),super.list$parameter.list$shared.mean+ delta.shared.mean)
+			test <- solve(new.admixed.covariance)	 #GID CHECK
+			summary(c(abs(test-new.inverse)))  #GID CHECK
+		}
 		
 		new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]
 		old.likelihood <- super.list$mcmc.quantities$likelihood
 		likelihood.ratio <- new.likelihood - old.likelihood
+		new.prior.prob<-dexp(new.shared.mean,log=TRUE)   ###wanted to do this here, but perhaps not best way
+		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$shared.mean
+
+		accept.ratio<-exp(likelihood.ratio +prior.ratio)
+		if( accept.ratio >= runif(1)  ){
+			super.list$mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
+			super.list$mcmc.quantities$likelihood <- new.likelihood
+			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob + likelihood.ratio +prior.ratio ##IS THIS RIGHT
+						super.list$parameter.list$shared.mean<-new.shared.mean
+			super.list$parameter.list$determinant <- new.determinant	
+			super.list$parameter.list$inverse <- new.inverse 
+#			cat("updated ", i)	
+		}
 
 	}
-	}
+	return(super.list)
+}
 
 require("gtools")   ##for dirchlet, we could write our own
 ##update the w for the ith individual
