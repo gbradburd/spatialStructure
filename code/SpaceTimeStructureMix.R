@@ -336,7 +336,7 @@ update.shared.mean<-function(data.list,super.list){
 require("gtools")   ##for dirchlet, we could write our own
 ##update the w for the ith individual
 update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list, model.options, mcmc.quantities){
-	recover()
+	# recover()
 	rejected.move <- 1
 	num.clusters<-	length(super.list$parameter.list$cluster.list)
 	these.two<-sample(num.clusters,2)
@@ -401,7 +401,7 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 		if( accept.ratio >= runif(1)  ){
 			super.list$mcmc.quantities$prior.probs$admix.proportions[i]  <- new.prior.prob 
 			super.list$mcmc.quantities$likelihood <- new.likelihood
-			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob - new.likelihood - super.list$mcmc.quantities$prior.probs$admix.proportions[i] + new.prior.prob
+			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob - old.likelihood + new.likelihood - super.list$mcmc.quantities$prior.probs$admix.proportions[i] + new.prior.prob
 			super.list$parameter.list$admix.proportions[i,] <- new.admixture.vec
 			super.list$parameter.list$determinant <- new.determinant
 		
@@ -424,8 +424,14 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 MCMC.coop <- function(	data,
 						model.options,
 						mcmc.options,
-						initial.parameters=NULL){
+						initial.parameters=NULL,
+						seed=NULL){
 	recover()
+	if(is.null(seed)){
+		seed <- sample(1:10000,1)
+	}
+	cat(seed)
+	set.seed(seed)
 	data.list <- make.data.list(data,model.options)
 	super.list <- declare.super.list()
 	super.list$parameter.list <- initialize.param.list(data.list,model.options,initial.parameters)
@@ -437,10 +443,10 @@ MCMC.coop <- function(	data,
 	super.list$mcmc.quantities$likelihood
 	super.list$mcmc.quantities$posterior.prob
 
-	par(mfrow=c(2,2))
+	quartz(width=8,height=5) ; par(mfrow=c(1,2))
 	plot(c(data.list$sample.covariance),c(super.list$parameter.list$admixed.covariance)) ; abline(0,1,col="red")
-	for(i in 1:10000){
-		j <- 1#sample(1:data.list$n.ind,1)
+	for(i in 1:20000){
+		j <- sample(1:data.list$n.ind,1)
 		super.list <-update.w.i( i=j, data.list,super.list)
 		#super.list <- slow.update.w.j(j,data.list,super.list)
 		tmp1[i] <- sum((super.list$parameter.list$admix.proportions - data$sim.admix.props)^2)
@@ -452,46 +458,11 @@ MCMC.coop <- function(	data,
 #
 	new.covar<-admixed.covariance(super.list$parameter.list$cluster.list,super.list$model.options$n.clusters,super.list$parameter.list$shared.mean)
 	plot(data.list$sample.covariance,new.covar) ; abline(0,1,col="red")
-	plot(data.list$geo.dist,new.covar)
-	points(data.list$geo.dist,data.list$sample.covariance,col="red")
-	plot(super.list$parameter.list$admix.proportions,data$sim.admix.props,type="n"); text(super.list$parameter.list$admix.proportions,data$sim.admix.props, 1:10)
-	save(parameter.list,mcmc.quantities,file="~/desktop/testobj.Robj")
+	# plot(data.list$geo.dist,new.covar)
+	# points(data.list$geo.dist,data.list$sample.covariance,col="red")
+	# plot(super.list$parameter.list$admix.proportions,data$sim.admix.props,type="n"); text(super.list$parameter.list$admix.proportions,data$sim.admix.props, 1:10)
+	# save(parameter.list,mcmc.quantities,file="~/desktop/testobj.Robj")
 }
-
-k <- 100
-n.loci <- 1e4
-spatial.coords <- cbind(runif(k),runif(k))
-temporal.coords <- sample(1:100,k,replace=TRUE)
-geo.dist <- fields::rdist(spatial.coords)
-time.dist <- fields::rdist(temporal.coords)
-
-par.cov <- spatial.covariance(geo.dist,time.dist,2,3,1,2)
-# sim.means <- rbeta(n.loci,0.10,0.10)
-# sim.freqs <- lapply(1:n.loci, FUN=function(i){MASS::mvrnorm(n = 1, mu = rep(sim.means[i],k), Sigma = par.cov)})
-# sim.freqs <- do.call(cbind,sim.freqs)
-# sample.covariance <- cov(t(sim.freqs))
-
-admix<-sample(0:1,size=k,replace=TRUE)
-par.cov.underlying<-par.cov
-par.cov<-admix %*% t(admix) * par.cov + (1-admix) %*% t(1-admix) * par.cov
-
-sim.data <- list("geo.coords" = spatial.coords,
-			"time.coords" = temporal.coords,
-			"sample.covariance" = par.cov,
-			"n.loci" = n.loci,
-			"true.spatial.covar"=par.cov.underlying
-			)
-model.options = list("round.earth" = FALSE,
-						"n.clusters" = 2)
-mcmc.options = list("ngen" = 100,
-					"samplefreq" = 10,
-					"printfreq" = 5)
-MCMC.coop(sim.data,model.options,mcmc.options)
-
-
-
-
-
 
 #Gid sims
 slow.update.w.j <- function(j, data.list, super.list){
@@ -579,6 +550,9 @@ MCMC.gid <- function(	data,
 						mcmc.options,
 						initial.parameters=NULL){
 	recover()
+	seed <- sample(1:10000,1)
+	cat(seed)
+	set.seed(seed)
 	data.list <- make.data.list(data,model.options)
 	super.list <- declare.super.list()
 	super.list$parameter.list <- initialize.param.list(data.list,model.options,initial.parameters)
@@ -643,26 +617,27 @@ sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,2,0)
 #generate initial parameters 
 # that are the same as those used to simulate data,
 # EXCEPT for the admixture proportions, which are simulated from a dirichlet
-fake.admix.props <- sim.admix.props	#gtools::rdirichlet(n = k,alpha = rep(1,2))
-#fake.admix.props[2:k,] <- sim.admix.props[2:k,] #sets all but one ind's admix prop to true value, to check label-switchery
+# replicate(10,{
+fake.admix.props <- gtools::rdirichlet(n = k,alpha = rep(1,2))
+fake.admix.props[3:k,] <- sim.admix.props[3:k,] #sets all but one ind's admix prop to true value, to check label-switchery
 initial.parameters <- list("shared.mean" = 0,
 							"admix.proportions" = fake.admix.props,
 							"nuggets" = rep(0,k),
 							"cluster.list" = generate.clusters(2))
 #initial parameters cluster 1
-	initial.parameters$cluster.list$Cluster_1$covariance.params$geo.effect <- 1
+	initial.parameters$cluster.list$Cluster_1$covariance.params$geo.effect <- 2
 	initial.parameters$cluster.list$Cluster_1$covariance.params$time.effect <- 0.3
 	initial.parameters$cluster.list$Cluster_1$covariance.params$exponent <- 1.1
 	initial.parameters$cluster.list$Cluster_1$covariance.params$sill <- 2
-	initial.parameters$cluster.list$Cluster_1$covariance <- spatial.covariance(geo.dist,time.dist,1,0.3,1.1,2)
+	initial.parameters$cluster.list$Cluster_1$covariance <- spatial.covariance(geo.dist,time.dist,2,0.3,1.1,2)
 	initial.parameters$cluster.list$Cluster_1$admix.prop.matrix <- fake.admix.props[,1] %*% t(fake.admix.props[,1])
 
 #initial parameters cluster 2
-	initial.parameters$cluster.list$Cluster_2$covariance.params$geo.effect <- 3
+	initial.parameters$cluster.list$Cluster_2$covariance.params$geo.effect <- 1
 	initial.parameters$cluster.list$Cluster_2$covariance.params$time.effect <- 1.2
 	initial.parameters$cluster.list$Cluster_2$covariance.params$exponent <- 1.3
 	initial.parameters$cluster.list$Cluster_2$covariance.params$sill <- 2.5
-	initial.parameters$cluster.list$Cluster_2$covariance <- spatial.covariance(geo.dist,time.dist,3,1.2,1.3,2.5)
+	initial.parameters$cluster.list$Cluster_2$covariance <- spatial.covariance(geo.dist,time.dist,1,1.2,1.3,2.5)
 	initial.parameters$cluster.list$Cluster_2$admix.prop.matrix <- fake.admix.props[,2] %*% t(fake.admix.props[,2])
 
 
@@ -678,9 +653,10 @@ model.options = list("round.earth" = FALSE,
 mcmc.options = list("ngen" = 100,
 					"samplefreq" = 10,
 					"printfreq" = 5)
-MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
+
 MCMC.coop(sim.data,model.options,mcmc.options,initial.parameters)
 
+MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
 
 
 
@@ -746,5 +722,33 @@ slow.update.w.i <- function(i, data.list, parameter.list, model.options, mcmc.qu
 		
  }
  }
+k <- 100
+n.loci <- 1e4
+spatial.coords <- cbind(runif(k),runif(k))
+temporal.coords <- sample(1:100,k,replace=TRUE)
+geo.dist <- fields::rdist(spatial.coords)
+time.dist <- fields::rdist(temporal.coords)
 
+par.cov <- spatial.covariance(geo.dist,time.dist,2,3,1,2)
+# sim.means <- rbeta(n.loci,0.10,0.10)
+# sim.freqs <- lapply(1:n.loci, FUN=function(i){MASS::mvrnorm(n = 1, mu = rep(sim.means[i],k), Sigma = par.cov)})
+# sim.freqs <- do.call(cbind,sim.freqs)
+# sample.covariance <- cov(t(sim.freqs))
+
+admix<-sample(0:1,size=k,replace=TRUE)
+par.cov.underlying<-par.cov
+par.cov<-admix %*% t(admix) * par.cov + (1-admix) %*% t(1-admix) * par.cov
+
+sim.data <- list("geo.coords" = spatial.coords,
+			"time.coords" = temporal.coords,
+			"sample.covariance" = par.cov,
+			"n.loci" = n.loci,
+			"true.spatial.covar"=par.cov.underlying
+			)
+model.options = list("round.earth" = FALSE,
+						"n.clusters" = 2)
+mcmc.options = list("ngen" = 100,
+					"samplefreq" = 10,
+					"printfreq" = 5)
+MCMC.coop(sim.data,model.options,mcmc.options)
 }
