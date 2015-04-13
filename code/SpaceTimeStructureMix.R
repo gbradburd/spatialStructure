@@ -294,8 +294,25 @@ sherman_r <- function(Ap, u, v) {
   
   }
 
-require("gtools")   ##for dirchlet, we could write our own
 
+update.shared.mean<-function(data.list,super.list){ 
+	delta.shared.mean<-rnorm(1,sd=0.05) 
+	
+	if(delta.shared.mean+ super.list$parameter.list$shared.mean >=0 ){  ##assuming for mo. that we want to bar shared mean being below zero
+		u = rep(delta.shared.mean,  nrow(super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,] ))  
+		v = rep(1,  nrow(super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,] )) 
+		sherman_r (super.list$parameter.list$inverse,u,v)   
+		new.determinant <-  super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
+		new.inverse <- inverse.updated$new.inverse
+		
+		new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]
+		old.likelihood <- super.list$mcmc.quantities$likelihood
+		likelihood.ratio <- new.likelihood - old.likelihood
+
+	}
+	}
+
+require("gtools")   ##for dirchlet, we could write our own
 ##update the w for the ith individual
 update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list, model.options, mcmc.quantities){
 	recover()
