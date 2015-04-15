@@ -334,25 +334,27 @@ sherman_r <- function(Ap, u, v) {
   
   }
 
+###GRAHAM USES k as the cluster that's in need of a new mean here, but perhaps that's taken already?
 update.cluster.mean.k<-function(k,data.list,super.list){ 
-	delta.mean<-rnorm(1,sd=0.05) 
+	delta.cluster.mean<-rnorm(1,sd=0.05) 
 	 recover()
-	new.cluster.mean <- delta.cluster.mean + super.list$parameter.list$cluster.list[[k]] 
+	new.cluster.mean <- delta.cluster.mean + super.list$parameter.list$cluster.list[[k]]$cluster.mean 
 
-	new.prior.prob <- prior.prob.nuggets(new.cluster.mean)   ###wanted to do this here, but perhaps not best way
+	new.prior.prob <- prior.prob.cluster.mean (new.cluster.mean)   ###wanted to do this here, but perhaps not best way
 	if(is.finite(new.prior.prob) ){
 		u <- super.list$parameter.list$admix.proportions[,k] 
 		v <- super.list$parameter.list$admix.proportions[,k] 
 		
-		u<- u * 	delta.mean
+		u<- u * 	delta.cluster.mean
 			
 		inverse.updated<-sherman_r (super.list$parameter.list$inverse,u,v)   ##YOU DO THE SHERMAN TANK
 		new.determinant <-  super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
 		new.inverse <- inverse.updated$new.inverse
 
 		if(FALSE){ #TEST matrix inversion
-			new.admixed.covariance<-super.list$parameter.list$admixed.covar
-			new.admixed.covariance[i,i]<-new.admixed.covariance[i,i]+delta.nugget
+			temp<-super.list$parameter.list
+			temp$cluster.list[[k]]$cluster.mean<-new.cluster.mean
+			new.admixed.covariance<-admixed.covariance(temp$cluster.list,n.clusters=length(temp$cluster.list),shared.mean =super.list$parameter.list$shared.mean,nuggets =super.list$parameter.list$nuggets)
 			test <- solve(new.admixed.covariance)	 #GID CHECK
 			summary(c(abs(test-new.inverse)))  #GID CHECK
 		}
@@ -361,14 +363,14 @@ update.cluster.mean.k<-function(k,data.list,super.list){
 		old.likelihood <- super.list$mcmc.quantities$likelihood
 		likelihood.ratio <- new.likelihood - old.likelihood
 		
-		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$nuggets[i]
+		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$cluster.mean[k]
 
 		accept.ratio<-exp(likelihood.ratio +prior.ratio)
 		if( accept.ratio >= runif(1)  ){
-			super.list$mcmc.quantities$prior.probs$nuggets[i]  <- new.prior.prob 
+			super.list$mcmc.quantities$prior.probs$cluster.mean[k]  <- new.prior.prob 
 			super.list$mcmc.quantities$likelihood <- new.likelihood
 			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob + likelihood.ratio + prior.ratio
-			super.list$parameter.list$nuggets[i]  <- new.nugget
+			super.list$parameter.list$cluster.list[[k]]$cluster.mean  <- new.cluster.mean
 			super.list$parameter.list$determinant <- new.determinant	
 			super.list$parameter.list$inverse <- new.inverse 
 		}
@@ -701,7 +703,7 @@ MCMC.gid <- function(	data,
 						mcmc.options,
 						initial.parameters=NULL,
 						seed=NULL){
-	#recover()
+	recover()
 	if(is.null(seed)){
 		seed <- sample(1:10000,1)
 	}
