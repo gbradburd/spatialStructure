@@ -16,7 +16,7 @@ cluster.admixed.covariance <- function(cluster){
 }
 
 admixed.covariance <- function(cluster.list,n.clusters,shared.mean,nuggets){
-	Reduce("+",lapply(cluster.list,FUN=cluster.admixed.covariance)) + shared.mean + diag(length(nuggets)) * nuggets
+	Reduce("+",lapply(cluster.list,FUN=cluster.admixed.covariance)) + shared.mean + diag(nuggets)
 	
 }
 
@@ -335,19 +335,20 @@ sherman_r <- function(Ap, u, v) {
   }
 
 ###GRAHAM USES k as the cluster that's in need of a new mean here, but perhaps that's taken already?
-update.cluster.mean.k<-function(k,data.list,super.list){ 
+update.cluster.mean.k<-function(k,data.list,super.list){
+	accepted.move <- 0
 	delta.cluster.mean<-rnorm(1,sd=0.05) 
-	 recover()
+	#recover()
 	new.cluster.mean <- delta.cluster.mean + super.list$parameter.list$cluster.list[[k]]$cluster.mean 
 
-	new.prior.prob <- prior.prob.cluster.mean (new.cluster.mean)   ###wanted to do this here, but perhaps not best way
+	new.prior.prob <- prior.prob.cluster.mean(new.cluster.mean)
 	if(is.finite(new.prior.prob) ){
 		u <- super.list$parameter.list$admix.proportions[,k] 
 		v <- super.list$parameter.list$admix.proportions[,k] 
 		
-		u<- u * 	delta.cluster.mean
+		u <- u * delta.cluster.mean
 			
-		inverse.updated<-sherman_r (super.list$parameter.list$inverse,u,v)   ##YOU DO THE SHERMAN TANK
+		inverse.updated <- sherman_r(super.list$parameter.list$inverse,u,v)
 		new.determinant <-  super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
 		new.inverse <- inverse.updated$new.inverse
 
@@ -359,7 +360,7 @@ update.cluster.mean.k<-function(k,data.list,super.list){
 			summary(c(abs(test-new.inverse)))  #GID CHECK
 		}
 		
-		new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]
+		new.likelihood <- calculate.likelihood.2(data.list, new.inverse,new.determinant)[1]
 		old.likelihood <- super.list$mcmc.quantities$likelihood
 		likelihood.ratio <- new.likelihood - old.likelihood
 		
@@ -373,8 +374,11 @@ update.cluster.mean.k<-function(k,data.list,super.list){
 			super.list$parameter.list$cluster.list[[k]]$cluster.mean  <- new.cluster.mean
 			super.list$parameter.list$determinant <- new.determinant	
 			super.list$parameter.list$inverse <- new.inverse 
+			super.list$parameter.list$admixed.covariance <- admixed.covariance(super.list$parameter.list$cluster.list,super.list$model.options$n.clusters,super.list$parameter.list$shared.mean,super.list$parameter.list$nuggets)
+			accepted.move <- 1
 		}
 	}
+	super.list$mcmc.quantities$acceptance.rates$cluster.mean[k] <- (super.list$mcmc.quantities$acceptance.rates$cluster.mean[k]/(super.list$mcmc.quantities$gen-1) + accepted.move)/super.list$mcmc.quantities$gen
 	return(super.list)
 }
 
@@ -427,7 +431,6 @@ update.nugget.i<-function(i,data.list,super.list){
 	super.list$mcmc.quantities$acceptance.rates$nuggets[i] <- (super.list$mcmc.quantities$acceptance.rates$nuggets[i]/(super.list$mcmc.quantities$gen-1) + accepted.move)/super.list$mcmc.quantities$gen
 	return(super.list)
 }
-
 
 
 update.shared.mean<-function(data.list,super.list){
@@ -703,7 +706,7 @@ MCMC.gid <- function(	data,
 						mcmc.options,
 						initial.parameters=NULL,
 						seed=NULL){
-	recover()
+	#recover()
 	if(is.null(seed)){
 		seed <- sample(1:10000,1)
 	}
@@ -713,8 +716,9 @@ MCMC.gid <- function(	data,
 	super.list <- initialize.super.list(data.list,model.options,mcmc.options,initial.parameters)
 	for(i in 2:mcmc.options$ngen){
 		if(i%%mcmc.options$samplefreq==0){
-			j <- sample(1:data.list$n.ind,1)
-			super.list <- update.nugget.i(i=j,data.list,super.list)
+			k <- sample(1:model.options$n.clusters,1)
+			super.list <- update.cluster.mean.k(k,data.list,super.list)
+			#super.list <- update.nugget.i(i=j,data.list,super.list)
 			#super.list <- update.shared.mean(data.list,super.list)
 			#super.list <- update.cluster.covariance.param(data.list,super.list)
 			super.list <- bookkeep(super.list)
@@ -761,7 +765,7 @@ initial.parameters <- list("shared.mean" = 0,
 	initial.parameters$cluster.list$Cluster_1$covariance.params$time.effect <- 0.3
 	initial.parameters$cluster.list$Cluster_1$covariance.params$exponent <- 1.1
 	initial.parameters$cluster.list$Cluster_1$covariance.params$sill <- 2
-	initial.parameters$cluster.list$Cluster_1$cluster.mean <- 0.3
+	initial.parameters$cluster.list$Cluster_1$cluster.mean <- 0.8
 	initial.parameters$cluster.list$Cluster_1$covariance <- spatial.covariance(geo.dist,time.dist,2,0.3,1.1,2)
 	initial.parameters$cluster.list$Cluster_1$admix.prop.matrix <- fake.admix.props[,1] %*% t(fake.admix.props[,1])
 
@@ -792,6 +796,9 @@ mcmc.options = list("ngen" = 1e6,
 #MCMC.coop(sim.data,model.options,mcmc.options,initial.parameters)
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
 load("~/Desktop/testobj.Robj")
+matplot(t(super.list$output.list$cluster.params$cluster.mean),type='l') ; 
+abline(h=0.3,col="blue")
+abline(h=0.1,col="green")
 
 par(mfrow=c(1,2)) ; plot(sim.nuggets,super.list$output.list$nuggets[,1]) ;plot(sim.nuggets,super.list$output.list$nuggets[,1000])
 
