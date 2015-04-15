@@ -311,6 +311,49 @@ sherman_r <- function(Ap, u, v) {
   
   }
 
+update.cluster.mean.k<-function(k,data.list,super.list){ 
+	delta.mean<-rnorm(1,sd=0.05) 
+	 recover()
+	new.cluster.mean <- delta.cluster.mean + super.list$parameter.list$cluster.list[[k]] 
+
+	new.prior.prob <- prior.prob.nuggets(new.cluster.mean)   ###wanted to do this here, but perhaps not best way
+	if(is.finite(new.prior.prob) ){
+		u <- super.list$parameter.list$admix.proportions[,k] 
+		v <- super.list$parameter.list$admix.proportions[,k] 
+		
+		u<- u * 	delta.mean
+			
+		inverse.updated<-sherman_r (super.list$parameter.list$inverse,u,v)   ##YOU DO THE SHERMAN TANK
+		new.determinant <-  super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
+		new.inverse <- inverse.updated$new.inverse
+
+		if(FALSE){ #TEST matrix inversion
+			new.admixed.covariance<-super.list$parameter.list$admixed.covar
+			new.admixed.covariance[i,i]<-new.admixed.covariance[i,i]+delta.nugget
+			test <- solve(new.admixed.covariance)	 #GID CHECK
+			summary(c(abs(test-new.inverse)))  #GID CHECK
+		}
+		
+		new.likelihood <-   calculate.likelihood.2(data.list, new.inverse ,  new.determinant )[1]
+		old.likelihood <- super.list$mcmc.quantities$likelihood
+		likelihood.ratio <- new.likelihood - old.likelihood
+		
+		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$nuggets[i]
+
+		accept.ratio<-exp(likelihood.ratio +prior.ratio)
+		if( accept.ratio >= runif(1)  ){
+			super.list$mcmc.quantities$prior.probs$nuggets[i]  <- new.prior.prob 
+			super.list$mcmc.quantities$likelihood <- new.likelihood
+			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob + likelihood.ratio + prior.ratio
+			super.list$parameter.list$nuggets[i]  <- new.nugget
+			super.list$parameter.list$determinant <- new.determinant	
+			super.list$parameter.list$inverse <- new.inverse 
+		}
+	}
+	return(super.list)
+}
+
+
 
 update.nugget.i<-function(i,data.list,super.list){ 
 	delta.nugget<-rnorm(1,sd=0.05) 
