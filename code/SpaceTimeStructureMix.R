@@ -17,7 +17,6 @@ cluster.admixed.covariance <- function(cluster){
 
 admixed.covariance <- function(cluster.list,n.clusters,shared.mean,nuggets){
 	Reduce("+",lapply(cluster.list,FUN=cluster.admixed.covariance)) + shared.mean + diag(nuggets)
-	
 }
 
 update.admixed.covariance <- function(cluster.list,n.clusters,shared.mean,updated.clusters,admix.prop.matrix.primes){
@@ -396,19 +395,19 @@ update.cluster.mean.k<-function(k,data.list,super.list){
 update.nugget.i<-function(i,data.list,super.list){
 	accepted.move <- 0
 	super.list$mcmc.quantities$adaptive.mcmc$n.moves$nugget[i] <- super.list$mcmc.quantities$adaptive.mcmc$n.moves$nugget[i] + 1
-	delta.nugget<-rnorm(1,exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$nuggets[i]))
+	delta.nugget<-rnorm(1,0,sd=exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$nuggets[i]))
 	# recover()
 	new.nugget <- delta.nugget + super.list$parameter.list$nuggets[i] 
 
 	new.prior.prob <- prior.prob.nuggets(new.nugget)
 	if(is.finite(new.prior.prob) ){
-		u <- rep(0,  nrow(super.list$parameter.list$cluster.list[[1]]$covariance ))  ##WILL NEED NUM OF INDS HERE.
+		u <- rep(0, data.list$n.ind)
 		u[i] <-  delta.nugget
-		v <- rep(0,  nrow(super.list$parameter.list$cluster.list[[1]]$covariance )) ##WILL NEED NUM OF INDS HERE.
+		v <- rep(0, data.list$n.ind)
 		v[i] <-  1
 		
-		inverse.updated<-sherman_r (super.list$parameter.list$inverse,u,v)   ##YOU DO THE SHERMAN TANK
-		new.determinant <-  super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
+		inverse.updated <- sherman_r (super.list$parameter.list$inverse,u,v)
+		new.determinant <- super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
 		new.inverse <- inverse.updated$new.inverse
 
 		if(FALSE){ #TEST matrix inversion
@@ -423,8 +422,8 @@ update.nugget.i<-function(i,data.list,super.list){
 		
 		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$nuggets[i]
 
-		accept.ratio<-exp(likelihood.ratio +prior.ratio)
-		if( accept.ratio >= runif(1)  ){
+		accept.ratio <- exp(likelihood.ratio + prior.ratio)
+		if( accept.ratio >= runif(1) ){
 			super.list$mcmc.quantities$prior.probs$nuggets[i]  <- new.prior.prob 
 			super.list$mcmc.quantities$likelihood <- new.likelihood
 			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob + likelihood.ratio + prior.ratio
@@ -466,8 +465,8 @@ update.shared.mean<-function(data.list,super.list){
 		
 		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$shared.mean
 
-		accept.ratio<-exp(likelihood.ratio +prior.ratio)
-		if( accept.ratio >= runif(1)  ){
+		accept.ratio <- exp(likelihood.ratio +prior.ratio)
+		if( accept.ratio >= runif(1) ){
 			super.list$mcmc.quantities$prior.probs$shared.mean  <- new.prior.prob 
 			super.list$mcmc.quantities$likelihood <- new.likelihood
 			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob + likelihood.ratio + prior.ratio
@@ -541,7 +540,7 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 		likelihood.ratio <- new.likelihood - super.list$mcmc.quantities$likelihood
 		prior.ratio <- new.prior.prob - super.list$mcmc.quantities$prior.probs$admix.proportions[i]
 		accept.ratio <- exp(likelihood.ratio +prior.ratio)
-		if( accept.ratio >= runif(1)  ){
+		if( accept.ratio >= runif(1) ){
 			super.list$mcmc.quantities$prior.probs$admix.proportions[i] <- new.prior.prob
 			super.list$mcmc.quantities$likelihood <- new.likelihood
 			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob + likelihood.ratio + prior.ratio
@@ -734,17 +733,17 @@ MCMC.gid <- function(	data,
 	cat(seed,"\n")
 	set.seed(seed)
 	data.list <- make.data.list(data,model.options)
-	save(data.list,file="data.list.Robj")
+	save(data.list,file="~/desktop/data.list.Robj")
 	super.list <- initialize.super.list(data.list,model.options,mcmc.options,initial.parameters)
 	for(i in 2:mcmc.options$ngen){
 		super.list$mcmc.quantities$gen <- i
 		super.list <- update.parameters(data.list,super.list)
 		super.list <- bookkeep(super.list,i,mcmc.options)
-		if(i %% 1e6 == 0){
-			save(super.list,file="testobj.Robj")
+		if(i %% 2.5e5 == 0){
+			save(super.list,file="~/desktop/testobj.Robj")
 		}
 	}
-	save(super.list,file="testobj.Robj")
+	save(super.list,file="~/desktop/testobj.Robj")
 	return("run complete")
 }
 
@@ -788,24 +787,35 @@ sim.cluster.list <- list("Cluster_1" = list("admix.prop.matrix" = sim.admix.prop
 																				sim.exponent.2,
 																				sim.sill.2)))
 sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,2,sim.shared.mean,sim.nuggets)
-											
+sim.param.list <- list("k" = k,"n.loci" = n.loci,"spatial.coords" = spatial.coords,
+						"temporal.coords" = temporal.coords,"geo.dist" = geo.dist,
+						"time.dist" = time.dist,"sim.nuggets" = sim.nuggets,
+						"sim.admix.props" = sim.admix.props,"sim.geo.effect.1" = sim.geo.effect.1,
+						"sim.time.effect.1" = sim.time.effect.1,"sim.exponent.1" = sim.exponent.1,
+						"sim.sill.1" = sim.sill.1,"sim.cluster.mean.1" = sim.cluster.mean.1,
+						"sim.geo.effect.2" = sim.geo.effect.2,"sim.time.effect.2" = sim.time.effect.2,
+						"sim.exponent.2" = sim.exponent.2,"sim.sill.2" = sim.sill.2,
+						"sim.cluster.mean.2" = sim.cluster.mean.2,"sim.shared.mean" = sim.shared.mean,
+						"sim.admixed.cov.mat" = sim.admixed.cov.mat)
+save(sim.param.list,file="~/desktop/simdata.Robj")
+
 #generate initial parameters 
 # that are the same as those used to simulate data,
 # EXCEPT for the admixture proportions, which are simulated from a dirichlet
 
-init.admix.props <- 	sim.admix.props	#gtools::rdirichlet(n = k,alpha = rep(1,2))
-init.nuggets <- 		sim.nuggets	#rexp(k)
+init.admix.props <- 	gtools::rdirichlet(n = k,alpha = rep(1,2))	#sim.admix.props	
+init.nuggets <- 		rexp(k)	#sim.nuggets
 init.geo.effect.1 <- 	runif(1,0,10)	#sim.geo.effect.1
 init.time.effect.1 <- 	runif(1,0,10)	#sim.time.effect.1 
 init.exponent.1 <- 		rexp(1)	#sim.exponent.1
 init.sill.1 <- 			runif(1,0,10)	#sim.sill.1
-init.cluster.mean.1 <- 	sim.cluster.mean.1 #rexp(1)	
+init.cluster.mean.1 <- 	rexp(1) #sim.cluster.mean.1
 init.geo.effect.2 <- 	runif(1,0,10)	#sim.geo.effect.2
 init.time.effect.2 <- 	runif(1,0,10)	#sim.time.effect.2
 init.exponent.2 <- 		rexp(1)	#sim.exponent.2
 init.sill.2 <- 			runif(1,0,10)	#sim.sill.2
-init.cluster.mean.2 <- 	sim.cluster.mean.2	#rexp(1)
-init.shared.mean <- 	sim.shared.mean	#rexp(1)
+init.cluster.mean.2 <- 	rexp(1)	#sim.cluster.mean.2
+init.shared.mean <- 	rexp(1)	#sim.shared.mean	
 initial.parameters <- list("shared.mean" = init.shared.mean,
 							"admix.proportions" = init.admix.props,
 							"nuggets" = init.nuggets,
@@ -837,13 +847,9 @@ sim.data <- list("geo.coords" = spatial.coords,
 				"n.loci" = n.loci)
 model.options = list("round.earth" = FALSE,
 						"n.clusters" = 2)
-mcmc.options = list("ngen" = 2e5,
-					"samplefreq" = 2e2,
+mcmc.options = list("ngen" = 5e6,
+					"samplefreq" = 5e3,
 					"printfreq" = 1000)
-
-save(sim.data,k,n.loci,spatial.coords,temporal.coords,
-		geo.dist,time.dist,sim.nuggets,sim.admix.props,
-		sim.shared.mean,sim.cluster.list,sim.admixed.cov.mat,file="simdata.Robj")
 
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
 
@@ -852,57 +858,67 @@ if(FALSE){
 load("~/Desktop/testobj.Robj")
 load("~/Desktop/data.list.Robj")
 load("~/Desktop/simdata.Robj")
+#MCMC Plotting Functions
 
+plot(geo.dist,sim.admixed.cov.mat)
+	points(geo.dist,super.list$parameter.list$admixed.covariance,col="red",pch=20,cex=0.8)
+
+plot(geo.dist, sim.cluster.list$Cluster_1$covariance + sim.cluster.list$Cluster_1$cluster.mean,col="darkblue",
+		ylim=c(min(sim.cluster.list$Cluster_1$covariance + sim.cluster.list$Cluster_1$cluster.mean,
+					sim.cluster.list$Cluster_2$covariance + sim.cluster.list$Cluster_2$cluster.mean)-0.5,
+					max(sim.cluster.list$Cluster_1$covariance + sim.cluster.list$Cluster_1$cluster.mean,
+					sim.cluster.list$Cluster_2$covariance + sim.cluster.list$Cluster_2$cluster.mean)+0.5))
+	points(geo.dist,super.list$parameter.list$cluster.list$Cluster_1$covariance + super.list$parameter.list$cluster.list$Cluster_1$cluster.mean,col="lightblue",pch=20)
+points(geo.dist,sim.cluster.list$Cluster_2$covariance + sim.cluster.list$Cluster_2$cluster.mean,col="darkgreen")
+	points(geo.dist,super.list$parameter.list$cluster.list$Cluster_2$covariance + super.list$parameter.list$cluster.list$Cluster_2$cluster.mean,col="lightgreen",pch=20)
+
+plot(sim.admix.props[,1])
+	points(super.list$parameter.list$admix.proportions[,1],col="red",pch=20)
+
+plot(super.list$output.list$likelihood[300:1000],xlab="",ylab="",type='l',
+	ylim=c(min(super.list$output.list$likelihood[300:1000],super.list$output.list$posterior.prob[300:1000]),
+			max(super.list$output.list$likelihood[300:1000],super.list$output.list$posterior.prob[300:1000])))
+points(super.list$output.list$posterior.prob[300:1000],xlab="",ylab="",type='l',col="red")
+
+
+par(mfrow=c(2,2),mar=c(1,1,1,1))
 matplot(t(super.list$output.list$cluster.params$geo.effect),type='l')
-	abline(h=c(sim.geo.effect.1,sim.geo.effect.2),col=c(1,2))
+	mtext("geo.effect",side=1,padj=-11)
 matplot(t(super.list$output.list$cluster.params$exponent),type='l')
-	abline(h=c(sim.exponent.1,sim.exponent.2),col=c(1,2))
+	mtext("exponent",side=1,padj=-11)
 matplot(t(super.list$output.list$cluster.params$sill),type='l')
-	abline(h=c(sim.sill.1,sim.sill.2),col=c(1,2))
-
-matplot(t(super.list$output.list$acceptance.rates$geo.effect),type='l')
-matplot(t(super.list$output.list$acceptance.rates$exponent),type='l')
-matplot(t(super.list$output.list$acceptance.rates$sill),type='l')
-
-plot(geo.dist, sim.cluster.list$Cluster_1$covariance)
-	points(geo.dist,super.list$parameter.list$cluster.list$Cluster_1$covariance,col="blue")
-
-plot(geo.dist,sim.cluster.list$Cluster_2$covariance)
-	points(geo.dist,super.list$parameter.list$cluster.list$Cluster_2$covariance,col="green")
-
-
-
-
-plot(super.list$output.list$shared.mean)
-	abline(h=sim.shared.mean)
-plot(super.list$output.list$acceptance.rates$shared.mean)
-
+	mtext("sill",side=1,padj=-11)
 matplot(t(super.list$output.list$cluster.params$cluster.mean),type='l')
-	abline(h=sim.cluster.mean.1)
-	abline(h=sim.cluster.mean.2)
+	mtext("cluster.mean",side=1,padj=-11)
 
-matplot(t(super.list$output.list$nuggets),type='l')
-	abline(h=sim.nuggets)
-matplot(t(super.list$output.list$acceptance.rates$nuggets),type='l')
-
-plot(0,type='n',xlim=c(0,100),ylim=c(0,1))
-	abline(h=sim.admix.props)
-for(i in 1:100){
-	points(rep(i,20),super.list$output.list$admix.proportions[[seq(1,1000,length.out=100)[i]]][,1],pch=20,cex=0.5)
+make.admix.prop.mat <- function(super.list){
+	# recover()
+	admix.prop.mat <- matrix(NA,nrow=nrow(super.list$output.list$admix.proportions[[1]]),ncol=length(super.list$output.list$admix.proportions))
+	for(i in 1:(length(super.list$output.list$admix.proportions)-1)){
+		admix.prop.mat[,i] <- super.list$output.list$admix.proportions[[i]][,1]
+	}
+	return(admix.prop.mat)
 }
-matplot(t(super.list$output.list$acceptance.rates$admix.proportions),type='l')
+admix.prop.mat <- make.admix.prop.mat(super.list)
+
+par(mfrow=c(3,1),mar=c(1,1,1,1))
+matplot(t(super.list$output.list$nuggets),type='l')
+matplot(t(admix.prop.mat),type='l')
+plot(super.list$output.list$shared.mean,type='l')
+
+par(mfrow=c(3,1),mar=c(1,1,1,1))
+matplot(t(super.list$output.list$acceptance.rates$geo.effect),type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$exponent),type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$sill),type='l',xlab="",ylab="")
+
+par(mfrow=c(3,1),mar=c(1,1,1,1))
+matplot(t(super.list$output.list$acceptance.rates$admix.proportions),type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$nuggets),type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$cluster.mean),type='l',xlab="",ylab="")
 
 
-matplot(t(super.list$output.list$cluster.params$cluster.mean),type='l') ; 
-abline(h=0.3,col="blue")
-abline(h=0.5,col="green")
 
 
-
-
-matplot(t(super.list$output.list$acceptance.rates$cluster.mean),type='l')
-
-par(mfrow=c(1,2)) ; plot(sim.nuggets,super.list$output.list$nuggets[,1]) ;plot(sim.nuggets,super.list$output.list$nuggets[,1000])
 }
 
 
