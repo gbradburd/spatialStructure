@@ -953,9 +953,9 @@ names(pie.list2) <- sample.names
 pdf(file="admix_prop_map.pdf",width=10,height=5)
 #quartz(width=10,height=5)
 par(mfrow=c(1,2))
-pies(pie.list,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=4,
+pies(pie.list,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
 		xlab="",ylab="",main="truth",lty=1,density=NULL)
-pies(pie.list2,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=4,
+pies(pie.list2,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
 		xlab="",ylab="",main="estimated",lty=1,density=NULL)
 dev.off()
 }
