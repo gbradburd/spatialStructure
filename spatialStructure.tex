@@ -83,11 +83,12 @@ membership proportions in each cluster.
 
 \begin{equation}
 \label{eq:total_cov}
-\Omega_{i,j} = \sum\limits_K \left(w_i^{(k)}w_j^{(k)} \left( F^{(k)}_{i,j} + \mu^{(k)} \right)\right) + \delta
+\Omega_{i,j} = \sum\limits_K \left(w_i^{(k)}w_j^{(k)} \left( F^{(k)}_{i,j} + \mu^{(k)} \right)\right) + \gamma + \delta_{i=j}
 \end{equation}
 
 Here, $\mu^{(k)}$ is the population-level effect of sharing some deviation away from an ancestral allele frequency, 
-and $delta$ is the global effect of sharing an ancestral allele frequency.
+$\gamma$ is the global effect of sharing an ancestral allele frequency, and $\delta$ is the sample-specific nugget
+on the diagonal of the covariance matrix.
 
 \gb{Peter, our thoughts proceed as follows:\\
 say $X_i$ is the allele frequency at a given locus in population $i$,\\

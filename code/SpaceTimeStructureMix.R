@@ -706,23 +706,23 @@ bookkeep.params <- function(super.list,step){
 
 update.parameters <- function(data.list,super.list){  #GRAHAM NOTES THAT j= 900 etc wont do anything, you need to use < and then >= 
 	update <- sample(1:1000,1)
-	if(update < 900){
+	if(update < 800){
 		j <- sample(1:data.list$n.ind,1)
 		super.list <- update.w.i(i=j, data.list,super.list)
 	}
-	if(update > 900 && update < 910){
+	if(update > 800 && update < 980){
+		super.list <- update.cluster.covariance.param(data.list,super.list)
+	}
+	if(update > 970 && update < 980){
 		k <- sample(1:model.options$n.clusters,1)
 		super.list <- update.cluster.mean.k(k,data.list,super.list)
 	}
-	if(update > 910 && update < 920){
+	if(update > 980 && update < 990){
 		j <- sample(1:data.list$n.ind,1)	
 		super.list <- update.nugget.i(i=j,data.list,super.list)
 	}
-	if(update > 920 && update < 930){
+	if(update > 990 && update < 1000){
 		super.list <- update.shared.mean(data.list,super.list)
-	}
-	if(update > 930 && update < 1000){
-		super.list <- update.cluster.covariance.param(data.list,super.list)
 	}
 	return(super.list)
 }
@@ -808,7 +808,7 @@ sim.param.list <- list("k" = k,"n.loci" = n.loci,"spatial.coords" = spatial.coor
 						"sim.geo.effect.2" = sim.geo.effect.2,"sim.time.effect.2" = sim.time.effect.2,
 						"sim.exponent.2" = sim.exponent.2,"sim.sill.2" = sim.sill.2,
 						"sim.cluster.mean.2" = sim.cluster.mean.2,"sim.shared.mean" = sim.shared.mean,
-						"sim.admixed.cov.mat" = sim.admixed.cov.mat)
+						"sim.admixed.cov.mat" = sim.admixed.cov.mat,"sim.cluster.list" = sim.cluster.list)
 save(sim.param.list,file="~/desktop/simdata.Robj")
 
 #generate initial parameters 
@@ -851,16 +851,14 @@ initial.parameters <- list("shared.mean" = init.shared.mean,
 	initial.parameters$cluster.list$Cluster_2$admix.prop.matrix <- init.admix.props[,2] %*% t(init.admix.props[,2])
 
 
-
-
 sim.data <- list("geo.coords" = spatial.coords,
 				"time.coords" = temporal.coords,
 				"sample.covariance" = sim.admixed.cov.mat,
 				"n.loci" = n.loci)
 model.options = list("round.earth" = FALSE,
 						"n.clusters" = 2)
-mcmc.options = list("ngen" = 5e6,
-					"samplefreq" = 5e3,
+mcmc.options = list("ngen" = 1e7,
+					"samplefreq" = 1e4,
 					"printfreq" = 1000)
 
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
@@ -868,25 +866,34 @@ MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
 library(microbenchmark)
 
 if(FALSE){
-load("~/Desktop/testobj.Robj")
-load("~/Desktop/data.list.Robj")
-load("~/Desktop/simdata.Robj")
+load("testobj.Robj")
+load("data.list.Robj")
+load("simdata.Robj")
 #MCMC Plotting Functions
 
-plot(geo.dist,sim.admixed.cov.mat)
-	points(geo.dist,super.list$parameter.list$admixed.covariance,col="red",pch=20,cex=0.8)
-
-plot(geo.dist, sim.cluster.list$Cluster_1$covariance + sim.cluster.list$Cluster_1$cluster.mean,col="darkblue",
-		ylim=c(min(sim.cluster.list$Cluster_1$covariance + sim.cluster.list$Cluster_1$cluster.mean,
-					sim.cluster.list$Cluster_2$covariance + sim.cluster.list$Cluster_2$cluster.mean)-0.5,
-					max(sim.cluster.list$Cluster_1$covariance + sim.cluster.list$Cluster_1$cluster.mean,
-					sim.cluster.list$Cluster_2$covariance + sim.cluster.list$Cluster_2$cluster.mean)+0.5))
-	points(geo.dist,super.list$parameter.list$cluster.list$Cluster_1$covariance + super.list$parameter.list$cluster.list$Cluster_1$cluster.mean,col="lightblue",pch=20)
-points(geo.dist,sim.cluster.list$Cluster_2$covariance + sim.cluster.list$Cluster_2$cluster.mean,col="darkgreen")
-	points(geo.dist,super.list$parameter.list$cluster.list$Cluster_2$covariance + super.list$parameter.list$cluster.list$Cluster_2$cluster.mean,col="lightgreen",pch=20)
-
-plot(sim.admix.props[,1])
+par(mfrow=c(1,2))
+plot(sim.param.list$geo.dist,sim.param.list$sim.admixed.cov.mat,
+		xlab="geographic distance",
+		ylab="covariance")
+	points(sim.param.list$geo.dist,super.list$parameter.list$admixed.covariance,col="red",pch=20,cex=0.8)
+	legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("truth","parametric estimate"))
+plot(sim.param.list$sim.admix.props[,1],
+		xlab="sample index",
+		ylab="admixture proportion in Cluster 1 (of 2)")
 	points(super.list$parameter.list$admix.proportions[,1],col="red",pch=20)
+
+
+plot(sim.param.list$geo.dist, sim.param.list$sim.cluster.list$Cluster_1$covariance + sim.param.list$sim.cluster.list$Cluster_1$cluster.mean,col="darkblue",
+		ylim=c(min(sim.param.list$sim.cluster.list$Cluster_1$covariance + sim.param.list$sim.cluster.list$Cluster_1$cluster.mean,
+					sim.param.list$sim.cluster.list$Cluster_2$covariance + sim.param.list$sim.cluster.list$Cluster_2$cluster.mean),
+					max(sim.param.list$sim.cluster.list$Cluster_1$covariance + sim.param.list$sim.cluster.list$Cluster_1$cluster.mean,
+					sim.param.list$sim.cluster.list$Cluster_2$covariance + sim.param.list$sim.cluster.list$Cluster_2$cluster.mean)+0.5),
+					xlab="geographic distance",
+					ylab="spatial covariance within a cluster")
+	points(sim.param.list$geo.dist,super.list$parameter.list$cluster.list$Cluster_1$covariance + super.list$parameter.list$cluster.list$Cluster_1$cluster.mean,col="lightblue",pch=20)
+points(sim.param.list$geo.dist,sim.param.list$sim.cluster.list$Cluster_2$covariance + sim.param.list$sim.cluster.list$Cluster_2$cluster.mean,col="darkgreen")
+	points(sim.param.list$geo.dist,super.list$parameter.list$cluster.list$Cluster_2$covariance + super.list$parameter.list$cluster.list$Cluster_2$cluster.mean,col="lightgreen",pch=20)
+	legend(x="topright",pch=19,col=c("darkblue","lightblue","darkgreen","lightgreen"),legend=c("truth - Cluster1","parametric estimate - Cluster1","truth - Cluster2","parametric estimate - Cluster2"))
 
 plot(super.list$output.list$likelihood[300:1000],xlab="",ylab="",type='l',
 	ylim=c(min(super.list$output.list$likelihood[300:1000],super.list$output.list$posterior.prob[300:1000]),
@@ -894,15 +901,28 @@ plot(super.list$output.list$likelihood[300:1000],xlab="",ylab="",type='l',
 points(super.list$output.list$posterior.prob[300:1000],xlab="",ylab="",type='l',col="red")
 
 
-par(mfrow=c(2,2),mar=c(1,1,1,1))
-matplot(t(super.list$output.list$cluster.params$geo.effect),type='l')
+par(mfrow=c(2,2),mar=c(2,2,2,2))
+matplot(t(super.list$output.list$cluster.params$geo.effect),type='l',lty=1,
+			ylim=c(min(sim.param.list$geo.effect.1,sim.param.list$geo.effect.2,super.list$output.list$cluster.params$geo.effect,na.rm=TRUE),
+					max(sim.param.list$geo.effect.1,sim.param.list$geo.effect.2,super.list$output.list$cluster.params$geo.effect,na.rm=TRUE)))
 	mtext("geo.effect",side=1,padj=-11)
-matplot(t(super.list$output.list$cluster.params$exponent),type='l')
+	abline(h=c(sim.param.list$sim.geo.effect.1,sim.param.list$sim.geo.effect.2),col=c(1,2),lty=2)
+	legend(x="topleft",col=c(1,1,2,2),lty=c(1,2,1,2),legend=c("cluster1 - estimate","cluster1 - truth","cluster2 - estimate","cluster2 - truth"))
+matplot(t(super.list$output.list$cluster.params$exponent),type='l',lty=1,
+			ylim=c(min(sim.param.list$sim.exponent.1,sim.param.list$sim.exponent.2,super.list$output.list$cluster.params$exponent,na.rm=TRUE),
+					max(sim.param.list$sim.exponent.1,sim.param.list$sim.exponent.2,super.list$output.list$cluster.params$exponent,na.rm=TRUE)))
 	mtext("exponent",side=1,padj=-11)
-matplot(t(super.list$output.list$cluster.params$sill),type='l')
+	abline(h=c(sim.param.list$sim.exponent.1,sim.param.list$sim.exponent.2),col=c(1,2),lty=2)
+matplot(t(super.list$output.list$cluster.params$sill),type='l',lty=1,
+			ylim=c(min(sim.param.list$sim.sill.1,sim.param.list$sim.sill.2,super.list$output.list$cluster.params$sill,na.rm=TRUE),
+					max(sim.param.list$sim.sill.1,sim.param.list$sim.sill.2,super.list$output.list$cluster.params$sill,na.rm=TRUE)))
 	mtext("sill",side=1,padj=-11)
-matplot(t(super.list$output.list$cluster.params$cluster.mean),type='l')
+	abline(h=c(sim.param.list$sim.sill.1,sim.param.list$sim.sill.2),col=c(1,2),lty=2)
+matplot(t(super.list$output.list$cluster.params$cluster.mean),type='l',lty=1,
+			ylim=c(min(sim.param.list$cluster.mean.1,sim.param.list$cluster.mean.2,super.list$output.list$cluster.params$cluster.mean,na.rm=TRUE),
+					max(sim.param.list$cluster.mean.1,sim.param.list$cluster.mean.2,super.list$output.list$cluster.params$cluster.mean,na.rm=TRUE)))
 	mtext("cluster.mean",side=1,padj=-11)
+	abline(h=c(sim.param.list$sim.cluster.mean.1,sim.param.list$sim.cluster.mean.2),col=c(1,2),lty=2)
 
 make.admix.prop.mat <- function(super.list){
 	# recover()
@@ -916,9 +936,15 @@ admix.prop.mat <- make.admix.prop.mat(super.list)
 
 par(mfrow=c(3,1),mar=c(1,1,1,1))
 matplot(t(super.list$output.list$nuggets),type='l')
+	abline(h=sim.param.list$sim.nuggets,lwd=0.5)
 matplot(t(admix.prop.mat),type='l')
-plot(super.list$output.list$shared.mean,type='l')
-
+	abline(h=sim.param.list$sim.admix.props[,1],lwd=0.5)
+plot(super.list$output.list$shared.mean,type='l',
+	xlab="sampled mcmc generations",
+	ylab="shared mean parameter estimate")
+	abline(h=sim.param.list$sim.shared.mean,lwd=0.5)
+	
+	
 par(mfrow=c(3,1),mar=c(1,1,1,1))
 matplot(t(super.list$output.list$acceptance.rates$geo.effect),type='l',xlab="",ylab="")
 matplot(t(super.list$output.list$acceptance.rates$exponent),type='l',xlab="",ylab="")
@@ -930,8 +956,21 @@ matplot(t(super.list$output.list$acceptance.rates$nuggets),type='l',xlab="",ylab
 matplot(t(super.list$output.list$acceptance.rates$cluster.mean),type='l',xlab="",ylab="")
 
 
-
-
+require(caroline)
+sample.names <- unlist(lapply(1:sim.param.list$k,function(i){paste("sample_",i,sep="")}))
+pie.list <- lapply(1:sim.param.list$k,function(i){nv(sim.param.list$sim.admix.props[i,],c("Cluster_1","Cluster_2"))})
+names(pie.list) <- sample.names
+color.tab <- nv(c("blue","red"),c("Cluster_1","Cluster_2"))
+pie.list2 <- lapply(1:sim.param.list$k,function(i){nv(super.list$parameter.list$admix.proportions[i,],c("Cluster_1","Cluster_2"))})
+names(pie.list2) <- sample.names
+pdf(file="admix_prop_map.pdf",width=10,height=5)
+#quartz(width=10,height=5)
+par(mfrow=c(1,2))
+pies(pie.list,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
+		xlab="",ylab="",main="truth",lty=1,density=NULL)
+pies(pie.list2,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
+		xlab="",ylab="",main="estimated",lty=1,density=NULL)
+dev.off()
 }
 
 
