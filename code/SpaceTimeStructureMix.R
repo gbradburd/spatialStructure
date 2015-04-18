@@ -35,11 +35,8 @@ calculate.likelihood <- function(data,parameters){
 	return(lnL)
 }
 
-##GRAHAM REWROTE THIS TO TAKE COVAR & DET as functions
 calculate.likelihood.2 <- function(data, covar.inverse, covar.det){
-
 	lnL <- -0.5 * data$n.loci * (sum( covar.inverse * data$sample.covariance ) +  covar.det)
-#	lnL <- -0.5 * data$n.loci * sum( A * data$sample.covariance ) - (data$n.loci/2)*determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	return(lnL)
 }
 
@@ -336,11 +333,34 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 	return(mcmc.quantities)
 }
 
-sherman_r <- function(Ap, u, v) {
+sherman_r_old <- function(Ap, u, v) {
   determ.update <- drop(1 + t(v) %*% Ap %*% u)
-  
+#  recover()
   list(new.inverse = Ap - (Ap %*% u %*% t(v) %*% Ap)/determ.update, determ.update=determ.update)
-  
+  }
+
+
+##Graham's improved sherman tank, with added panzer busting power
+sherman_r <- function(Ap, u, v, u.i=FALSE, v.i=FALSE) {
+
+ # recover()
+  if(u.i & v.i){
+  	determ.update <- 1 + v[v.i] * Ap[v.i,u.i] * u[u.i] 
+	return(list(new.inverse = Ap - ((Ap[,u.i]*u[u.i]) %*% t(v[v.i] * Ap[,v.i]))/determ.update, determ.update=determ.update))
+  }
+  if(u.i & !v.i){
+  	determ.update <- drop(1 + t(v) %*% (Ap[,u.i]*u[u.i]))  	
+	return(list(new.inverse = Ap - ((Ap[,u.i]*u[u.i]) %*% t(v) %*% Ap)/determ.update, determ.update=determ.update))
+  }
+ if(!u.i & v.i){
+	  determ.update <- drop(1 + v[v.i] * Ap[,v.i] %*% u)  	
+	  return(list(new.inverse = Ap - (Ap %*% u %*% (v[v.i] * Ap[,v.i]))/determ.update, determ.update=determ.update))
+  }
+  if(!u.i & !v.i){
+  	determ.update <- drop(1 + t(v) %*% Ap %*% u)
+  	return(list(new.inverse = Ap - (Ap %*% u %*% t(v) %*% Ap)/determ.update, determ.update=determ.update))
+  	}
+  	
   }
 
 update.cluster.mean.k<-function(k,data.list,super.list){
@@ -353,8 +373,7 @@ update.cluster.mean.k<-function(k,data.list,super.list){
 	new.prior.prob <- prior.prob.cluster.mean(new.cluster.mean)
 	if(is.finite(new.prior.prob) ){
 		u <- super.list$parameter.list$admix.proportions[,k] 
-		v <- super.list$parameter.list$admix.proportions[,k] 
-		
+		v <- super.list$parameter.list$admix.proportions[,k] 	
 		u <- u * delta.cluster.mean
 			
 		inverse.updated <- sherman_r(super.list$parameter.list$inverse,u,v)
@@ -396,7 +415,7 @@ update.nugget.i<-function(i,data.list,super.list){
 	accepted.move <- 0
 	super.list$mcmc.quantities$adaptive.mcmc$n.moves$nugget[i] <- super.list$mcmc.quantities$adaptive.mcmc$n.moves$nugget[i] + 1
 	delta.nugget<-rnorm(1,0,sd=exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$nuggets[i]))
-	# recover()
+	 #recover()
 	new.nugget <- delta.nugget + super.list$parameter.list$nuggets[i] 
 
 	new.prior.prob <- prior.prob.nuggets(new.nugget)
@@ -404,9 +423,8 @@ update.nugget.i<-function(i,data.list,super.list){
 		u <- rep(0, data.list$n.ind)
 		u[i] <-  delta.nugget
 		v <- rep(0, data.list$n.ind)
-		v[i] <-  1
-		
-		inverse.updated <- sherman_r (super.list$parameter.list$inverse,u,v)
+		v[i] <-  1	
+		inverse.updated <- sherman_r (super.list$parameter.list$inverse, u=u, v=v, u.i=i, v.i=i)
 		new.determinant <- super.list$parameter.list$determinant + log(abs(inverse.updated$determ.update)) 
 		new.inverse <- inverse.updated$new.inverse
 
@@ -483,7 +501,7 @@ update.shared.mean<-function(data.list,super.list){
 }
 
 ##update the w for the ith individual
-update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list, model.options, mcmc.quantities){
+update.w.i<-function( i, data.list,super.list){ 
 	#recover()
 	accepted.move <- 0
 	super.list$mcmc.quantities$adaptive.mcmc$n.moves$admix.proportion[i] <- super.list$mcmc.quantities$adaptive.mcmc$n.moves$admix.proportion[i] + 1
@@ -509,9 +527,8 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 		u[i] <- u[i]  + delta.w^2 * (covar.1[i] + covar.2[i])/2 	### (wi^k + Dw) (wi^k + Dw) 
 		v <- rep(0,data.list$n.ind)
 		v[i] <- 1
-		
-		matrix.updated.once <- sherman_r (super.list$parameter.list$inverse,u,v)  
-		matrix.updated.twice <- sherman_r (matrix.updated.once$new.inverse,v,u)  
+		matrix.updated.once <- sherman_r (super.list$parameter.list$inverse,u=u, v=v ,v.i=i)  
+		matrix.updated.twice <- sherman_r (matrix.updated.once$new.inverse,u=v, v=u, u.i=i) ##note deliberate switcharoo  
 		
 		new.determinant <-  super.list$parameter.list$determinant + log(abs(matrix.updated.once$determ.update)) + log(abs(matrix.updated.twice$determ.update))
 		new.inverse <- matrix.updated.twice$new.inverse
@@ -529,11 +546,6 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 			test <- solve(new.admixed.covariance)	 #GID CHECK
 
 			summary(c(abs(test-new.inverse)))  #GID CHECK
-			#TEST MATRIX stuff, keep for mo.
-			#				determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )
-			#	all(abs(matrix.updated.twice$new.inverse - solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )<EPS))   #TEST
-			#	calculate.likelihood.2(data.list, solve(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) ) ,  determinant(parameter.list$admixed.covariance+u %*% t(v) + v %*% t(u) )$modulus )   #TEST
-			#	calculate.likelihood.2(data.list, new.inverse ,  new.determinant )  #TEST
 		}
 		
 		new.likelihood <- calculate.likelihood.2(data.list, new.inverse, new.determinant)
@@ -546,11 +558,11 @@ update.w.i<-function( i, data.list,super.list){ #  i, data.list, parameter.list,
 			super.list$mcmc.quantities$posterior.prob <- super.list$mcmc.quantities$posterior.prob + likelihood.ratio + prior.ratio
 			super.list$parameter.list$admix.proportions[i,] <- new.admixture.vec
 			super.list$parameter.list$determinant <- new.determinant
-		
+			super.list$parameter.list$inverse <- new.inverse
+					
+			###GRAHAM thinks you could avoid doing this, it's likely wasting quite a bit of time		
 			super.list$parameter.list$cluster.list[[clst.1]]$admix.prop.matrix <- super.list$parameter.list$admix.proportions[,clst.1] %*%t(super.list$parameter.list$admix.proportions[,clst.1])
 			super.list$parameter.list$cluster.list[[clst.2]]$admix.prop.matrix <- super.list$parameter.list$admix.proportions[,clst.2] %*%t(super.list$parameter.list$admix.proportions[,clst.2])
-			
-			super.list$parameter.list$inverse <- new.inverse
 			#may remove later, for time gains
 			super.list$parameter.list$admixed.covariance <- admixed.covariance(super.list$parameter.list$cluster.list,super.list$model.options$n.clusters,super.list$parameter.list$shared.mean,super.list$parameter.list$nuggets)
 			accepted.move <- 1
@@ -692,7 +704,7 @@ bookkeep.params <- function(super.list,step){
 	return(super.list)
 }
 
-update.parameters <- function(data.list,super.list){
+update.parameters <- function(data.list,super.list){  #GRAHAM NOTES THAT j= 900 etc wont do anything, you need to use < and then >= 
 	update <- sample(1:1000,1)
 	if(update < 900){
 		j <- sample(1:data.list$n.ind,1)
@@ -853,6 +865,7 @@ mcmc.options = list("ngen" = 5e6,
 
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
 
+library(microbenchmark)
 
 if(FALSE){
 load("~/Desktop/testobj.Robj")
