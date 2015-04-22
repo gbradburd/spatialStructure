@@ -1,0 +1,87 @@
+---
+title: "Space-time covariance functions"
+date: April 22, 2015
+---
+
+```{r setup, include=FALSE}
+fig.dim <- 5
+knitr::opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim)
+```
+
+What covariance function should we use for spatiotemporal samples?
+Let $Z(x,t)$ denote the process and $K(x,t)$ its covariance function,
+$$
+\text{cov}[Z(x,s),Z(y,t)] = K(y-x,t-s) .
+$$
+A first proposal might be
+$$
+%K((x,t),(y,s)) = \frac{1}{\alpha_0} \exp\left\{ - \left(\alpha_D \|x-y\|_\gamma_D^\beta_D + \alpha_T \|t-s\|_\gamma_T^\beta_T \right)^\delta \right\},
+K(x,t) = \frac{1}{\alpha_0} \exp\left\{ - \alpha_D \|x\|_2^2 - \alpha_T \|t\|_2^2 \right\},
+$$
+where $\|u\|_\gamma = \left(\sum_i u_i^\gamma\right)^{1/\gamma}$ is the $L^\gamma$ norm.
+This is a valid covariance function on $\mathbb{R}^2 \times \mathbb{R}_{\ge 0}$,
+but has the unrealistic, and nonintuitive property that if one observes 
+$Z(x,s)$ for all $0 \le s \le \epsilon$, then one can predict,
+*without error*, $Z(x,t)$ for *all* $t > \epsilon$
+[see Stein, *Interpolation of Spatial Data*, 1999, p.30].
+
+As discussed in [Stein, *Space-Time Covariance Functions*, 2005],
+replacing the $L^2$ norms with other $L^\gamma$, for $\gamma<2$ can produce "ridges"
+in the covariance function:
+if $K(x,t) \approx K(x,0) + C |t|^\delta$ for some $0 < \delta < 2$,
+thus making $K(x,t)$ have discontinuous derivative at $t=0$ even for spatial displacements $x \neq 0$;
+it turns out that this implies that "small changes in the locations of observations
+can lead to large changes in correlations between certain linear combinatoins of observations".
+Therefore, Stein argues that covariance functions that are smooth away from the origin
+(but may be nonsmooth at $(x,t)=(0,0)$)
+are desireable.
+
+A flexible class proposed in that paper has spectral density
+$$
+f(u,v) = \frac{1}{\left( a_1 + c_1 v^2 + c_2(a_2 + \|u\|^2)^{\alpha_2} \right)^\nu},
+$$
+where $v$ is the Fourier variable corresponding to time
+and $u$ is the Fourier variable corresponding to space.
+In terms of the spectral density,
+$$
+K(x,t) = \int_{\mathbb{R}^d} e^{i u \cdot x} \int_{\mathbb{R}} e^{i v t } f(u,v) dv du.
+$$
+Stein gives an analytic form for the Fourier transform over $x$,
+but notes that other methods would be needed to finish the transform.
+
+However, later on (equation (11)), he introduces a fairly general class of covariance functions
+that hold for, in particular, a set of spatial, Markovian, Gaussian processes.
+These are parameterized by positive numbers $\alpha$, $\nu$, and $\zeta$,
+a number $\epsilon$,
+and a unit vector $z \in \mathbb{R}^d$, and are given by:
+$$
+K(x,t) 
+= 
+\frac{ \pi^{d/2} \alpha^d }{ 2^{\nu+\zeta|t|-1} \Gamma(\nu + \zeta|t| + d/2)}
+\mathcal{M}_{\nu + \zeta|t|}(\alpha\|x - \epsilon t z\|),
+$$
+where $\Gamma$ is the gamma function, $\mathcal{M}$ is the Matern function,
+$$
+\mathcal{M}_{\nu}(r) = r^\nu \mathcal{K}_\nu(r),
+$$
+where $\mathcal{K}_\nu$ is the modified Bessel function of order $\nu$,
+implemented in R as `gsl::bessel_Knu` 
+(note also `gsl::bessel_Knu_scaled` and `gsl::bessel_lnKnu`, which might be more efficient).
+Note that $\nu$ controls the smoothness of the covariance function near zero,
+and hence the degree of differentiability;
+if we could work out the desired degree of smoothness, this would specify $\nu$.
+Furthermore, Stein notes that: if $\epsilon \neq 0$, the model is not symmetric:
+$K(0,t)$ decays exponentially as $t \to \infty$,
+but $K(\epsilon t z,t)$ decays as $|t|^{d/2}$.
+
+**So:** a first candidate would be this last class, with $\epsilon=0$,
+so there are only three parameters, $\alpha$, $\nu$, and $\gamma$.
+To test this, we could simulate some data and see if we can get a reasonable fit to it.
+**But**, we also need to add a nugget -- presumably, this can just be a shift to the diagonal?
+
+There are other resources for the Matern family, see e.g.
+[this paper](http://www.sciencedirect.com/science/article/pii/S0098300408000666) in geostatistics,
+that fits such a model using weighted least squares,
+including a nugget,
+but purely spatial data, I think.
+Also, see [google](https://scholar.google.com/scholar?as_ylo=2014&q=matern+spatiotemporal&hl=en&as_sdt=0,5).
