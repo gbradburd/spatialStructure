@@ -88,6 +88,22 @@ K(x,t)
 \]</span> where <span class="math">\(\mathcal{K}_\nu\)</span> is the modified Bessel function of order <span class="math">\(\nu\)</span>, implemented in R as <code>gsl::bessel_Knu</code> (note also <code>gsl::bessel_Knu_scaled</code> and <code>gsl::bessel_lnKnu</code>, which might be more efficient). Note that <span class="math">\(\nu\)</span> controls the smoothness of the covariance function near zero, and hence the degree of differentiability; if we could work out the desired degree of smoothness, this would specify <span class="math">\(\nu\)</span>. Furthermore, Stein notes that: if <span class="math">\(\epsilon \neq 0\)</span>, the model is not symmetric: <span class="math">\(K(0,t)\)</span> decays exponentially as <span class="math">\(t \to \infty\)</span>, but <span class="math">\(K(\epsilon t z,t)\)</span> decays as <span class="math">\(|t|^{d/2}\)</span>.</p>
 <p><strong>So:</strong> a first candidate would be this last class, with <span class="math">\(\epsilon=0\)</span>, so there are only three parameters, <span class="math">\(\alpha\)</span>, <span class="math">\(\nu\)</span>, and <span class="math">\(\gamma\)</span>. To test this, we could simulate some data and see if we can get a reasonable fit to it. <strong>But</strong>, we also need to add a nugget – presumably, this can just be a shift to the diagonal?</p>
 <p>There are other resources for the Matern family, see e.g. <a href="http://www.sciencedirect.com/science/article/pii/S0098300408000666">this paper</a> in geostatistics, that fits such a model using weighted least squares, including a nugget, but purely spatial data, I think. Also, see <a href="https://scholar.google.com/scholar?as_ylo=2014&amp;q=matern+spatiotemporal&amp;hl=en&amp;as_sdt=0,5">google</a>.</p>
+<p>Will this take longer? Well, as a quick check:</p>
+<pre class="r"><code>require(microbenchmark)</code></pre>
+<pre><code>## Loading required package: microbenchmark</code></pre>
+<pre class="r"><code>require(gsl)</code></pre>
+<pre><code>## Loading required package: gsl</code></pre>
+<pre class="r"><code>microbenchmark(exp(-3))</code></pre>
+<pre><code>## Unit: nanoseconds
+##     expr min    lq   mean median    uq   max neval
+##  exp(-3) 521 533.5 722.41    585 638.5 12743   100</code></pre>
+<pre class="r"><code>microbenchmark(bessel_Knu(nu=1.4,x=-3))</code></pre>
+<pre><code>## Unit: microseconds
+##                          expr     min       lq     mean  median      uq
+##  bessel_Knu(nu = 1.4, x = -3) 100.982 104.8235 120.8065 110.867 125.154
+##      max neval
+##  474.302   100</code></pre>
+<p>… yes, <code>exp</code> is a lot quicker than <code>bessel_Knu</code>… but, this is likely to be only a small portion of the computation time.</p>
 
 
 </div>

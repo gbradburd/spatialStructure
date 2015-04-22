@@ -85,3 +85,14 @@ that fits such a model using weighted least squares,
 including a nugget,
 but purely spatial data, I think.
 Also, see [google](https://scholar.google.com/scholar?as_ylo=2014&q=matern+spatiotemporal&hl=en&as_sdt=0,5).
+
+Will this take longer?
+Well, as a quick check:
+```{r benchmark}
+require(microbenchmark)
+require(gsl)
+microbenchmark(exp(-3))
+microbenchmark(bessel_Knu(nu=1.4,x=-3))
+```
+... yes, `exp` is a lot quicker than `bessel_Knu`... but,
+this is likely to be only a small portion of the computation time.
