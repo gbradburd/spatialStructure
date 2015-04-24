@@ -1,14 +1,20 @@
-spatial.covariance <- function(geo.dist,time.dist,geo.effect,time.effect,exponent,sill){
-	sill*exp(-(geo.dist/geo.effect + time.dist/time.effect)^exponent)
+matern <- function(r,cov.par2){
+	r^cov.par2 * gsl::bessel_Knu(cov.par2,r)
+}
+
+spatial.covariance <- function(geo.dist,time.dist,cov.par1,cov.par2,cov.par3,d=3){
+	((pi^(d/2)* cov.par1^d) / 
+		((2^(cov.par2 + cov.par3*time.dist-1)) * 
+			gsl::gsl_sf_gamma(cov.par2 + cov.par3*time.dist + d/2)) ) * 
+	matern(cov.par1*geo.dist, cov.par2)
 }
 
 cluster.spatial.covariance <- function(geo.dist,time.dist,params){
 	spatial.covariance(geo.dist,
 						time.dist,
-						params$geo.effect,
-						params$time.effect,
-						params$exponent,
-						params$sill)
+						params$covpar.1,
+						params$covpar.2,
+						params$covpar.3)
 }
 
 cluster.admixed.covariance <- function(cluster){
@@ -65,10 +71,9 @@ initialize.super.list <- function(data.list,model.options,mcmc.options,initial.p
 
 declare.cluster.list <- function(){
 	cluster.list <- list(
-		"covariance.params" = list(	"geo.effect" = NULL,
-									"time.effect" = NULL,
-									"exponent" = NULL,
-									"sill" = NULL),
+		"covariance.params" = list(	"covpar.1" = NULL,
+									"covpar.2" = NULL,
+									"covpar.3" = NULL),
 		"cluster.mean" = NULL,
 		"covariance" = NULL,
 		"admix.prop.matrix" = NULL)
@@ -113,10 +118,9 @@ print.data <- function(data){
 
 populate.cluster <- function(cluster,geo.dist,time.dist,admix.proportions){
 	# recover()
-	cluster$covariance.params$geo.effect <- runif(1,1e-10,1e2)
-	cluster$covariance.params$time.effect <- runif(1,1e-10,1e2)
-	cluster$covariance.params$exponent <- runif(1,0.01,2)
-	cluster$covariance.params$sill <- rexp(1,rate=1/100)
+	cluster$covariance.params$covpar.1 <- runif(1,1e-10,1e2)
+	cluster$covariance.params$covpar.2 <- runif(1,1e-10,1e2)
+	cluster$covariance.params$covpar.3 <- runif(1,0.01,2)
 	cluster$cluster.mean <- rexp(1)
 	cluster$covariance <- cluster.spatial.covariance(geo.dist,time.dist,cluster$covariance.params)
 	cluster$admix.prop.matrix <- admix.proportions%*%t(admix.proportions)
@@ -174,15 +178,13 @@ make.output.list <- function(n.ind,model.options,mcmc.options){
 						"nuggets" = matrix(NA,nrow=n.ind,ncol=output.length),
 						"admix.proportions" = lapply(1:output.length,"==",NA),
 						"shared.mean" = rep(NA,output.length),
-						"cluster.params" = list("geo.effect" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
-												"time.effect" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
-												"sill" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
-												"exponent" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+						"cluster.params" = list("covpar.1" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+												"covpar.2" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+												"covpar.3" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 												"cluster.mean" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length)),
-						"acceptance.rates" = list("geo.effect" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
-													"time.effect" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
-													"sill" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
-													"exponent" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+						"acceptance.rates" = list("covpar.1" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+													"covpar.2" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+													"covpar.3" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 													"cluster.mean" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 													"nuggets" = matrix(NA,nrow=n.ind,ncol=output.length),
 													"admix.proportions" = matrix(NA,nrow=n.ind,ncol=output.length),
@@ -199,46 +201,41 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 	mcmc.quantities <- list("gen" = 1,
 							"likelihood" = NULL,
 							"posterior.prob" = NULL,
-							"prior.probs" = list("geo.effect" = rep(NA,model.options$n.clusters),
-													"time.effect" = rep(NA,model.options$n.clusters),
-													"sill" = rep(NA,model.options$n.clusters),
-													"exponent" = rep(NA,model.options$n.clusters),
+							"prior.probs" = list("covpar.1" = rep(NA,model.options$n.clusters),
+													"covpar.2" = rep(NA,model.options$n.clusters),
+													"covpar.3" = rep(NA,model.options$n.clusters),
 													"cluster.mean" = rep(NA,model.options$n.clusters),
 													"nuggets" = rep(NA,n.ind),
 													"admix.proportions" = matrix(NA,nrow=n.ind,ncol=model.options$n.clusters),
 													"shared.mean" = NA),
-							"acceptance.rates" = list("geo.effect" = rep(0,model.options$n.clusters),
-															 "time.effect" = rep(0,model.options$n.clusters),
- 															 "sill" = rep(0,model.options$n.clusters),
-  															 "exponent" = rep(0,model.options$n.clusters),
+							"acceptance.rates" = list("covpar.1" = rep(0,model.options$n.clusters),
+															 "covpar.2" = rep(0,model.options$n.clusters),
+ 															 "covpar.3" = rep(0,model.options$n.clusters),
   															 "cluster.mean" = rep(0,model.options$n.clusters),
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
 															 "shared.mean" = 0),
 							"adaptive.mcmc" = list( "n.batch" = 0,
 													"n.moves" = 
-														list("geo.effect" = rep(0,model.options$n.clusters),
-															 "time.effect" = rep(0,model.options$n.clusters),
- 															 "sill" = rep(0,model.options$n.clusters),
-  															 "exponent" = rep(0,model.options$n.clusters),
+														list("covpar.1" = rep(0,model.options$n.clusters),
+															 "covpar.2" = rep(0,model.options$n.clusters),
+ 															 "covpar.3" = rep(0,model.options$n.clusters),
   															 "cluster.mean" = rep(0,model.options$n.clusters),
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
 															 "shared.mean" = 0),
 													"log.stps" = 
-														list("geo.effect" = rep(0,model.options$n.clusters),
-															 "time.effect" = rep(0,model.options$n.clusters),
- 															 "sill" = rep(0,model.options$n.clusters),
-  															 "exponent" = rep(0,model.options$n.clusters),
+														list("covpar.1" = rep(0,model.options$n.clusters),
+															 "covpar.2" = rep(0,model.options$n.clusters),
+ 															 "covpar.3" = rep(0,model.options$n.clusters),
   															 "cluster.mean" = rep(0,model.options$n.clusters),
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
 															 "shared.mean" = 0),
 													"nth.batch.accept.rates" = 
-														list("geo.effect" = rep(0,model.options$n.clusters),
-															 "time.effect" = rep(0,model.options$n.clusters),
- 															 "sill" = rep(0,model.options$n.clusters),
-  															 "exponent" = rep(0,model.options$n.clusters),
+														list("covpar.1" = rep(0,model.options$n.clusters),
+															 "covpar.2" = rep(0,model.options$n.clusters),
+ 															 "covpar.3" = rep(0,model.options$n.clusters),
   															 "cluster.mean" = rep(0,model.options$n.clusters),
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
@@ -255,15 +252,13 @@ print.mcmc.quantities <- function(mcmc.quantities){
 declare.covariance.params.list <- function(){
 	covariance.params.list <- list(
 				"covariance.params" = list(
-					"geo.effect",
-					"time.effect",
-					"sill",
-					"exponent"),
+					"covpar.1",
+					"covpar.2",
+					"covpar.3"),
 				"covariance.param.prior.functions" = list(
-					prior.prob.geo.effect,
-					prior.prob.time.effect,
-					prior.prob.sill,
-					prior.prob.exponent))
+					prior.prob.covpar.1,
+					prior.prob.covpar.2,
+					prior.prob.covpar.3))
 	return(covariance.params.list)
 }
 
@@ -292,20 +287,16 @@ prior.prob.covariance.param.clusters <- function(cluster.list,element,function.n
 	unlist(lapply(cluster.list,prior.prob.covariance.param,element,function.name))
 }
 
-prior.prob.geo.effect <- function(geo.effect){
-	dunif(geo.effect,0,1e20,log=TRUE)
+prior.prob.covpar.1 <- function(covpar.1){
+	dunif(covpar.1,0,1e20,log=TRUE)
 }
 
-prior.prob.time.effect <- function(time.effect){
-	dunif(time.effect,0,1e20,log=TRUE)
+prior.prob.covpar.2 <- function(covpar.2){
+	dunif(covpar.2,0,1e20,log=TRUE)
 }
 
-prior.prob.sill <- function(sill){
-	dunif(sill,0,1e20,log=TRUE)
-}
-
-prior.prob.exponent <- function(exponent){
-	dexp(exponent,1,log=TRUE)
+prior.prob.covpar.3 <- function(covpar.3){
+	dunif(covpar.3,0,1e20,log=TRUE)
 }
 
 prior.prob.cluster.mean <- function(cluster.mean){
@@ -323,10 +314,9 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 		mcmc.quantities$prior.probs$nuggets <- prior.prob.param.list(parameter.list,"nuggets",prior.prob.nuggets)
 		mcmc.quantities$prior.probs$admix.proportions <- prior.prob.param.list(parameter.list,"admix.proportions",prior.prob.admix.proportions)
 		mcmc.quantities$prior.probs$shared.mean <- prior.prob.param.list(parameter.list,"shared.mean",prior.prob.shared.mean)
-		mcmc.quantities$prior.probs$geo.effect <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"geo.effect",prior.prob.geo.effect)
-		mcmc.quantities$prior.probs$time.effect <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"time.effect",prior.prob.time.effect)
-		mcmc.quantities$prior.probs$sill <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"sill",prior.prob.sill)
-		mcmc.quantities$prior.probs$exponent <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"exponent",prior.prob.exponent)
+		mcmc.quantities$prior.probs$covpar.1 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"covpar.1",prior.prob.covpar.1)
+		mcmc.quantities$prior.probs$covpar.2 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"covpar.2",prior.prob.covpar.2)
+		mcmc.quantities$prior.probs$covpar.3 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"covpar.3",prior.prob.covpar.3)
 		mcmc.quantities$prior.probs$cluster.mean <- prior.prob.cluster.mean(unlist(lapply(parameter.list$cluster.list,"[[","cluster.mean")))
 		mcmc.quantities$posterior.prob <- mcmc.quantities$likelihood + sum(unlist(mcmc.quantities$prior.probs))
 	# }
@@ -652,10 +642,9 @@ bookkeep.adaptive.mcmc <- function(super.list,generation){
 
 bookkeep.nth.batch.acceptance.rates <- function(mcmc.quantities,adaption.step){
 	# recover()
-		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$geo.effect <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$geo.effect + mcmc.quantities$acceptance.rates$geo.effect/50) ;
-		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$time.effect <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$time.effect + mcmc.quantities$acceptance.rates$time.effect/50) ;
-		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$sill <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$sill + mcmc.quantities$acceptance.rates$sill/50) ;
-		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$exponent <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$exponent + mcmc.quantities$acceptance.rates$exponent/50) ;
+		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$covpar.1 <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$covpar.1 + mcmc.quantities$acceptance.rates$covpar.1/50) ;
+		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$covpar.2 <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$covpar.2 + mcmc.quantities$acceptance.rates$covpar.2/50) ;
+		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$covpar.3 <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$covpar.3 + mcmc.quantities$acceptance.rates$covpar.3/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cluster.mean <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cluster.mean + mcmc.quantities$acceptance.rates$cluster.mean/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$nuggets <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$nuggets + mcmc.quantities$acceptance.rates$nuggets/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$admix.proportions <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$admix.proportions + mcmc.quantities$acceptance.rates$admix.proportions/50) ;
@@ -682,10 +671,9 @@ bookkeep.acceptance.rates <- function(super.list,step){
 	super.list$output.list$acceptance.rates$shared.mean[step] <- super.list$mcmc.quantities$acceptance.rates$shared.mean
 	super.list$output.list$acceptance.rates$admix.proportions[,step] <- super.list$mcmc.quantities$acceptance.rates$admix.proportions
 	super.list$output.list$acceptance.rates$nuggets[,step] <- super.list$mcmc.quantities$acceptance.rates$nuggets
-	super.list$output.list$acceptance.rates$geo.effect[,step] <- super.list$mcmc.quantities$acceptance.rates$geo.effect
-	super.list$output.list$acceptance.rates$time.effect[,step] <- super.list$mcmc.quantities$acceptance.rates$time.effect
-	super.list$output.list$acceptance.rates$exponent[,step] <- super.list$mcmc.quantities$acceptance.rates$exponent
-	super.list$output.list$acceptance.rates$sill[,step] <- super.list$mcmc.quantities$acceptance.rates$sill
+	super.list$output.list$acceptance.rates$covpar.1[,step] <- super.list$mcmc.quantities$acceptance.rates$covpar.1
+	super.list$output.list$acceptance.rates$covpar.2[,step] <- super.list$mcmc.quantities$acceptance.rates$covpar.2
+	super.list$output.list$acceptance.rates$covpar.3[,step] <- super.list$mcmc.quantities$acceptance.rates$covpar.3
 	super.list$output.list$acceptance.rates$cluster.mean[,step] <- super.list$mcmc.quantities$acceptance.rates$cluster.mean
 	return(super.list)
 }
@@ -696,32 +684,31 @@ bookkeep.params <- function(super.list,step){
 	super.list$output.list$shared.mean[step] <- super.list$parameter.list$shared.mean
 	super.list$output.list$admix.proportions[[step]] <- super.list$parameter.list$admix.proportions
 	super.list$output.list$nuggets[,step] <- super.list$parameter.list$nuggets
-	super.list$output.list$cluster.params$geo.effect[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"geo.effect")
-	super.list$output.list$cluster.params$time.effect[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"time.effect")
-	super.list$output.list$cluster.params$exponent[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"exponent")
-	super.list$output.list$cluster.params$sill[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"sill")
+	super.list$output.list$cluster.params$covpar.1[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"covpar.1")
+	super.list$output.list$cluster.params$covpar.2[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"covpar.2")
+	super.list$output.list$cluster.params$covpar.3[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"covpar.3")
 	super.list$output.list$cluster.params$cluster.mean[,step] <- unlist(lapply(super.list$parameter.list$cluster.list,"[[","cluster.mean"))
 	return(super.list)
 }
 
 update.parameters <- function(data.list,super.list){  #GRAHAM NOTES THAT j= 900 etc wont do anything, you need to use < and then >= 
-	update <- sample(1:1000,1)
-	if(update < 800){
+	update <- sample(801:970,1)
+	if(update <= 800){
 		j <- sample(1:data.list$n.ind,1)
 		super.list <- update.w.i(i=j, data.list,super.list)
 	}
-	if(update > 800 && update < 980){
+	if(update > 800 && update <= 970){
 		super.list <- update.cluster.covariance.param(data.list,super.list)
 	}
-	if(update > 970 && update < 980){
+	if(update > 970 && update <= 980){
 		k <- sample(1:model.options$n.clusters,1)
 		super.list <- update.cluster.mean.k(k,data.list,super.list)
 	}
-	if(update > 980 && update < 990){
+	if(update > 980 && update <= 990){
 		j <- sample(1:data.list$n.ind,1)	
 		super.list <- update.nugget.i(i=j,data.list,super.list)
 	}
-	if(update > 990 && update < 1000){
+	if(update > 990 && update <= 1000){
 		super.list <- update.shared.mean(data.list,super.list)
 	}
 	return(super.list)
@@ -763,7 +750,7 @@ MCMC.gid <- function(	data,
 k <- 30
 n.loci <- 1e5
 spatial.coords <- cbind(runif(k),runif(k))
-temporal.coords <- rep(0,k)  # sample(1:100,k,replace=TRUE)  #GRAHAM CHANGES
+temporal.coords <- rep(0,k)  # sample(1:100,k,replace=TRUE)
 geo.dist <- fields::rdist(spatial.coords)
 time.dist <- fields::rdist(temporal.coords)
 sim.nuggets <- rexp(k)
@@ -771,83 +758,75 @@ sim.admix.props <- sample(0:1,size=k,replace=TRUE)
 	sim.admix.props[which(sim.admix.props==1)] <- 0.99
 	sim.admix.props[which(sim.admix.props==0)] <- 0.01
 	sim.admix.props <- cbind(sim.admix.props,1-sim.admix.props)
-sim.geo.effect.1 <- runif(1,0,10)
-sim.time.effect.1 <- runif(1,0,10)
-sim.exponent.1 <- rexp(1)
-sim.sill.1 <- runif(1,0,10)
+sim.covpar.1_1 <- runif(1,0,10)
+sim.covpar.2_1 <- runif(1,0,10)
+sim.covpar.3_1 <- rexp(1)
 sim.cluster.mean.1 <- rexp(1)
-sim.geo.effect.2 <- runif(1,0,10)
-sim.time.effect.2 <- runif(1,0,10)
-sim.exponent.2 <- rexp(1)
-sim.sill.2 <- runif(1,0,10)
+sim.covpar.1_2 <- runif(1,0,10)
+sim.covpar.2_2 <- runif(1,0,10)
+sim.covpar.3_2 <- rexp(1)
 sim.cluster.mean.2 <- rexp(1)
 sim.shared.mean <- rexp(1)
 sim.cluster.list <- list("Cluster_1" = list("admix.prop.matrix" = sim.admix.props[,1] %*% t(sim.admix.props[,1]),
 											"cluster.mean" = sim.cluster.mean.1,
 											"covariance" = spatial.covariance(geo.dist,
 																				time.dist,
-																				sim.geo.effect.1,
-																				sim.time.effect.1,
-																				sim.exponent.1,
-																				sim.sill.1)),
+																				sim.covpar.1_1,
+																				sim.covpar.2_1,
+																				sim.covpar.3_1)),
 						 "Cluster_2" = list("admix.prop.matrix" = sim.admix.props[,2] %*% t(sim.admix.props[,2]),
 											"cluster.mean" = sim.cluster.mean.2,
 											"covariance" = spatial.covariance(geo.dist,
 																				time.dist,
-																				sim.geo.effect.2,
-																				sim.time.effect.2,
-																				sim.exponent.2,
-																				sim.sill.2)))
+																				sim.covpar.1_2,
+																				sim.covpar.2_2,
+																				sim.covpar.3_2)))
 sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,2,sim.shared.mean,sim.nuggets)
 sim.param.list <- list("k" = k,"n.loci" = n.loci,"spatial.coords" = spatial.coords,
 						"temporal.coords" = temporal.coords,"geo.dist" = geo.dist,
 						"time.dist" = time.dist,"sim.nuggets" = sim.nuggets,
-						"sim.admix.props" = sim.admix.props,"sim.geo.effect.1" = sim.geo.effect.1,
-						"sim.time.effect.1" = sim.time.effect.1,"sim.exponent.1" = sim.exponent.1,
-						"sim.sill.1" = sim.sill.1,"sim.cluster.mean.1" = sim.cluster.mean.1,
-						"sim.geo.effect.2" = sim.geo.effect.2,"sim.time.effect.2" = sim.time.effect.2,
-						"sim.exponent.2" = sim.exponent.2,"sim.sill.2" = sim.sill.2,
-						"sim.cluster.mean.2" = sim.cluster.mean.2,"sim.shared.mean" = sim.shared.mean,
-						"sim.admixed.cov.mat" = sim.admixed.cov.mat,"sim.cluster.list" = sim.cluster.list)
+						"sim.admix.props" = sim.admix.props,"sim.covpar.1_1" = sim.covpar.1_1,
+						"sim.covpar.2_1" = sim.covpar.2_1,"sim.covpar.3_1" = sim.covpar.3_1,
+						"sim.cluster.mean.1" = sim.cluster.mean.1,
+						"sim.covpar.1_2" = sim.covpar.1_2,"sim.covpar.2_2" = sim.covpar.2_2,
+						"sim.covpar.3_2" = sim.covpar.3_2,"sim.cluster.mean.2" = sim.cluster.mean.2,
+						"sim.shared.mean" = sim.shared.mean,"sim.admixed.cov.mat" = sim.admixed.cov.mat,
+						"sim.cluster.list" = sim.cluster.list)
 save(sim.param.list,file="~/desktop/simdata.Robj")
 
 #generate initial parameters 
 # that are the same as those used to simulate data,
 # EXCEPT for the admixture proportions, which are simulated from a dirichlet
 
-init.admix.props <- 	gtools::rdirichlet(n = k,alpha = rep(1,2))	#sim.admix.props	
-init.nuggets <- 		rexp(k)	#sim.nuggets
-init.geo.effect.1 <- 	runif(1,0,10)	#sim.geo.effect.1
-init.time.effect.1 <- 	runif(1,0,10)	#sim.time.effect.1 
-init.exponent.1 <- 		rexp(1)	#sim.exponent.1
-init.sill.1 <- 			runif(1,0,10)	#sim.sill.1
-init.cluster.mean.1 <- 	rexp(1) #sim.cluster.mean.1
-init.geo.effect.2 <- 	runif(1,0,10)	#sim.geo.effect.2
-init.time.effect.2 <- 	runif(1,0,10)	#sim.time.effect.2
-init.exponent.2 <- 		rexp(1)	#sim.exponent.2
-init.sill.2 <- 			runif(1,0,10)	#sim.sill.2
-init.cluster.mean.2 <- 	rexp(1)	#sim.cluster.mean.2
-init.shared.mean <- 	rexp(1)	#sim.shared.mean	
+init.admix.props <- 	sim.admix.props		#gtools::rdirichlet(n = k,alpha = rep(1,2))
+init.nuggets <- 		sim.nuggets	#rexp(k)
+init.covpar.1_1 <- 		runif(1,0,10)	#sim.covpar.1_1
+init.covpar.2_1 <- 		runif(1,0,10)	#sim.covpar.2_1
+init.covpar.3_1 <- 		rexp(1)			#sim.covpar.3_1
+init.cluster.mean.1 <- 	sim.cluster.mean.1	#rexp(1)
+init.covpar.1_2 <- 		runif(1,0,10)	#sim.covpar.1_2
+init.covpar.2_2 <- 		runif(1,0,10)	#sim.covpar.2_2
+init.covpar.3_2 <- 		rexp(1)			#sim.covpar.3_2
+init.cluster.mean.2 <- 	sim.cluster.mean.2	#rexp(1)
+init.shared.mean <- 	sim.shared.mean		#rexp(1)
 initial.parameters <- list("shared.mean" = init.shared.mean,
 							"admix.proportions" = init.admix.props,
 							"nuggets" = init.nuggets,
 							"cluster.list" = generate.clusters(2))
 #initial parameters cluster 1
-	initial.parameters$cluster.list$Cluster_1$covariance.params$geo.effect <- init.geo.effect.1
-	initial.parameters$cluster.list$Cluster_1$covariance.params$time.effect <- init.time.effect.1
-	initial.parameters$cluster.list$Cluster_1$covariance.params$exponent <- init.exponent.1
-	initial.parameters$cluster.list$Cluster_1$covariance.params$sill <- init.sill.1
+	initial.parameters$cluster.list$Cluster_1$covariance.params$covpar.1 <- init.covpar.1_1
+	initial.parameters$cluster.list$Cluster_1$covariance.params$covpar.2 <- init.covpar.2_1
+	initial.parameters$cluster.list$Cluster_1$covariance.params$covpar.3 <- init.covpar.3_1
 	initial.parameters$cluster.list$Cluster_1$cluster.mean <- init.cluster.mean.1
-	initial.parameters$cluster.list$Cluster_1$covariance <- spatial.covariance(geo.dist,time.dist,init.geo.effect.1,init.time.effect.1,init.exponent.1,init.sill.1)
+	initial.parameters$cluster.list$Cluster_1$covariance <- spatial.covariance(geo.dist,time.dist,init.covpar.1_1,init.covpar.2_1,init.covpar.3_1)
 	initial.parameters$cluster.list$Cluster_1$admix.prop.matrix <- init.admix.props[,1] %*% t(init.admix.props[,1])
 
 #initial parameters cluster 2
-	initial.parameters$cluster.list$Cluster_2$covariance.params$geo.effect <- init.geo.effect.2
-	initial.parameters$cluster.list$Cluster_2$covariance.params$time.effect <- init.time.effect.2
-	initial.parameters$cluster.list$Cluster_2$covariance.params$exponent <- init.exponent.2
-	initial.parameters$cluster.list$Cluster_2$covariance.params$sill <- init.sill.2
+	initial.parameters$cluster.list$Cluster_2$covariance.params$covpar.1 <- init.covpar.1_2
+	initial.parameters$cluster.list$Cluster_2$covariance.params$covpar.2 <- init.covpar.2_2
+	initial.parameters$cluster.list$Cluster_2$covariance.params$covpar.3 <- init.covpar.3_2
 	initial.parameters$cluster.list$Cluster_2$cluster.mean <- init.cluster.mean.2
-	initial.parameters$cluster.list$Cluster_2$covariance <- spatial.covariance(geo.dist,time.dist,init.geo.effect.2,init.time.effect.2,init.exponent.2,init.sill.2)
+	initial.parameters$cluster.list$Cluster_2$covariance <- spatial.covariance(geo.dist,time.dist,init.covpar.1_2,init.covpar.2_2,init.covpar.3_2)
 	initial.parameters$cluster.list$Cluster_2$admix.prop.matrix <- init.admix.props[,2] %*% t(init.admix.props[,2])
 
 
@@ -857,8 +836,8 @@ sim.data <- list("geo.coords" = spatial.coords,
 				"n.loci" = n.loci)
 model.options = list("round.earth" = FALSE,
 						"n.clusters" = 2)
-mcmc.options = list("ngen" = 1e7,
-					"samplefreq" = 1e4,
+mcmc.options = list("ngen" = 1e5,
+					"samplefreq" = 1e2,
 					"printfreq" = 1000)
 
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters)
@@ -902,22 +881,22 @@ points(super.list$output.list$posterior.prob[300:1000],xlab="",ylab="",type='l',
 
 
 par(mfrow=c(2,2),mar=c(2,2,2,2))
-matplot(t(super.list$output.list$cluster.params$geo.effect),type='l',lty=1,
-			ylim=c(min(sim.param.list$geo.effect.1,sim.param.list$geo.effect.2,super.list$output.list$cluster.params$geo.effect,na.rm=TRUE),
-					max(sim.param.list$geo.effect.1,sim.param.list$geo.effect.2,super.list$output.list$cluster.params$geo.effect,na.rm=TRUE)))
-	mtext("geo.effect",side=1,padj=-11)
-	abline(h=c(sim.param.list$sim.geo.effect.1,sim.param.list$sim.geo.effect.2),col=c(1,2),lty=2)
+matplot(t(super.list$output.list$cluster.params$covpar.1),type='l',lty=1,
+			ylim=c(min(sim.param.list$sim.covpar.1_1,sim.param.list$sim.covpar.1_2,super.list$output.list$cluster.params$covpar.1,na.rm=TRUE),
+					max(sim.param.list$sim.covpar.1_1,sim.param.list$sim.covpar.1_2,super.list$output.list$cluster.params$covpar.1,na.rm=TRUE)))
+	mtext("covpar.1",side=1,padj=-11)
+	abline(h=c(sim.param.list$sim.covpar.1_1,sim.param.list$sim.covpar.1_2),col=c(1,2),lty=2)
 	legend(x="topleft",col=c(1,1,2,2),lty=c(1,2,1,2),legend=c("cluster1 - estimate","cluster1 - truth","cluster2 - estimate","cluster2 - truth"))
-matplot(t(super.list$output.list$cluster.params$exponent),type='l',lty=1,
-			ylim=c(min(sim.param.list$sim.exponent.1,sim.param.list$sim.exponent.2,super.list$output.list$cluster.params$exponent,na.rm=TRUE),
-					max(sim.param.list$sim.exponent.1,sim.param.list$sim.exponent.2,super.list$output.list$cluster.params$exponent,na.rm=TRUE)))
-	mtext("exponent",side=1,padj=-11)
-	abline(h=c(sim.param.list$sim.exponent.1,sim.param.list$sim.exponent.2),col=c(1,2),lty=2)
-matplot(t(super.list$output.list$cluster.params$sill),type='l',lty=1,
-			ylim=c(min(sim.param.list$sim.sill.1,sim.param.list$sim.sill.2,super.list$output.list$cluster.params$sill,na.rm=TRUE),
-					max(sim.param.list$sim.sill.1,sim.param.list$sim.sill.2,super.list$output.list$cluster.params$sill,na.rm=TRUE)))
-	mtext("sill",side=1,padj=-11)
-	abline(h=c(sim.param.list$sim.sill.1,sim.param.list$sim.sill.2),col=c(1,2),lty=2)
+matplot(t(super.list$output.list$cluster.params$covpar.2),type='l',lty=1,
+			ylim=c(min(sim.param.list$sim.covpar.2_1,sim.param.list$sim.covpar.2_2,super.list$output.list$cluster.params$covpar.2,na.rm=TRUE),
+					max(sim.param.list$sim.covpar.2_1,sim.param.list$sim.covpar.2_2,super.list$output.list$cluster.params$covpar.2,na.rm=TRUE)))
+	mtext("covpar.2",side=1,padj=-11)
+	abline(h=c(sim.param.list$sim.covpar.3_1,sim.param.list$sim.covpar.3_2),col=c(1,2),lty=2)
+matplot(t(super.list$output.list$cluster.params$covpar.3),type='l',lty=1,
+			ylim=c(min(sim.param.list$sim.covpar.3_1,sim.param.list$sim.covpar.3_2,super.list$output.list$cluster.params$covpar.3,na.rm=TRUE),
+					max(sim.param.list$sim.covpar.3_1,sim.param.list$sim.covpar.3_2,super.list$output.list$cluster.params$covpar.3,na.rm=TRUE)))
+	mtext("covpar.3",side=1,padj=-11)
+	abline(h=c(sim.param.list$sim.covpar.3_1,sim.param.list$sim.covpar.3_2),col=c(1,2),lty=2)
 matplot(t(super.list$output.list$cluster.params$cluster.mean),type='l',lty=1,
 			ylim=c(min(sim.param.list$cluster.mean.1,sim.param.list$cluster.mean.2,super.list$output.list$cluster.params$cluster.mean,na.rm=TRUE),
 					max(sim.param.list$cluster.mean.1,sim.param.list$cluster.mean.2,super.list$output.list$cluster.params$cluster.mean,na.rm=TRUE)))
@@ -946,9 +925,9 @@ plot(super.list$output.list$shared.mean,type='l',
 	
 	
 par(mfrow=c(3,1),mar=c(1,1,1,1))
-matplot(t(super.list$output.list$acceptance.rates$geo.effect),type='l',xlab="",ylab="")
-matplot(t(super.list$output.list$acceptance.rates$exponent),type='l',xlab="",ylab="")
-matplot(t(super.list$output.list$acceptance.rates$sill),type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$covpar.1),type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$covpar.2),type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$covpar.3),type='l',xlab="",ylab="")
 
 par(mfrow=c(3,1),mar=c(1,1,1,1))
 matplot(t(super.list$output.list$acceptance.rates$admix.proportions),type='l',xlab="",ylab="")
