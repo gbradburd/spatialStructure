@@ -1,0 +1,61 @@
+
+###getting rs numbers for Human origins data
+downloaded  /Axiom_GW_HuOrigin.na34.annot.csv from Affy site.
+Human_origins<-read.table("~/Downloads/Axiom_GW_HuOrigin.na34.annot.csv/Axiom_GW_HuOrigin.na34.annot.csv",as.is=TRUE,sep=",",head=TRUE)
+Haak<-read.table("~/Documents/Neanderthal/Haak2015PublicData/data.snp",as.is=TRUE)
+map<-match(Haak$V1, Human_origins$Affy.SNP.ID )
+Haak$RS <- Human_origins$dbSNP.RS.ID[map]
+Haak$RS[is.na(Haak$RS)]<-Haak$V1[is.na(Haak$RS)]
+write.table(file="~/Dropbox/Students/gideon/spatialStructure/HumanData/Haak.w.rs.out",Haak,quote=FALSE, col.names=FALSE,row.names=FALSE)
+
+###DONE ON IBIS, getting rid of SNPs lacking rs
+Haak<-read.table("Haak.bim",as.is=TRUE)
+Haak$V2[Haak$V2=="---"]<-paste("---",1:sum(Haak$V2=="---"),sep="")
+write.table(file="Haak.bim",Haak,quote=FALSE,col.names=FALSE,row.names=FALSE)
+
+##  DONE ON IBIS
+popres<-read.table("/home/ibd/data/POPRES/pca_euro/eigenstrat_europeans_outliers_removed_old.bim",as.is=TRUE)  ##this is where the original is
+popres.QC<-read.table("/home/ibd/data/POPRES/original/marker_info/phg000027.POPRES.genotype-calls.Affy500K.p1.MULTI.marker-info/POPRES_Snps_QC2.txt",as.is=TRUE)
+map<-match(popres$V2,popres.QC$V1)
+popres.rs<-popres.QC$V2[map]
+popres.rs[is.na(popres.rs)]<-paste("blah",1:sum(is.na(popres.rs)),sep="")
+popres$V2<-popres.rs
+
+popres$V2[popres$V2=="---"]<-paste("---popres",1:sum(popres$V2=="---"),sep="")
+
+write.table(file="/home/ibd/data/POPRES/pca_euro/eigenstrat_europeans_outliers_removed.bim", popres,quote=FALSE,row.names=FALSE,col.names=FALSE)
+
+
+###moved the rs-less bim files to old
+plink --bfile /home/ibd/data/POPRES/pca_euro/eigenstrat_europeans_outliers_removed --bmerge Haak.bed Haak.bim Haak.fam --merge-mode 6 --out popres_Haak_merge
+plink --bfile Haak --flip popres_Haak_merge.missnp --make-bed --out Haak_flipped
+plink --bfile  /home/ibd/data/POPRES/pca_euro/eigenstrat_europeans_outliers_removed  --bmerge Haak_flipped.bed Haak_flipped.bim Haak_flipped.fam --make-bed --out Haak_POPRES
+
+plink --bfile Haak_POPRES --flip-scan
+
+###write out a file with the overlapping 87158   SNPs 
+SNPs.in.both<-Haak.snps[Haak.snps$V2 %in% popres$V2,2]
+write.table(file="SNPs.in.both", SNPs.in.both,quote=FALSE,row.names=FALSE,col.names=FALSE)
+
+#####GET CLUSTER INFO.
+Lazaridis<-read.csv("Lazaridis_table_poplatlong.csv",as.is=TRUE)
+ Haak.metadata<-read.table("Haak_table.txt",as.is=TRUE,head=TRUE, sep="\t")  ##for the old inds
+ 
+ Haak.inds<-read.table("data.ind",as.is=TRUE)
+ Haak.cluster<- Haak.inds$V3
+  
+ popres.clst<-read.table("/home/ibd/data/POPRES/pca_euro/eigenstrat_europeans_outliers_removed.cluster",as.is=TRUE)
+ Haak.popres.fam<-read.table("Haak_POPRES.fam",as.is=TRUE)
+   Haak.inds$V3[!(Haak.cluster %in% Haak.metadata$Culture.ID  | Haak.cluster %in% Lazaridis$Population)]<-"other" 
+ all.inds<-rbind( popres.clst[,c(1,3)],Haak.inds[,c(1,3)])
+ 
+##The two files are in the same order
+all( all.inds$V1  == Haak.popres.fam$V2)
+
+Haak.popres.clst<-cbind(Haak.popres.fam[,1:2], all.inds[,2])
+write.table(file="Haak_POPRES.clst", Haak.popres.clst, quote=FALSE,row.names=FALSE,col.names=FALSE)
+
+
+
+
+plink --bfile Haak_POPRES --within Haak_POPRES.clst --extract SNPs.in.both --freq --missing --out Haak_POPRES_freqs
