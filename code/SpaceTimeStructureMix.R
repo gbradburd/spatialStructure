@@ -672,7 +672,7 @@ update.log.stp <- function(log.stp,n.batch,accept.rate){
 bookkeep.lstps <- function(super.list){
 	super.list$mcmc.quantities$adaptive.mcmc$log.stps <- mapply(update.log.stp,
 																log.stp = super.list$mcmc.quantities$adaptive.mcmc$log.stps,
-																n.batch=1e6,
+																n.batch=super.list$mcmc.quantities$adaptive.mcmc$n.batch,
 																accept.rate=super.list$mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates)
 	super.list$mcmc.quantities$adaptive.mcmc$n.batch <- super.list$mcmc.quantities$adaptive.mcmc$n.batch + 1
 	return(super.list)
