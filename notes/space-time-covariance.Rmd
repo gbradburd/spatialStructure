@@ -4,6 +4,9 @@ date: April 22, 2015
 ---
 
 ```{r setup, include=FALSE}
+require(microbenchmark)
+require(gsl)
+require(Matrix)
 fig.dim <- 5
 knitr::opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim)
 ```
@@ -89,10 +92,59 @@ Also, see [google](https://scholar.google.com/scholar?as_ylo=2014&q=matern+spati
 Will this take longer?
 Well, as a quick check:
 ```{r benchmark}
-require(microbenchmark)
-require(gsl)
 microbenchmark(exp(-3))
 microbenchmark(bessel_Knu(nu=1.4,x=-3))
 ```
 ... yes, `exp` is a lot quicker than `bessel_Knu`... but,
 this is likely to be only a small portion of the computation time.
+
+
+Implementation
+--------------
+
+Here is an implementation with $\epsilon=0$:
+```{r matern_defn}
+spatiotemporal.covariance <- function(geo.dist,time.dist,alpha,nu,zeta){
+	d <- 2  # two spatial dimensions
+	return( exp(
+            d/2 * log(pi) +
+            d * log(alpha) -
+            ( (nu + zeta*time.dist - 1)*log(2) +
+                    gsl::lngamma(nu + zeta*time.dist + d/2) 
+                ) +
+            nu * log(alpha*geo.dist) +
+            gsl::bessel_lnKnu(nu=nu,x=alpha*geo.dist)
+    ) )
+}
+```
+
+Let's see what it looks like:
+```{r view_matern}
+set.seed(11113)
+k <- 30
+n.loci <- 1e6
+spatial.coords <- cbind(runif(k),runif(k))
+temporal.coords <- sort(runif(k))
+geo.dist <- fields::rdist(spatial.coords)
+time.dist <- fields::rdist(temporal.coords)
+layout(t(1:2))
+image(geo.dist,main="geographic distance")
+image(time.dist,main="time difference")
+```
+
+```{r plot_matern, fig.width=3*fig.dim}
+layout(t(1:3))
+plot.fn <- function (alpha,nu,zeta) {
+    covmat <- spatiotemporal.covariance(geo.dist,time.dist,alpha=alpha,nu=nu,zeta=zeta)
+    image(covmat)
+    mtext( substitute( group( "(", list( alpha == alphaval, nu == nuval, zeta == zetaval ), ")" ), list(alphaval=alpha, nuval=nu, zetaval=zeta) ), side=3 )
+    plot( geo.dist, as.vector(covmat), xlab="geographic dist", ylab="covariance" )
+    plot( time.dist, as.vector(covmat), xlab="geographic dist", ylab="covariance" )
+}
+
+plot.fn( alpha=1, nu=1, zeta=1 )
+plot.fn( alpha=.1, nu=1, zeta=1 )
+plot.fn( alpha=1, nu=.1, zeta=1 )
+plot.fn( alpha=1, nu=1, zeta=.1 )
+```
+
