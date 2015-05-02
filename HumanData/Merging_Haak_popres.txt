@@ -44,11 +44,15 @@ Lazaridis<-read.csv("Lazaridis_table_poplatlong.csv",as.is=TRUE)
  Haak.inds<-read.table("data.ind",as.is=TRUE)
  Haak.cluster<- Haak.inds$V3
   
+
  popres.clst<-read.table("/home/ibd/data/POPRES/pca_euro/eigenstrat_europeans_outliers_removed.cluster",as.is=TRUE)
  Haak.popres.fam<-read.table("Haak_POPRES.fam",as.is=TRUE)
    Haak.inds$V3[!(Haak.cluster %in% Haak.metadata$Culture.ID  | Haak.cluster %in% Lazaridis$Population)]<-"other" 
  all.inds<-rbind( popres.clst[,c(1,3)],Haak.inds[,c(1,3)])
  
+##FOR HAAK only dataset
+write.table(file="Haak_w_Lazaridis_pops.clst", cbind(1:nrow(Haak.inds),Haak.inds[,c(1,3)]),quote=FALSE, col.names=FALSE, row.names=FALSE)
+
 ##The two files are in the same order
 all( all.inds$V1  == Haak.popres.fam$V2)
 
@@ -59,3 +63,7 @@ write.table(file="Haak_POPRES.clst", Haak.popres.clst, quote=FALSE,row.names=FAL
 
 
 plink --bfile Haak_POPRES --within Haak_POPRES.clst --extract SNPs.in.both --freq --missing --out Haak_POPRES_freqs
+
+##Thinning Haak file 
+plink --bfile Haak --indep-pairwise 50 5 0.1 --out Haak_thinned &
+
