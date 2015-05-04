@@ -1,4 +1,4 @@
-spatiotemporal.covariance <- function(geo.dist,time.dist,alpha,nu,zeta){
+3spatiotemporal.covariance <- function(geo.dist,time.dist,alpha,nu,zeta){
     d <- 2  # two spatial dimensions
     return( exp(
             d/2 * log(pi) +
@@ -202,6 +202,7 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 	mcmc.quantities <- list("gen" = 1,
 							"likelihood" = NULL,
 							"posterior.prob" = NULL,
+							"dirich.conc.params" = NULL,
 							"prior.probs" = list("cov.par1" = rep(NA,model.options$n.clusters),
 													"cov.par2" = rep(NA,model.options$n.clusters),
 													"cov.par3" = rep(NA,model.options$n.clusters),
@@ -285,9 +286,8 @@ prior.prob.nuggets <- function(nuggets){
 	dexp(nuggets,log=TRUE)
 }
 
-prior.prob.admix.proportions <- function(admix.proportions,n.clusters){
-	log(gtools::ddirichlet(admix.proportions,
-					alpha=rep(0.5,n.clusters)))
+prior.prob.admix.proportions <- function(x,alpha){
+	rowSums((matrix(alpha,nrow=nrow(x),ncol=ncol(x),byrow=TRUE) - 1)*log(x))
 }
 
 prior.prob.shared.mean <- function(shared.mean){
@@ -326,7 +326,8 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 	# } else {
 		mcmc.quantities$likelihood <- calculate.likelihood.2(data.list,parameter.list$inverse,parameter.list$determinant)
 		mcmc.quantities$prior.probs$nuggets <- prior.prob.param.list(parameter.list,"nuggets",prior.prob.nuggets)
-		mcmc.quantities$prior.probs$admix.proportions <- prior.prob.param.list(parameter.list,"admix.proportions",prior.prob.admix.proportions,model.options$n.clusters)
+		mcmc.quantities$dirich.conc.params <- matrix(rep(0.5,model.options$n.clusters),nrow=data.list$n.ind,ncol=model.options$n.clusters,byrow=TRUE)
+		mcmc.quantities$prior.probs$admix.proportions <- prior.prob.param.list(parameter.list,"admix.proportions",prior.prob.admix.proportions,other.args=mcmc.quantities$dirich.conc.params)
 		mcmc.quantities$prior.probs$shared.mean <- prior.prob.param.list(parameter.list,"shared.mean",prior.prob.shared.mean)
 		if(!model.options$no.st){
 			mcmc.quantities$prior.probs$cov.par1 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par1",prior.prob.cov.par1)
@@ -469,10 +470,10 @@ update.w.i <- function(i,data.list,super.list){
 	delta.w <- rnorm(1,sd=exp(super.list$mcmc.quantities$adaptive.mcmc$log.stps$admix.proportions[i]))
 	new.w.1 <- super.list$parameter.list$admix.proportions[i,clst.1] + delta.w
 	new.w.2 <- super.list$parameter.list$admix.proportions[i,clst.2] - delta.w
-	new.admixture.vec <- super.list$parameter.list$admix.proportions[i,]
+	new.admixture.vec <- super.list$parameter.list$admix.proportions[i,,drop=FALSE]
 	new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
 	#write our own dirichlet prior prob that doesn't spit "log(x) NaNs produced" warnings
-	new.prior.prob <- prior.prob.admix.proportions(new.admixture.vec,super.list$model.options$n.clusters)
+	new.prior.prob <- prior.prob.admix.proportions(new.admixture.vec,super.list$mcmc.quantities$dirich.conc.params[i,these.two,drop=FALSE])
 	if(is.finite(new.prior.prob)){
 		covar.1 <- super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,]  + super.list$parameter.list$cluster.list[[clst.1]]$cluster.mean
 		covar.2 <- super.list$parameter.list$cluster.list[[clst.2]]$covariance[i,]  + super.list$parameter.list$cluster.list[[clst.2]]$cluster.mean
