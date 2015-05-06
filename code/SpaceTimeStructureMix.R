@@ -1,4 +1,4 @@
-3spatiotemporal.covariance <- function(geo.dist,time.dist,alpha,nu,zeta){
+spatiotemporal.covariance <- function(geo.dist,time.dist,alpha,nu,zeta){
     d <- 2  # two spatial dimensions
     return( exp(
             d/2 * log(pi) +
@@ -243,6 +243,7 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 															 "admix.proportions" = rep(0,n.ind),
 															 "shared.mean" = 0)),
 							"covariance.params.list" = declare.covariance.params.list(model.options))
+							"smw.numinst.ticker" = 0
 	class(mcmc.quantities) <- "mcmc.quantities"
 	return(mcmc.quantities)
 }
@@ -287,7 +288,7 @@ prior.prob.nuggets <- function(nuggets){
 }
 
 prior.prob.admix.proportions <- function(x,alpha){
-	rowSums((matrix(alpha,nrow=nrow(x),ncol=ncol(x),byrow=TRUE) - 1)*log(x))
+	rowSums((matrix(alpha,nrow=nrow(x),ncol=ncol(x),byrow=TRUE) - 1) * log(x))
 }
 
 prior.prob.shared.mean <- function(shared.mean){
@@ -585,7 +586,16 @@ tidy.super.list <- function(super.list){
 	return(super.list)
 }
 
-bookkeep <- function(super.list,generation,mcmc.options){
+recalibrate.super.list <- function(super.list,data.list){
+	if(sum(abs(super.list$parameter.list$admixed.covariance %*% super.list$parameter.list$inverse - diag(data.list$n.ind))) > data.list$n.ind * 1e-10){
+		super.list$parameter.list$inverse <- MASS::ginv(super.list$parameter.list$admixed.covariance)
+		super.list$parameter.list$determinant <- determinant(super.list$parameter.list$admixed.covariance,logarithm=TRUE)$modulus
+		super.list$mcmc.quantities$smw.numinst.ticker <- super.list$mcmc.quantities$smw.numinst.ticker + 1
+	}
+	return(super.list)
+}	
+
+bookkeep <- function(super.list,generation,mcmc.options,data.list){
 	if(generation %% mcmc.options$samplefreq == 0){
 		step <- super.list$output.list$step
 		super.list <- bookkeep.params(super.list,step)
@@ -599,6 +609,10 @@ bookkeep <- function(super.list,generation,mcmc.options){
 	if(generation %% mcmc.options$savefreq == 0){
 		super.list <- tidy.super.list(super.list)
 		save(super.list,file=mcmc.options$output.file.name)
+	}
+	if(generation %% 1e5 == 0){
+		super.list <- tidy.super.list(super.list)
+		super.list <- recalibrate.super.list(super.list,data.list)
 	}
 	return(super.list)
 }
