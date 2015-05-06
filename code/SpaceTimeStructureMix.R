@@ -751,7 +751,7 @@ MCMC.gid <- function(	data,
 	for(z in 2:mcmc.options$ngen){
 		super.list$mcmc.quantities$gen <- z
 		super.list <- update.parameters(data.list,super.list)
-		super.list <- bookkeep(super.list,z,mcmc.options)
+		super.list <- bookkeep(super.list,z,mcmc.options,data.list)
 	}
 	save(super.list,file=mcmc.options$output.file.name)
 	return("run complete")
