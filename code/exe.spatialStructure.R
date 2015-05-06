@@ -1,3 +1,5 @@
+source("SpaceTimeStructureMix.R")
+
 #generate initial parameters 
 # that are the same as those used to simulate data,
 # EXCEPT for the admixture proportions, which are simulated from a dirichlet
@@ -58,9 +60,9 @@ model.options = list("round.earth" = FALSE,
 						"n.clusters" = 1,
 						"temporal.sampling"=FALSE,
 						no.st=TRUE)
-mcmc.options = list("ngen" = 1e7,
-					"samplefreq" = 1e4,
-					"printfreq" = 1e3,
+mcmc.options = list("ngen" = 1e5,
+					"samplefreq" = 1e2,
+					"printfreq" = 1e2,
 					"savefreq" = 1e6,
-					"output.file.name"="K1test_output.Robj")
+					"output.file.name"="test_output.Robj")
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters=NULL)
