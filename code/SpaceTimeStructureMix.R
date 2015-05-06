@@ -242,8 +242,8 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
 															 "shared.mean" = 0)),
-							"covariance.params.list" = declare.covariance.params.list(model.options))
-							"smw.numinst.ticker" = 0
+							"covariance.params.list" = declare.covariance.params.list(model.options),
+							"smw.numinst.ticker" = 0)
 	class(mcmc.quantities) <- "mcmc.quantities"
 	return(mcmc.quantities)
 }
