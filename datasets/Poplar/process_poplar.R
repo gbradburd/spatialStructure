@@ -1,6 +1,7 @@
 
-
+##downloaded from http://datadryad.org/resource/doi:10.5061/dryad.7s848
 poplar<-read.table("~/Downloads/FOR_DRYAD_TandB_fwd_june2013_434.txt",as.is=TRUE,sep="\t")
+##Supp tables from the paper
 pop.metadata<-read.csv(file="~/Dropbox/Students/gideon/spatialStructure/datasets/Poplar/Populus_metadata.csv",as.is=TRUE,skip=1)
 pop.samples<-poplar[10,]
 
