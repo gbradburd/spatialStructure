@@ -59,12 +59,21 @@ loci.proportions <- lapply(1:length(chr.cov.list),function(i){chr.cov.list[[i]]$
 weighted.cov.list <- lapply(1:length(chr.cov.list),function(i){loci.proportions[[i]] * chr.cov.list[[i]]$cov})
 total.cov <- Reduce("+",weighted.cov.list)
 
+
+pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/haak_pop_names.txt",what="character")
 mc.mat <- diag(nrow(total.cov)) - 1/nrow(total.cov)
-eig.covmat <- eigen(mc.mat %*% total.cov %*% mc.mat)
+eig.covmat <- eigen(mc.mat %*% total.cov %*% t(mc.mat))
+par(mfrow=c(1,2))
+plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n')
+	text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
 plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n',xlim=c(-0.02,0.05),ylim=c(-0.1,0.1))
+	text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
+plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n',xlim=c(0.01,0.05),ylim=c(-0.1,0.05))
 	text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
 
 
 
 
 
+plot(eig.covmat$vectors[,2],eig.covmat$vectors[,3],type='n',xlim=c(-0.07,0.05),ylim=c(-0.02,0.0001))
+	text(eig.covmat$vectors[,2],eig.covmat$vectors[,3],labels=pops,cex=0.5)

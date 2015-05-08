@@ -308,7 +308,7 @@ prior.prob.cov.par1 <- function(cov.par1){
 }
 
 prior.prob.cov.par2 <- function(cov.par2){
-	dunif(cov.par2,0,1e20,log=TRUE)
+	dexp(cov.par2,1,log=TRUE)
 }
 
 prior.prob.cov.par3 <- function(cov.par3){
@@ -734,7 +734,7 @@ MCMC.gid <- function(	data,
 	if(is.null(seed)){
 		seed <- sample(1:10000,1)
 	}
-	cat(seed,"\n")
+	cat("seed set at: ",seed,"\n")
 	set.seed(seed)
 	data.list <- make.data.list(data,model.options)
 	save(data.list,file="data.list.Robj")
