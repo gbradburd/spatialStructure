@@ -3,6 +3,7 @@ if(FALSE){
 	load(list.files(pattern="output"))
 	load("data.list.Robj")
 }
+geo.coords <- spacemix.dataset$population.coordinates
 all.colors <- c("blue","red","green","yellow","purple","brown")
 cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
 
@@ -90,21 +91,20 @@ plot(super.list$output.list$acceptance.rates$shared.mean,type='l',xlab="",ylab="
 
 
 require(caroline)
-sample.names <- unlist(lapply(1:sim.param.list$k,function(i){paste("sample_",i,sep="")}))
-pie.list <- lapply(1:sim.param.list$k,function(i){nv(sim.param.list$sim.admix.props[i,],c("Cluster_1","Cluster_2"))})
+sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
+cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
+color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
+pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
 names(pie.list) <- sample.names
-color.tab <- nv(c("blue","red"),c("Cluster_1","Cluster_2"))
-pie.list2 <- lapply(1:sim.param.list$k,function(i){nv(super.list$parameter.list$admix.proportions[i,],c("Cluster_1","Cluster_2"))})
-names(pie.list2) <- sample.names
-#pdf(file="admix_prop_map.pdf",width=10,height=5)
-quartz(width=10,height=5)
-par(mfrow=c(1,2))
-pies(pie.list,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
-		xlab="",ylab="",main="truth",lty=1,density=NULL)
-pies(pie.list2,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
-		xlab="",ylab="",main="estimated",lty=1,density=NULL)
-#dev.off()
 
+quartz(width=5,height=5)
+# par(new=FALSE)
+pies(pie.list,x0=geo.coords[,1],
+				y0=geo.coords[,2],
+				color.table=color.tab,border="black",radii=3,
+				xlab="",ylab="",main="estimated",lty=1,density=NULL)
+	# points(x=50.70267, y=52.84767,pch=8,col=1)
+box(lwd=2)
 ################################################################
 ################################################################
 ################################################################
