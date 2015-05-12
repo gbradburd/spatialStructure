@@ -1,0 +1,33 @@
+"COUNTRY_SELF" "lat" "long"
+"2461" "Yugoslavia" 44.83 20.5
+"967" "Swiss French" 46.21 6.14
+"1939" "Switzerland" 46.95 7.44
+"99" "Czech Republic" 50.08 14.43
+"1836" "Swiss German" 47.38 8.54
+"793" "Romania" 44.44 26.1
+"71" "Bulgaria" 42.69 23.31
+"286" "Hungary" 47.51 19.08
+"1963" "Ukraine" 50.43 30.52
+"813" "Slovakia" 48.16 17.13
+"6" "Albania" 41.33 19.82
+"819" "Spain" 40.42 -3.71
+"611" "Latvia" 56.97 24.13
+"814" "Slovenia" 46.06 14.51
+"1965" "United Kingdom" 51.52 -0.1
+"310" "Ireland" 53.33 -6.25
+"956" "Sweden" 59.33 18.07
+"386" "Italy" 41.89 12.5
+"203" "Germany" 52.52 13.38
+"95" "Cyprus" 35.16 33.38
+"1957" "Turkey" 41.1 29
+"278" "Greece" 37.98 23.73
+"658" "Portugal" 38.72 -9.14
+"29" "Belgium" 50.83 4.33
+"113" "France" 48.86 2.34
+"15" "Austria" 48.22 16.37
+"634" "Poland" 52.26 21.02
+"613" "Netherlands" 52.37 4.89
+"807" "Russia" 55.75 37.62
+"632" "Norway" 59.91 10.75
+"108" "Denmark" 55.68 12.57
+"112" "Finland" 60.17 24.94

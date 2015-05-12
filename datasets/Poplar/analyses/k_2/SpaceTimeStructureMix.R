@@ -51,9 +51,7 @@ initialize.super.list <- function(data.list,model.options,mcmc.options,initial.p
 	super.list$output.list <- make.output.list(data.list$n.ind,model.options,mcmc.options)
 	super.list$mcmc.quantities <- initialize.mcmc.quantities(data.list,super.list$parameter.list,model.options,mcmc.options,initial.parameters)
 	super.list$model.options <- model.options
-	super.list <- bookkeep.params(super.list,super.list$output.list$step)
-	super.list <- bookkeep.acceptance.rates(super.list,super.list$output.list$step)
-	super.list$output.list$step <- super.list$output.list$step + 1
+	super.list <- bookkeep(super.list,1,mcmc.options)
 	return(super.list)
 }
 
@@ -112,20 +110,11 @@ populate.cluster <- function(cluster,geo.dist,time.dist,admix.proportions,model.
 	# recover()
 	if(!model.options$no.st){
 		cluster$covariance <- NaN
-		if(model.options$temporal.sampling){
-			while(any(is.na(cluster$covariance))){
-				cluster$covariance.params$cov.par1 <- runif(1,1e-10,10)
-				cluster$covariance.params$cov.par2 <- runif(1,1e-10,10)
-				cluster$covariance.params$cov.par3 <- runif(1,1e-10,10)
-				cluster$covariance <- cluster.covariance(geo.dist,time.dist,cluster$covariance.params)
-			}
-		} else {
-			while(any(is.na(cluster$covariance))){
-				cluster$covariance.params$cov.par1 <- runif(1,1e-10,10)
-				cluster$covariance.params$cov.par2 <- runif(1,1e-10,10)
-				cluster$covariance.params$cov.par3 <- 0
-				cluster$covariance <- cluster.covariance(geo.dist,time.dist,cluster$covariance.params)
-			}
+		while(any(is.na(cluster$covariance))){
+			cluster$covariance.params$cov.par1 <- runif(1,1e-10,10)
+			cluster$covariance.params$cov.par2 <- runif(1,1e-10,10)
+			cluster$covariance.params$cov.par3 <- runif(1,1e-10,10)
+			cluster$covariance <- cluster.covariance(geo.dist,time.dist,cluster$covariance.params)
 		}
 	} else {
 			cluster$covariance.params$cov.par1 <- 0
@@ -487,7 +476,7 @@ update.w.i <- function(data.list,super.list){
 	new.admixture.vec <- super.list$parameter.list$admix.proportions[i,,drop=FALSE]
 	new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
 	#write our own dirichlet prior prob that doesn't spit "log(x) NaNs produced" warnings
-	new.prior.prob <- prior.prob.admix.proportions(new.admixture.vec,super.list$mcmc.quantities$dirich.conc.params[i,drop=FALSE])
+	new.prior.prob <- prior.prob.admix.proportions(new.admixture.vec,super.list$mcmc.quantities$dirich.conc.params[i,these.two,drop=FALSE])
 	if(is.finite(new.prior.prob)){
 		covar.1 <- super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,]  + super.list$parameter.list$cluster.list[[clst.1]]$cluster.mean
 		covar.2 <- super.list$parameter.list$cluster.list[[clst.2]]$covariance[i,]  + super.list$parameter.list$cluster.list[[clst.2]]$cluster.mean

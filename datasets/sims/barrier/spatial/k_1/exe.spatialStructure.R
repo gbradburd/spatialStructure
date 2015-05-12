@@ -1,0 +1,18 @@
+source("SpaceTimeStructureMix.R")
+
+load(list.files(pattern="dataset.Robj"))
+sim.sample.covariance <- cov(t(spacemix.dataset$allele.counts/spacemix.dataset$sample.sizes))
+sim.data <- list("geo.coords" = spacemix.dataset$population.coordinates,
+				"time.coords" = matrix(0,nrow=nrow(spacemix.dataset$population.coordinates),ncol=2),
+				"sample.covariance" = sim.sample.covariance,
+				"n.loci" = ncol(spacemix.dataset$allele.counts))
+model.options = list("round.earth" = FALSE,
+						"n.clusters" = 1,
+						"temporal.sampling"=FALSE,
+						no.st=FALSE)
+mcmc.options = list("ngen" = 1e7,
+					"samplefreq" = 1e4,
+					"printfreq" = 1e3,
+					"savefreq" = 1e6,
+					"output.file.name"="k_1_output.Robj")
+MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters=NULL)

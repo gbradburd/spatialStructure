@@ -487,7 +487,7 @@ update.w.i <- function(data.list,super.list){
 	new.admixture.vec <- super.list$parameter.list$admix.proportions[i,,drop=FALSE]
 	new.admixture.vec[these.two] <- c(new.w.1,new.w.2)
 	#write our own dirichlet prior prob that doesn't spit "log(x) NaNs produced" warnings
-	new.prior.prob <- prior.prob.admix.proportions(new.admixture.vec,super.list$mcmc.quantities$dirich.conc.params[i,drop=FALSE])
+	new.prior.prob <- prior.prob.admix.proportions(new.admixture.vec,super.list$mcmc.quantities$dirich.conc.params[i,these.two,drop=FALSE])
 	if(is.finite(new.prior.prob)){
 		covar.1 <- super.list$parameter.list$cluster.list[[clst.1]]$covariance[i,]  + super.list$parameter.list$cluster.list[[clst.1]]$cluster.mean
 		covar.2 <- super.list$parameter.list$cluster.list[[clst.2]]$covariance[i,]  + super.list$parameter.list$cluster.list[[clst.2]]$cluster.mean
