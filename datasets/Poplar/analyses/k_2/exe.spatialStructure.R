@@ -13,6 +13,6 @@ model.options = list("round.earth" = FALSE,
 mcmc.options = list("ngen" = 1e7,
 					"samplefreq" = 1e4,
 					"printfreq" = 1e3,
-					"savefreq" = 1e6,
+					"savefreq" = 1e5,
 					"output.file.name"="poplar_k2_s_output.Robj")
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters=NULL)
