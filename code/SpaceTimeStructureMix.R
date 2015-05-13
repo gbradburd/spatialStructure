@@ -104,6 +104,14 @@ print.data <- function(data){
 	print(str(data))
 }
 
+rdirichlet <- function(n, alpha){
+    l <- length(alpha)
+    x <- matrix(rgamma(l * n, alpha), ncol = l, byrow = TRUE)
+    sm <- x %*% rep(1, l)
+    x/as.vector(sm)
+}
+
+
 make.admix.prop.matrix <- function(admix.proportions){
 	admix.proportions%*%t(admix.proportions)
 }
@@ -167,7 +175,7 @@ initialize.param.list <- function(data,model.options,initial.parameters=NULL){
 		parameters$determinant <- determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	} else {
 		parameters$shared.mean <- min(data$sample.covariance)
-		parameters$admix.proportions <- gtools::rdirichlet(n = n.ind,alpha = rep(1,model.options$n.clusters))
+		parameters$admix.proportions <- rdirichlet(n = n.ind,alpha = rep(1,model.options$n.clusters))
 		parameters$nuggets <- rexp(n.ind)
 		parameters$cluster.list <- populate.cluster.list(parameters$cluster.list,data,parameters$admix.proportions,model.options)
 		parameters$admixed.covariance <- admixed.covariance(parameters$cluster.list,model.options$n.clusters,parameters$shared.mean,parameters$nuggets)
