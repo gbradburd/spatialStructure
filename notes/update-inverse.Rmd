@@ -1,0 +1,186 @@
+---
+title: "Updating the matrix inverse"
+author: "Peter Ralph"
+header-includes:
+   - \usepackage{amsmath,amssymb}
+date: May 15, 2015
+---
+
+<!-- LaTeX definitions (yes, just like this) -->
+\newcommand{\cov}{\mathrm{cov}}
+\newcommand{\var}{\mathrm{var}}
+
+
+```{r setup, include=FALSE}
+library(microbenchmark)
+library(MASS)
+library(expm)
+library(printr,quietly=TRUE)  # ok not to have this one
+library(fields)
+library(gsl)
+fig.dim <- 5
+knitr::opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim)
+## code to generate a covariance matrix, borrowed from space-time-covariance.Rmd
+spatiotemporal.covariance <- function(geo.dist,time.dist,alpha,nu,zeta){
+	d <- 2  # two spatial dimensions
+	return( exp(
+            d/2 * log(pi) +
+            d * log(alpha) -
+            ( (nu + zeta*time.dist - 1)*log(2) +
+                    gsl::lngamma(nu + zeta*time.dist + d/2) 
+                ) +
+            nu * log(alpha*geo.dist) +
+            gsl::bessel_lnKnu(nu=nu,x=alpha*geo.dist)
+    ) )
+}
+generate.covmat <- function (n,alpha=1,nu=1,zeta=1) {
+    spatial.coords <- cbind(runif(n),runif(n))
+    temporal.coords <- sort(runif(n))
+    geo.dist <- fields::rdist(spatial.coords)
+    time.dist <- fields::rdist(temporal.coords)
+    spatiotemporal.covariance(geo.dist,time.dist,alpha=alpha,nu=nu,zeta=zeta)
+}
+```
+
+Suppose that the covariance matrix we have at step $t$ is $A(t)$.
+We will be performing updates of the form
+\[
+A(t+1) = A(t) + u(t) u(t)^T .
+\]
+Then we will want to, for a *fixed* vector $x$, calculate
+\[
+r(t) = x^T A(t)^{-1} x .
+\]
+
+
+The [Sherman-Morrison formula](http://en.wikipedia.org/wiki/Sherman%E2%80%93Morrison_formula) says that
+\[
+(A + uv^T)^{-1} = \mathcal{S}(A,u,v):= A^{-1} - \frac{ A^{-1} uv^T A^{-1} }{1 + v^T A^{-1} u} .
+\]
+
+Here's an R function to do this (from Graham's code):
+```{r sherman_setup}
+sherman <- function (A, u, v=u) {
+    determ.update <- drop(1 + t(v) %*% A %*% u)
+    # return(A - (A %*% u %*% t(v) %*% A)/determ.update)
+    return(A - tcrossprod(A%*%u,crossprod(A,v))/determ.update)
+}
+```
+
+Let's check out how this does,
+by letting $S(0) = A(0)$ and then updating $S$ using the Sherman-Morrison formula.
+To get a reasonable $A(0)$, we'll generate a spatiotemporal covariance matrix (see [space-time-covariance.Rmd](space-time-covariance.html)):
+```{r test_sherman}
+n <- 10
+A <- generate.covmat(n)
+S <- ginv(A)
+u <- rnorm(n)
+Ap <- A+tcrossprod(u)  # next A
+ginv.S <- ginv(Ap)
+sherm.S <- sherman(S,u)
+```
+
+First, let's make sure that `ginv` can invert it:
+```{r ginv_Ap}
+range(ginv.S %*% Ap - diag(n))
+```
+and, Sherman does just as well:
+```{r sherm_Ap}
+range(sherm.S %*% Ap - diag(n))
+```
+and, they agree:
+```{r compare_sherm_ginv}
+range(sherm.S-ginv.S)
+```
+
+OK, now how do errors accumulate?
+Let's do this for a bunch of time steps, and plot $\|A(t)^{-1} - S(t)\|$.
+For this, we want a *stationary* $A(t)$, or else its changing size will make comparison difficult;
+to this end, note that if $X$ and $Y$ are indepenent, $\var[X]=1$, and $\var[Y]=\sigma^2$, 
+then $\var[\frac{X+Y}{\sqrt{1+\sigma^2}}] = 1$.
+$$
+\begin{align*}
+u(t) &\sim N(0,I) \\
+A(t+1) &= \frac{ A(t) + \epsilon u(t) u(t)^T }{ \sqrt{(1+\epsilon^2)} } \\
+S(t+1) &= \sqrt{(1+\epsilon^2)} \mathcal{S}(A, \sqrt{\epsilon} u(t)) 
+\end{align*}
+$$
+```{r accum_sherm}
+eps <- 0.1
+nsteps <- 1e4
+S.diff <- numeric(nsteps)
+sherm.check <- numeric(nsteps)
+ginv.check <- numeric(nsteps)
+A.size <- numeric(nsteps)
+A <- generate.covmat(n)
+S <- ginv(A)
+for (t in seq_along(S.diff)) {
+    u <- rnorm(n)
+    A <- (A+eps*tcrossprod(u))/sqrt(1+eps^2)  # next A
+    ginv.S <- ginv(A)
+    S <- sherman(S,u*sqrt(eps)) * sqrt(1+eps^2)
+    sherm.check[t] <- max(abs( S%*%A - diag(n) ))
+    ginv.check[t] <- max(abs( ginv.S%*%A - diag(n) ))
+    S.diff[t] <- sqrt( sum( (ginv.S-S)^2 ) )
+    A.size[t] <- mean(A^2)
+}
+plot(A.size,ylab="size of A",type='l')
+matplot( cbind(sherm.check,ginv.check,S.diff)[-(1:100),], lty=1, col=1:3, type='l' )
+legend("topleft",lty=1,col=1:3,legend=c("sherman to identity","ginv to identity","sherman to ginv"))
+```
+Well, that's looking just fine.
+There is transient stuff at the start I've cut out
+because the matrix isn't starting out in stationarity.
+
+
+Almost singular matrices
+========================
+
+What if $A$ is almost singular?
+Nothing good.
+This produces matrices that are almost singular:
+```{r test_singular}
+n <- 10
+nit <- 1
+while (nit < 100) {
+    A <- expm( - crossprod(matrix(rnorm(n^2),nrow=n)) )  # get something posdef
+    A[upper.tri(A)] <- t(A)[upper.tri(A)]  # make sure it's symmetric
+    if (kappa(A)<1e15) { break; }
+}
+```
+Directly inverting with `MASS::ginv` isn't so hot:
+```{r ginv_test}
+ginv(A) %*% A
+```
+... but, it's not the fault of `ginv`; note the small eigenvalues:
+```{r oh_well}
+eigen(A)$values
+```
+and recall that `ginv` gives the *generalized* inverse, 
+that effectively first zeros out all eigenvalues below `r sqrt(.Machine$double.eps)`.
+What really matters is whether it gives us $x^T A^{-1} x$ correctly.
+Let's check against a bunch of random vectors.
+```{r check_r}
+nx <- 2e2
+xx <- matrix( rnorm(nx * n), nrow=n )
+ginv.Axx <- ginv(A)%*%xx
+solve.Axx <- solve(A,xx)
+plot(as.vector(ginv.Axx),solve.Axx)
+```
+Here you might think that `solve` is numerically unstable, but it's apparently doing pretty close to the right thing:
+```{r check_solve}
+range( xx - A%*%solve.Axx )
+```
+
+What would we want to happen here?
+----------------------------------
+
+If $A=cov[X]$ is nearly singular,
+that means there is a vector $v$ such that $Av \approx 0$ and hence $\var[v^TX] \approx 0$.
+Now, what `ginv` does in dropping this vector
+is ignoring fluctuations in the direction of $v$,
+which is totally sensible, since we don't have the numerical precision to measure them.
+So, `t(x) %*% ginv(A) %*% x` is effectively a pseudolikelihood for $X$;
+in principle, `x %*% solve(A,x)` would be better,
+with infinite-precision math.
+
