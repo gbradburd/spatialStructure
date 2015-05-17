@@ -57,21 +57,20 @@ matplot(t(super.list$output.list$cluster.params$cluster.mean),type='l',lty=1,yla
 	mtext("cluster.mean",side=1,padj=-11)
 	legend(x="topright",col=all.colors[1:length(super.list$parameter.list$cluster.list)],lty=1,legend=cluster.names)
 
-# make.admix.prop.mat <- function(super.list){
-	# # recover()
-	# x <- length(which(!is.na(super.list$output.list$posterior.prob)))
-	# admix.prop.mat <- matrix(NA,nrow=nrow(super.list$output.list$admix.proportions[[1]]),ncol=x)
-	# for(i in 1:x){
-		# admix.prop.mat[,i] <- super.list$output.list$admix.proportions[[i]][,1]
-	# }
-	# return(admix.prop.mat)
-# }
-# admix.prop.mat <- make.admix.prop.mat(super.list)
+make.admix.prop.mat <- function(super.list){
+	# recover()
+	x <- length(which(!is.na(super.list$output.list$posterior.prob)))
+	admix.prop.mat <- matrix(NA,nrow=nrow(super.list$output.list$admix.proportions[[1]]),ncol=x)
+	for(i in 1:x){
+		admix.prop.mat[,i] <- super.list$output.list$admix.proportions[[i]][,1]
+	}
+	return(admix.prop.mat)
+}
+admix.prop.mat <- make.admix.prop.mat(super.list)
 
 par(mfrow=c(3,1),mar=c(1,1,1,1))
 matplot(t(super.list$output.list$nuggets),type='l')
-# matplot(t(admix.prop.mat),type='l')
-	# abline(h=sim.param.list$sim.admix.props[,1],lwd=0.5)
+matplot(t(admix.prop.mat),type='l')
 plot(super.list$output.list$shared.mean,type='l',
 	xlab="sampled mcmc generations",
 	ylab="shared mean parameter estimate")

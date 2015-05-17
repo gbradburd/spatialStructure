@@ -129,8 +129,8 @@ populate.cluster <- function(cluster,geo.dist,time.dist,admix.proportions,model.
 			}
 		} else {
 			while(any(is.na(cluster$covariance))){
-				cluster$covariance.params$cov.par1 <- runif(1,1e-10,10)
-				cluster$covariance.params$cov.par2 <- runif(1,1e-10,10)
+				cluster$covariance.params$cov.par1 <- 1
+				cluster$covariance.params$cov.par2 <- 1
 				cluster$covariance.params$cov.par3 <- 0
 				cluster$covariance <- cluster.covariance(geo.dist,time.dist,cluster$covariance.params)
 			}
@@ -531,10 +531,12 @@ propose.cov.param.update <- function(super.list,this.cluster,this.param){
 }
 
 recalculate.cluster.list <- function(data.list,cluster.list,this.cluster,this.param,new.param){
-	cluster.list[[this.cluster]]$covariance.params[[this.param]] <- new.param
-	cluster.list[[this.cluster]]$covariance <- cluster.covariance(data.list$geo.dist,
-																			data.list$time.dist,
-																			cluster.list[[this.cluster]]$covariance.params)
+	for(i in 1:length(cluster.list)){
+		cluster.list[[i]]$covariance.params[[this.param]] <- new.param
+		cluster.list[[i]]$covariance <- cluster.covariance(data.list$geo.dist,
+																data.list$time.dist,
+																cluster.list[[i]]$covariance.params)
+	}
 	return(cluster.list)
 }
 
@@ -549,6 +551,7 @@ take.cov.inverse <- function(matrix){
 }
 
 update.cluster.covariance.param <- function(data.list,super.list){
+	# recover()
 	accepted.move <- 0
 	this.cluster <- sample(super.list$model.options$n.clusters,1)
 	this.param <- sample(length(super.list$mcmc.quantities$covariance.params.list$covariance.params),1)
