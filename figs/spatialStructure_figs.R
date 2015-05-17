@@ -180,6 +180,7 @@ plot.pie.grid(pdf_file="~/Downloads/Barrier_spatial.pdf",my.path="~/Dropbox/Stud
 
 
 plot.model.comp(my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/lattice_sim/",pdf.names="~/Downloads/Barrier_comp.pdf")
+plot.model.comp(my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/line_sim/",pdf.names="~/Downloads/Line_comp.pdf")
 
 ################################
 #Line scenario
