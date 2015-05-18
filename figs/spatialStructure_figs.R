@@ -51,8 +51,9 @@ return(c(DIC, pD,pV))
 }
 
 
-plot.pie.grid<-function(pdf_file,my.path){
+plot.pie.grid<-function(pdf_file,my.path,geo.coords,data.list,super.list){
 	pdf(file=pdf_file,width=15,height=6,pointsize=12)
+	all.colors <- c("blue","red","green","yellow","purple","brown")
 	#pdf(file="~/desktop/lattice_pops_nonspatial_adprop_piemaps.pdf",width=8,height=8,pointsize=12)
 	x.lim <- c(min(geo.coords[,1]) - 1, max(geo.coords[,1]) + 1)
 	y.lim <- c(min(geo.coords[,2]) - 1, max(geo.coords[,2]) + 1)
@@ -171,16 +172,63 @@ plot.model.comp<-function(my.path,pdf.names){
 	#	box(lwd=2)
 	dev.off()
 }
+if(file.exists("~/Dropbox/Students/gideon/")){
+	my.path <- "~/Dropbox/Students/gideon/"
+} else {
+	my.path <- "~/Desktop/Dropbox/InspectorSpaceTime/"
+}
 
-plot.pie.grid(pdf_file="~/Downloads/Lattice_nonspatial.pdf",my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/lattice_sim/nonspatial/")
-plot.pie.grid(pdf_file="~/Downloads/Lattice_spatial.pdf",my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/lattice_sim/spatial/")
+load(paste(my.path,"spatialStructure/datasets/sims/glacier_sim/spatial/k_1/ms_glac_dataset.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/glacier_sim/spatial/k_1/k_1_output.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/glacier_sim/spatial/k_1/data.list.Robj",sep=""))
+geo.coords <- ms_glac_dataset$geo.coords
+plot.pie.grid(pdf_file="~/Downloads/glacier_spatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/glacier_sim/spatial/",sep=""),
+				geo.coords,data.list,super.list)
+plot.pie.grid(pdf_file="~/Downloads/glacier_nonspatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/glacier_sim/nonspatial/",sep=""),
+				geo.coords,data.list,super.list)
 
-plot.pie.grid(pdf_file="~/Downloads/Barrier_nonspatial.pdf",my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/barrier_sim/nonspatial/")
-plot.pie.grid(pdf_file="~/Downloads/Barrier_spatial.pdf",my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/barrier_sim/spatial/")
+load(paste(my.path,"spatialStructure/datasets/sims/barrier_sim/spatial/k_1/ms.barrier.dataset.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/barrier_sim/spatial/k_1/k_1_output.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/barrier_sim/spatial/k_1/data.list.Robj",sep=""))
+geo.coords <- spacemix.dataset$population.coordinates
+plot.pie.grid(pdf_file="~/Downloads/barrier_spatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/barrier_sim/spatial/",sep=""),
+				geo.coords,data.list,super.list)
+plot.pie.grid(pdf_file="~/Downloads/barrier_nonspatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/barrier_sim/nonspatial/",sep=""),
+				geo.coords,data.list,super.list)
 
+load(paste(my.path,"spatialStructure/datasets/sims/lattice_sim/spatial/k_1/latticepops.ms.dataset.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/lattice_sim/spatial/k_1/k_1_output.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/lattice_sim/spatial/k_1/data.list.Robj",sep=""))
+geo.coords <- spacemix.dataset$population.coordinates
+plot.pie.grid(pdf_file="~/Downloads/lattice_spatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/lattice_sim/spatial/",sep=""),
+				geo.coords,data.list,super.list)
+plot.pie.grid(pdf_file="~/Downloads/lattice_nonspatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/lattice_sim/nonspatial/",sep=""),
+				geo.coords,data.list,super.list)
 
-plot.model.comp(my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/lattice_sim/",pdf.names="~/Downloads/Barrier_comp.pdf")
-plot.model.comp(my.path="~/Dropbox/Students/gideon/spatialStructure/datasets/sims/line_sim/",pdf.names="~/Downloads/Line_comp.pdf")
+load(paste(my.path,"spatialStructure/datasets/sims/line_sim/spatial/k_1/linepops.ms.dataset.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/line_sim/spatial/k_1/k_1_output.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/sims/line_sim/spatial/k_1/data.list.Robj",sep=""))
+geo.coords <- spacemix.dataset$population.coordinates
+plot.pie.grid(pdf_file="~/Downloads/line_spatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/line_sim/spatial/",sep=""),
+				geo.coords,data.list,super.list)
+plot.pie.grid(pdf_file="~/Downloads/line_nonspatial.pdf",
+				my.path=paste(my.path,"spatialStructure/datasets/sims/line_sim/nonspatial/",sep=""),
+				geo.coords,data.list,super.list)
+paste(my.path,"spatialStructure/datasets/sims/line_sim/spatial/k_1/linepops.ms.dataset.Robj",sep="")
+
+source(paste(my.path,"spatialStructure/code/SpaceTimeStructureMix.R",sep=""))
+plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/lattice_sim/",sep=""),pdf.names="~/Downloads/Lattice_comp.pdf")
+plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/line_sim/",sep=""),pdf.names="~/Downloads/Line_comp.pdf")
+plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/barrier_sim/",sep=""),pdf.names="~/Downloads/Barrier_comp.pdf")
+plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/glacier_sim/",sep=""),pdf.names="~/Downloads/Glacier_comp.pdf")
+
 
 ################################
 #Line scenario
@@ -1021,7 +1069,7 @@ for(i in 1:4){
 	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
 }
 
-pdf(file="~/desktop/barrier_pops_spatial_vs_nonspatial_vs1ratespatial.pdf",width=8,height=3,pointsize=11)
+pdf(file="~/desktop/barrier_pops_spatial_vs_nonspatial_vs1ratespatial.pdf",width=10,height=3,pointsize=11)
 par(mfrow=c(1,4))
 plot(prob.vec.nonspatial,pch=19,col="blue",ylab="Posterior Probability",
 		ylim=c(min(prob.vec.nonspatial,prob.vec.spatial),
