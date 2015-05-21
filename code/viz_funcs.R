@@ -8,23 +8,36 @@ structure.polygon <- function(plotting.admix.props,i,j,use.colors){
 	return(invisible(j))
 }
 
-make.structure.polygon.layer <- function(plotting.admix.props,i,j,use.colors){
+make.structure.polygon.layer <- function(plotting.admix.props,i,use.colors,sample.order){
+	# recover()
 		lapply(1:ncol(plotting.admix.props),function(j){
-			structure.polygon(plotting.admix.props,i,j,use.colors)
+			structure.polygon(plotting.admix.props[,sample.order],i,j,use.colors)
 		})
 	return(invisible(i))
 }
 
-make.structure.plot <- function(data.list,super.list){
+make.structure.plot <- function(data.list,super.list,sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL){
+	# recover()
 	quartz(width=10,height=5)
+	if(is.null(cluster.order)){
+		cluster.order <- seq(1:ncol(super.list$parameter.list$admix.proportions))
+	}
+	if(is.null(sample.order)){
+		sample.order <- seq(1:data.list$n.ind)
+	}
+	if(!is.null(sort.by)){
+		sample.order <- order(super.list$parameter.list$admix.proportions[,sort.by])
+	}
 	all.colors <- c("blue","red","green","yellow","purple","brown")
-	use.colors <- all.colors[1:length(super.list$parameter.list$cluster.list)]
+	use.colors <- all.colors[1:length(super.list$parameter.list$cluster.list)][cluster.order]
 	plot(0,xlim=c(0,data.list$n.ind),ylim=c(0,1),type='n',ylab="admixture",xlab="",xaxt='n')
-		# segments(x0=c(1:data.list$n.ind),y0=-0.1,x1=c(1:data.list$n.ind),y1=1.1)
-	plotting.admix.props <- apply(cbind(0,super.list$parameter.list$admix.proportions),1,cumsum)
+	plotting.admix.props <- apply(cbind(0,super.list$parameter.list$admix.proportions[,cluster.order]),1,cumsum)
 	lapply(1:length(super.list$parameter.list$cluster.list),function(i){
-		make.structure.polygon.layer(plotting.admix.props,i,j,use.colors)
+		make.structure.polygon.layer(plotting.admix.props,i,use.colors,sample.order)
 	})
+	if(!is.null(names)){
+		axis(side=1,at=seq(1:data.list$n.ind)-0.5,labels=sample.names[sample.order],cex.axis=0.5,las=2)
+	}
 	return(invisible("plotted"))
 }
 

@@ -59,3 +59,7 @@ make.spatiotemporal.sampling.plot(metadata)
 plot.sample.ellipses(metadata,scale=0.2,alpha=0.8)
 pies3d(x=pie.list,n.clusters=length(pie.list[[1]]),locations=metadata, radii=1)
 
+
+plot(super.list$parameter.list$nuggets,type='n')
+	text(super.list$parameter.list$nuggets,row.names(data.list$sample.covariance))
+make.structure.plot(data.list,super.list,cluster.order=c(2,1,3),sample.names=row.names(data.list$sample.covariance),sort.by=2)

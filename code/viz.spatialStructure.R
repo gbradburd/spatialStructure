@@ -3,7 +3,26 @@ if(FALSE){
 	load(list.files(pattern="output"))
 	load("data.list.Robj")
 }
+#SpaceMix Sims
 geo.coords <- spacemix.dataset$population.coordinates
+
+#HAAK
+	metadata <- read.table("human_sample_metadata.txt",header=TRUE,stringsAsFactors=FALSE)
+	geo.coords <- cbind(metadata$lon,metadata$lat)
+		quartz(width=5,height=5)
+		map(xlim=c(-30,60),ylim=c(5,70))
+		par(new=TRUE)
+		pies(pie.list,x0=metadata$lon,
+						y0=metadata$lat,
+						color.table=color.tab,border="black",radii=1.5,
+						xlab="",ylab="",main="estimated",lty=1,density=NULL)
+			# points(x=50.70267, y=52.84767,pch=8,col=1)
+		box(lwd=2)
+#Warbler
+	geo.coords <- warbler.ind.coords
+
+
+
 all.colors <- c("blue","red","green","yellow","purple","brown")
 cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
 
@@ -208,19 +227,22 @@ matplot(t(super.list$output.list$acceptance.rates$admix.proportions),type='l',xl
 matplot(t(super.list$output.list$acceptance.rates$nuggets),type='l',xlab="",ylab="")
 matplot(t(super.list$output.list$acceptance.rates$cluster.mean),type='l',xlab="",ylab="")
 
-
 require(caroline)
-sample.names <- unlist(lapply(1:sim.param.list$k,function(i){paste("sample_",i,sep="")}))
-pie.list <- lapply(1:sim.param.list$k,function(i){nv(sim.param.list$sim.admix.props[i,],c("Cluster_1","Cluster_2"))})
+require(maps)
+sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
+cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
+color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
+pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
 names(pie.list) <- sample.names
-color.tab <- nv(c("blue","red"),c("Cluster_1","Cluster_2"))
-pie.list2 <- lapply(1:sim.param.list$k,function(i){nv(super.list$parameter.list$admix.proportions[i,],c("Cluster_1","Cluster_2"))})
-names(pie.list2) <- sample.names
-#pdf(file="admix_prop_map.pdf",width=10,height=5)
-quartz(width=10,height=5)
-par(mfrow=c(1,2))
-pies(pie.list,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
-		xlab="",ylab="",main="truth",lty=1,density=NULL)
-pies(pie.list2,x0=sim.param.list$spatial.coords[,1],y0=sim.param.list$spatial.coords[,2],color.table=color.tab,border="black",radii=3,
-		xlab="",ylab="",main="estimated",lty=1,density=NULL)
-#dev.off()
+
+quartz(width=5,height=5)
+map(xlim=c(55,110),ylim=c(25,59))
+	# points(geo.coords)
+par(new=TRUE)
+pies(pie.list,x0=geo.coords[,1],
+				y0=geo.coords[,2],
+				color.table=color.tab,border="black",radii=2,
+				xlab="",ylab="",main="estimated",lty=1,density=NULL)
+	# points(x=50.70267, y=52.84767,pch=8,col=1)
+box(lwd=2)
+

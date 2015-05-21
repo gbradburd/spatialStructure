@@ -172,6 +172,7 @@ plot.model.comp<-function(my.path,pdf.names){
 	#	box(lwd=2)
 	dev.off()
 }
+
 if(file.exists("~/Dropbox/Students/gideon/")){
 	my.path <- "~/Dropbox/Students/gideon/"
 } else {
@@ -228,6 +229,15 @@ plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/lattice_si
 plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/line_sim/",sep=""),pdf.names="~/Downloads/Line_comp.pdf")
 plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/barrier_sim/",sep=""),pdf.names="~/Downloads/Barrier_comp.pdf")
 plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/glacier_sim/",sep=""),pdf.names="~/Downloads/Glacier_comp.pdf")
+plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/warblers/analyses/",sep=""),pdf.names="~/Downloads/warblers_comp.pdf")
+
+
+
+
+
+
+
+
 
 
 ################################
@@ -717,6 +727,7 @@ plot(diff(prob.vec.spatial),pch=19,col="green",ylab="Difference in Posterior Pro
 	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
 	box(lwd=2)
 dev.off()
+
 
 ################################
 #Barrier scenario
