@@ -235,8 +235,8 @@ color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.nam
 pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
 names(pie.list) <- sample.names
 
-quartz(width=5,height=5)
-map(xlim=c(55,110),ylim=c(25,59))
+quartz(width=7,height=5)
+map(xlim=c(37,110),ylim=c(25,59))
 	# points(geo.coords)
 par(new=TRUE)
 pies(pie.list,x0=geo.coords[,1],

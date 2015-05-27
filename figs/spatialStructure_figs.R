@@ -4,7 +4,7 @@
 ################################################################
 ################################################################
 
-calc.DIC<-function(data.list.file,super.list.file, burnin=250){
+calc.DIC<-function(data.list.file,super.list.file, burnin=500){
 	
 load(data.list.file)
 load(super.list.file)
@@ -53,7 +53,7 @@ return(c(DIC, pD,pV))
 
 plot.pie.grid<-function(pdf_file,my.path,geo.coords,data.list,super.list){
 	pdf(file=pdf_file,width=15,height=6,pointsize=12)
-	all.colors <- c("blue","red","green","yellow","purple","brown")
+	all.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen")
 	#pdf(file="~/desktop/lattice_pops_nonspatial_adprop_piemaps.pdf",width=8,height=8,pointsize=12)
 	x.lim <- c(min(geo.coords[,1]) - 1, max(geo.coords[,1]) + 1)
 	y.lim <- c(min(geo.coords[,2]) - 1, max(geo.coords[,2]) + 1)
@@ -112,14 +112,49 @@ plot.pie.grid<-function(pdf_file,my.path,geo.coords,data.list,super.list){
 	dev.off()
 }
 
+plot.pie.map <- function(my.path,dir.name,geo.coords,fig.filename,map.x.lim=NULL,map.y.lim=NULL,pdf.width=6,pdf.height=5){
+	# recover()
+	require(caroline)
+	require(maps)
+	setwd(dir.name)
+	load(list.files(pattern="data.list"))
+	load(list.files(pattern="output"))
+	setwd(my.path)
+	all.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen")
+	sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
+	cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
+	color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
+	pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
+	names(pie.list) <- sample.names
+		if(is.null(map.x.lim)){
+			map.x.lim <- range(geo.coords[,1]) + c(-0.1,0.1) * diff(range(geo.coords[,1]))
+		}
+		if(is.null(map.x.lim)){
+			map.y.lim <- range(geo.coords[,2]) + c(-0.1,0.1) * diff(range(geo.coords[,2]))
+		}
+	# op <- par()$new
+	pdf(file=fig.filename,width=pdf.width,height=pdf.height)
+		map(database="world",xlim=map.x.lim,ylim=map.y.lim)
+		par(new=TRUE)
+		pies(pie.list,x0=geo.coords[,1],
+					y0=geo.coords[,2],
+					color.table=color.tab,border="black",radii=3,
+					xlab="",ylab="",lty=1,density=NULL)
+		title(main=paste("K = ",super.list$model.options$n.clusters,sep=""))
+		box(lwd=2)
+	dev.off()
+		# par(op)
+	return(invisible("done"))
+}
 
-plot.model.comp<-function(my.path,pdf.names){
+plot.model.comp<-function(my.path,pdf.names,n.runs=4){
+	# recover()
 	#Spatial vs. Nonspatial LnL comparison
-	prob.vec.spatial <- numeric(4)
-	prob.vec.nonspatial <- numeric(4)
+	prob.vec.spatial <- rep(NA,n.runs)
+	prob.vec.nonspatial <- rep(NA,n.runs)
 	DIC.spatial<-numeric()
 	DIC.nonspatial<-numeric()
-	for(k in 1:4){
+	for(k in 1:n.runs){
 		output.output<-paste(my.path, "spatial/k_", k, "/k_", k, "_output.Robj", sep="")
 	
 		load(output.output)
@@ -134,21 +169,24 @@ plot.model.comp<-function(my.path,pdf.names){
 	#	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/line_sim")
 	#	setwd(paste("nonspatial/k_",i,sep=""))
 	#		load(list.files(pattern="output"))
+
 			output.output<-paste(my.path, "nonspatial/k_", k, "/k_", k, "_output.Robj", sep="")
-	
-		load(output.output)
-		prob.vec.nonspatial[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-		output.data<-paste(my.path, "nonspatial/k_", k,"/data.list.Robj",sep="")
-		DIC.nonspatial<-rbind(DIC.nonspatial,calc.DIC(output.data,output.output))
+		tryCatch({
+			load(output.output) ;
+			prob.vec.nonspatial[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE) ;
+			output.data<-paste(my.path, "nonspatial/k_", k,"/data.list.Robj",sep="") ;
+			DIC.nonspatial<-rbind(DIC.nonspatial,calc.DIC(output.data,output.output))},error=function(e){
+				cat("folder K=",k,"does not exist\n")
+		})
 	}
 
 	pdf(file=pdf.names,width=8,height=3,pointsize=11)
 	layout(t(1:3))
 	plot(prob.vec.nonspatial,pch=19,col="blue",ylab="Posterior Probability",
-			ylim=c(min(prob.vec.nonspatial,prob.vec.spatial),
-					max(prob.vec.nonspatial, prob.vec.spatial)),
+			ylim=c(min(prob.vec.nonspatial,prob.vec.spatial,na.rm=TRUE),
+					max(prob.vec.nonspatial, prob.vec.spatial,na.rm=TRUE)),
 			xaxt='n',cex=2,xlab="")
-		axis(side=1,at=c(1,2,3,4),labels=c("K=1","K=2","K=3","K=4"))
+		axis(side=1,at=1:n.runs,labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
 		points(prob.vec.spatial,pch=19,col="green",cex=2)
 		box(lwd=2)
 		legend(x="bottomright",pch=19,col=c("blue","green"),legend=c("nonspatial","spatial"))		
@@ -156,14 +194,14 @@ plot.model.comp<-function(my.path,pdf.names){
 		min.dev<-min(all.dev)
 		DIC.nonspatial[,1]<-DIC.nonspatial[,1] - min.dev
 		DIC.spatial[,1]<-DIC.spatial[,1] - min.dev
-		plot(DIC.nonspatial[,1],pch=19,col="blue",ylab="DIC",ylim=c(0,max(all.dev - min.dev)),xlim=c(0.9,4.5),xaxt='n',cex=2,xlab="") 
+		plot(DIC.nonspatial[,1],pch=19,col="blue",ylab="DIC",ylim=c(0,max(all.dev - min.dev)),xlim=c(0.9,n.runs+0.5),xaxt='n',cex=2,xlab="") 
 		points(DIC.spatial[,1],pch=19,col="green",cex=2)
-		text(x=1:4+.3,y=DIC.spatial[,1], format(DIC.spatial[,3],dig=3))
-		text(x=1:4+.3,y=DIC.nonspatial[,1], format(DIC.nonspatial[,3],dig=3))
-		axis(side=1,at=c(1,2,3,4),labels=c("K=1","K=2","K=3","K=4"))
-		plot(DIC.spatial[,1],pch=19,col="green",ylab="DIC",xaxt='n',cex=2,xlab="",xlim=c(0.9,4.5)) 
-		text(x=1:4+.3,y=DIC.spatial[,1], format(DIC.spatial[,3],dig=3))
-		axis(side=1,at=c(1,2,3,4),labels=c("K=1","K=2","K=3","K=4"))
+		text(x=1:length(DIC.spatial[,1]) +.3,y=DIC.spatial[,1], format(DIC.spatial[,3],dig=3))
+		text(x=1:length(DIC.nonspatial[,1])+.3,y=DIC.nonspatial[,1], format(DIC.nonspatial[,3],dig=3))
+		axis(side=1,at=c(1:n.runs),labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
+		plot(DIC.spatial[,1],pch=19,col="green",ylab="DIC",xaxt='n',cex=2,xlab="",xlim=c(0.9,n.runs+0.5)) 
+		text(x=1:length(DIC.spatial)+.3,y=DIC.spatial[,1], format(DIC.spatial[,3],dig=3))
+		axis(side=1,at=c(1:n.runs),labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
 	#plot(diff(prob.vec.nonspatial),pch=19,col="blue",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
 	#	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
 	#	box(lwd=2)
@@ -232,872 +270,119 @@ plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/sims/glacier_si
 plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/warblers/analyses/",sep=""),pdf.names="~/Downloads/warblers_comp.pdf")
 
 
+#Warblers
+load(paste(my.path,"spatialStructure/datasets/warblers/warbler_ind_dataset.Robj",sep=""))
+	geo.coords <- warbler.ind.coords
+	#Spatial
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/spatial/k_2",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k2_s.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/spatial/k_3",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k3_s.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/spatial/k_4",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k4_s.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/spatial/k_5",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k5_s.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/spatial/k_6",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k6_s.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/spatial/k_7",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k7_s.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/spatial/k_8",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k8_s.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)
+
+	#Nonspatial
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/nonspatial/k_2",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k2_ns.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)	
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/nonspatial/k_3",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k3_ns.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)	
+	plot.pie.map(my.path=my.path,dir.name="spatialStructure/datasets/warblers/analyses/nonspatial/k_4",
+					geo.coords,fig.filename="spatialStructure/figs/warb_k4_ns.pdf",
+					map.x.lim=c(37,110),map.y.lim=c(25,59),pdf.width=6,pdf.height=5)	
+
+plot.model.comp(my.path=paste(my.path,"spatialStructure/datasets/warblers/analyses/",sep=""),pdf.names="~/Downloads/warblers_comp.pdf",n.runs=8)
+
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_2/data.list.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_2/k_2_output.Robj",sep=""))
+	inds <- row.names(warbler.ind.coords)
+		inds[11] <- "Vir-STvi1"
+		inds[12] <- "Vir-STvi2"
+		inds[13] <- "Vir-STvi3"
+	ind.subspp <- unlist(strsplit(inds,"-"))[seq(1,190,2)]
+	inds.col <- numeric(length(ind.subspp))
+		inds.col[grepl("Vir",ind.subspp)] <- "dodgerblue2"
+		inds.col[grepl("Ni",ind.subspp)] <- "slateblue4"
+		inds.col[grepl("Lud",ind.subspp)] <- "mediumseagreen"
+		inds.col[grepl("Tro",ind.subspp)] <- "gold"
+		inds.col[grepl("Obs",ind.subspp)] <- "orange"
+		inds.col[grepl("Plu",ind.subspp)] <- "red"
+
+		plot.inds <- gsub(" ","",inds)
+		plot.inds <- gsub("[[:digit:]]","",plot.inds)
+		plot.inds <- gsub(c("Plu-"),"",plot.inds)
+		plot.inds <- gsub(c("Vir-"),"",plot.inds)
+		plot.inds <- gsub(c("Ni-"),"",plot.inds)
+		plot.inds <- gsub(c("Lud-"),"",plot.inds)
+		plot.inds <- gsub(c("Tro-"),"",plot.inds)
+		plot.inds <- gsub(c("Obs-"),"",plot.inds)
+		plot.inds <- gsub(c("vi"),"",plot.inds)
 
 
-
-
-
-
-
-
-################################
-#Line scenario
-################################
-setwd("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/line_sim/")
-
-#NONSPATIAL
-load("nonspatial/k_1/linepops.ms.dataset.Robj")
-load("nonspatial/k_1/data.list.Robj")
-
-geo.coords <- spacemix.dataset$population.coordinates
-all.colors <- c("blue","red","green","yellow","purple","brown")
-
-pdf(file="~/desktop/line_pops_nonspatial_samplecov.pdf",width=10,height=3,pointsize=12)
-par(mfrow=c(1,4),oma=c(0.5,0.5,0.5,0.5))
-#K_1
-load("nonspatial/k_1/k_1_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="covariance",main="K = 1")
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-	box(lwd=2)
-	legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"))
-#K_2
-load("nonspatial/k_2/k_2_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 2")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-
-mtext(text="geographic distance",side=1,adj=4,padj=3)
-
-#K_3
-load("nonspatial/k_3/k_3_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-#K_4
-load("nonspatial/k_4/k_4_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-dev.off()
-
-
-
-pdf(file="~/desktop/line_pops_nonspatial_adprop_piemaps.pdf",width=4,height=6,pointsize=12)
- 
-par(mfrow=c(4,1),mar=c(1,1,1,1))
-require(caroline)
-#K_1
-load("nonspatial/k_1/k_1_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 1",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-#K_2
-load("nonspatial/k_2/k_2_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 2",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-#K_3
-load("nonspatial/k_3/k_3_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 3",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-#K_4
-load("nonspatial/k_4/k_4_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 4",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-dev.off()
-
-
-
-
-#SPATIAL
-load("spatial/k_1/linepops.ms.dataset.Robj")
-load("spatial/k_1/data.list.Robj")
-
-geo.coords <- spacemix.dataset$population.coordinates
-all.colors <- c("blue","red","green","yellow","purple","brown")
-
-pdf(file="~/desktop/line_pops_spatial_samplecov.pdf",width=10,height=3,pointsize=12)
-par(mfrow=c(1,4),oma=c(0.5,0.5,0.5,0.5))
-#K_1
-load("spatial/k_1/k_1_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="covariance",main="K = 1")
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-	box(lwd=2)
-	legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"))
-#K_2
-load("spatial/k_2/k_2_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 2")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-
-mtext(text="geographic distance",side=1,adj=4,padj=3)
-
-#K_3
-load("spatial/k_3/k_3_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-#K_4
-load("spatial/k_4/k_4_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-dev.off()
-
-
-
-pdf(file="~/desktop/line_pops_spatial_adprop_piemaps.pdf",width=4,height=6,pointsize=12)
-par(mfrow=c(4,1),mar=c(1,1,1,1))
-require(caroline)
-#K_1
-load("spatial/k_1/k_1_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 1",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-#K_2
-load("spatial/k_2/k_2_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 2",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-#K_3
-load("spatial/k_3/k_3_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 3",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-#K_4
-load("spatial/k_4/k_4_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=3.5,
-				xlab="",ylab="",main="K = 4",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=c(-0.5,20.5))
-box(lwd=2)
-dev.off()
-
-
-
-
-#Spatial vs. Nonspatial LnL comparison
-prob.vec.spatial <- numeric(4)
-prob.vec.nonspatial <- numeric(4)
-for(i in 1:4){
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/line_sim")
-	setwd(paste("spatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.spatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/line_sim")
-	setwd(paste("nonspatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.nonspatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/line_sim")
+make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=NULL,
+						sample.names=NULL,sort.by=NULL)
+for(i in 1:length(inds)){
+	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
 }
 
-pdf(file="~/desktop/line_pops_spatial_vs_nonspatial.pdf",width=8,height=3,pointsize=11)
-par(mfrow=c(1,3))
-plot(prob.vec.nonspatial,pch=19,col="blue",ylab="Posterior Probability",
-		ylim=c(min(prob.vec.nonspatial,prob.vec.spatial),
-				max(prob.vec.nonspatial, prob.vec.spatial)),
-		xaxt='n',cex=2,xlab="")
-	axis(side=1,at=c(1,2,3,4),labels=c("K=1","K=2","K=3","K=4"))
-	points(prob.vec.spatial,pch=19,col="green",cex=2)
-	box(lwd=2)
-	legend(x="bottomright",pch=19,col=c("blue","green"),legend=c("nonspatial","spatial"))
-plot(diff(prob.vec.nonspatial),pch=19,col="blue",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-plot(diff(prob.vec.spatial),pch=19,col="green",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-dev.off()
-
-################################
-#Lattice scenario
-################################
-setwd("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/lattice_sim/")
-#setwd("~/Dropbox/Students/gideon/spatialStructure/datasets/sims/lattice_sim/")
-#NONSPATIAL
-load("nonspatial/k_1/latticepops.ms.dataset.Robj")
-load("nonspatial/k_1/data.list.Robj")
-
-geo.coords <- spacemix.dataset$population.coordinates
-all.colors <- c("blue","red","green","yellow","purple","brown")
-
-pdf(file="~/desktop/lattice_pops_nonspatial_samplecov.pdf",width=10,height=3,pointsize=12)
-par(mfrow=c(1,4),oma=c(0.5,0.5,0.5,0.5))
-#K_1
-load("nonspatial/k_1/k_1_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="covariance",main="K = 1")
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-	box(lwd=2)
-	legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"))
-#K_2
-load("nonspatial/k_2/k_2_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 2")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-
-mtext(text="geographic distance",side=1,adj=4,padj=3)
-
-#K_3
-load("nonspatial/k_3/k_3_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-#K_4
-load("nonspatial/k_4/k_4_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-dev.off()
-
-
-pdf(file="~/desktop/lattice_pops_nonspatial_adprop_piemaps.pdf",width=15,height=6,pointsize=12)
-#pdf(file="~/desktop/lattice_pops_nonspatial_adprop_piemaps.pdf",width=8,height=8,pointsize=12)
-x.lim <- c(min(geo.coords[,1]) - 1, max(geo.coords[,1]) + 1)
-y.lim <- c(min(geo.coords[,2]) - 1, max(geo.coords[,2]) + 1)
-radius <- 3.5
-layout(t(1:3));  par(mar=c(1,1,1,1)) # par(mfrow=c(2,2),mar=c(1,1,1,1))
-require(caroline)
-# #K_1
-# load("nonspatial/k_1/k_1_output.Robj")
-# sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-# cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-# color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-# pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-# names(pie.list) <- sample.names
-# pies(pie.list,x0=geo.coords[,1],
-				# y0=geo.coords[,2],
-				# color.table=color.tab,border="black",radii=radius,
-				# xlab="",ylab="",main="K = 1",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim) 
-# box(lwd=2)
-#K_2
-load("nonspatial/k_2/k_2_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 2",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_3
-load("nonspatial/k_3/k_3_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 3",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_4
-load("nonspatial/k_4/k_4_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 4",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-dev.off()
-
-
-
-
-#SPATIAL
-load("spatial/k_1/latticepops.ms.dataset.Robj")
-load("spatial/k_1/data.list.Robj")
-
-geo.coords <- spacemix.dataset$population.coordinates
-all.colors <- c("blue","red","green","yellow","purple","brown")
-
-pdf(file="~/desktop/lattice_pops_spatial_samplecov.pdf",width=10,height=3,pointsize=12)
-par(mfrow=c(1,4),oma=c(0.5,0.5,0.5,0.5))
-#K_1
-load("spatial/k_1/k_1_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="covariance",main="K = 1")
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-	box(lwd=2)
-	legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"))
-#K_2
-load("spatial/k_2/k_2_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 2")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-
-mtext(text="geographic distance",side=1,adj=4,padj=3)
-
-#K_3
-load("spatial/k_3/k_3_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-#K_4
-load("spatial/k_4/k_4_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-dev.off()
-
-
-
-pdf(file="~/desktop/lattice_pops_spatial_adprop_piemaps.pdf",width=15,height=6,pointsize=12)
-#pdf(file="~/desktop/lattice_pops_nonspatial_adprop_piemaps.pdf",width=8,height=8,pointsize=12)
-x.lim <- c(min(geo.coords[,1]) - 1, max(geo.coords[,1]) + 1)
-y.lim <- c(min(geo.coords[,2]) - 1, max(geo.coords[,2]) + 1)
-radius <- 3.5
-layout(t(1:3));  par(mar=c(1,1,1,1)) # par(mfrow=c(2,2),mar=c(1,1,1,1))
-
-require(caroline)
-#K_1
-# load("spatial/k_1/k_1_output.Robj")
-# sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-# cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-# color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-# pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-# names(pie.list) <- sample.names
-# pies(pie.list,x0=geo.coords[,1],
-				# y0=geo.coords[,2],
-				# color.table=color.tab,border="black",radii=radius,
-				# xlab="",ylab="",main="K = 1",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim) 
-# box(lwd=2)
-#K_2
-load("spatial/k_2/k_2_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 2",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_3
-load("spatial/k_3/k_3_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 3",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_4
-load("spatial/k_4/k_4_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 4",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-dev.off()
-
-
-
-#Spatial vs. Nonspatial LnL comparison
-prob.vec.spatial <- numeric(4)
-prob.vec.nonspatial <- numeric(4)
-for(i in 1:4){
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/lattice_sim")
-	setwd(paste("spatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.spatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/lattice_sim")
-	setwd(paste("nonspatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.nonspatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/lattice_sim")
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_3/k_3_output.Robj",sep=""))						
+make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=NULL,
+						sample.names=NULL,sort.by=NULL)
+for(i in 1:length(inds)){
+	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
 }
 
-pdf(file="~/desktop/lattice_pops_spatial_vs_nonspatial.pdf",width=8,height=3,pointsize=11)
-par(mfrow=c(1,3))
-plot(prob.vec.nonspatial,pch=19,col="blue",ylab="Posterior Probability",
-		ylim=c(min(prob.vec.nonspatial,prob.vec.spatial),
-				max(prob.vec.nonspatial, prob.vec.spatial)),
-		xaxt='n',cex=2,xlab="")
-	axis(side=1,at=c(1,2,3,4),labels=c("K=1","K=2","K=3","K=4"))
-	points(prob.vec.spatial,pch=19,col="green",cex=2)
-	box(lwd=2)
-	legend(x="bottomright",pch=19,col=c("blue","green"),legend=c("nonspatial","spatial"))
-plot(diff(prob.vec.nonspatial),pch=19,col="blue",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-plot(diff(prob.vec.spatial),pch=19,col="green",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-dev.off()
-
-
-################################
-#Barrier scenario
-################################
-setwd("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim/")
-
-#NONSPATIAL
-load("nonspatial/k_1/ms.barrier.dataset.Robj")
-load("nonspatial/k_1/data.list.Robj")
-
-geo.coords <- spacemix.dataset$population.coordinates
-all.colors <- c("blue","red","green","yellow","purple","brown")
-
-pdf(file="~/desktop/barrier_pops_nonspatial_samplecov.pdf",width=10,height=3,pointsize=12)
-par(mfrow=c(1,4),oma=c(0.5,0.5,0.5,0.5))
-#K_1
-load("nonspatial/k_1/k_1_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="covariance",main="K = 1")
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-	box(lwd=2)
-	legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"))
-#K_2
-load("nonspatial/k_2/k_2_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 2")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-
-mtext(text="geographic distance",side=1,adj=4,padj=3)
-
-#K_3
-load("nonspatial/k_3/k_3_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-#K_4
-load("nonspatial/k_4/k_4_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-dev.off()
-
-
-
-pdf(file="~/desktop/barrier_pops_nonspatial_adprop_piemaps.pdf",width=8,height=8,pointsize=12)
-x.lim <- c(min(geo.coords[,1]) - 1, max(geo.coords[,1]) + 1)
-y.lim <- c(min(geo.coords[,2]) - 1, max(geo.coords[,2]) + 1)
-radius <- 3.5
-par(mfrow=c(2,2),mar=c(1,1,1,1))
-require(caroline)
-#K_1
-load("nonspatial/k_1/k_1_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 1",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim) 
-box(lwd=2)
-#K_2
-load("nonspatial/k_2/k_2_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 2",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_3
-load("nonspatial/k_3/k_3_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 3",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_4
-load("nonspatial/k_4/k_4_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 4",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-dev.off()
-
-
-
-
-#SPATIAL
-load("spatial/k_1/ms.barrier.dataset.Robj")
-load("spatial/k_1/data.list.Robj")
-
-geo.coords <- spacemix.dataset$population.coordinates
-all.colors <- c("blue","red","green","yellow","purple","brown")
-
-pdf(file="~/desktop/barrier_pops_spatial_samplecov.pdf",width=10,height=3,pointsize=12)
-par(mfrow=c(1,4),oma=c(0.5,0.5,0.5,0.5))
-#K_1
-load("spatial/k_1/k_1_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="covariance",main="K = 1")
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-	box(lwd=2)
-	legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"))
-#K_2
-load("spatial/k_2/k_2_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 2")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-
-mtext(text="geographic distance",side=1,adj=4,padj=3)
-
-#K_3
-load("spatial/k_3/k_3_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-#K_4
-load("spatial/k_4/k_4_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-dev.off()
-
-
-
-pdf(file="~/desktop/barrier_pops_spatial_adprop_piemaps.pdf",width=8,height=8,pointsize=12)
-x.lim <- c(min(geo.coords[,1]) - 1, max(geo.coords[,1]) + 1)
-y.lim <- c(min(geo.coords[,2]) - 1, max(geo.coords[,2]) + 1)
-radius <- 3.5
-par(mfrow=c(2,2),mar=c(1,1,1,1))
-require(caroline)
-#K_1
-load("spatial/k_1/k_1_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 1",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim) 
-box(lwd=2)
-#K_2
-load("spatial/k_2/k_2_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 2",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_3
-load("spatial/k_3/k_3_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 3",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_4
-load("spatial/k_4/k_4_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 4",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-dev.off()
-
-
-
-#Spatial vs. Nonspatial LnL comparison
-prob.vec.spatial <- numeric(4)
-prob.vec.nonspatial <- numeric(4)
-for(i in 1:4){
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
-	setwd(paste("spatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.spatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
-	setwd(paste("nonspatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.nonspatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_4/k_4_output.Robj",sep=""))						
+make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=NULL,
+						sample.names=NULL,sort.by=NULL)
+for(i in 1:length(inds)){
+	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
 }
 
-pdf(file="~/desktop/barrier_pops_spatial_vs_nonspatial.pdf",width=8,height=3,pointsize=11)
-par(mfrow=c(1,3))
-plot(prob.vec.nonspatial,pch=19,col="blue",ylab="Posterior Probability",
-		ylim=c(min(prob.vec.nonspatial,prob.vec.spatial),
-				max(prob.vec.nonspatial, prob.vec.spatial)),
-		xaxt='n',cex=2,xlab="")
-	axis(side=1,at=c(1,2,3,4),labels=c("K=1","K=2","K=3","K=4"))
-	points(prob.vec.spatial,pch=19,col="green",cex=2)
-	box(lwd=2)
-	legend(x="bottomright",pch=19,col=c("blue","green"),legend=c("nonspatial","spatial"))
-plot(diff(prob.vec.nonspatial),pch=19,col="blue",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-plot(diff(prob.vec.spatial),pch=19,col="green",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-dev.off()
-
-
-#SPATIAL with ONE IBD RATE
-load("barrier_sim_1ibd/k_2/data.list.Robj")
-load("barrier_sim_1ibd/k_2/ms.barrier.dataset.Robj")
-geo.coords <- spacemix.dataset$population.coordinates
-all.colors <- c("blue","red","green","yellow","purple","brown")
-
-pdf(file="~/desktop/barrier_1_IBD_pops_spatial_samplecov.pdf",width=7.5,height=3,pointsize=12)
-par(mfrow=c(1,3),oma=c(0.5,0.5,0.5,0.5))
-#K_2
-load("barrier_sim_1ibd/k_2/k_2_1ibd_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 2")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-
-mtext(text="geographic distance",side=1,adj=17,padj=3.5)
-
-#K_3
-load("barrier_sim_1ibd/k_3/k_3_1ibd_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 3")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-#K_4
-load("barrier_sim_1ibd/k_4/k_4_1ibd_output.Robj")
-plot(data.list$geo.dist,data.list$sample.covariance,
-		xlab="",
-		ylab="",main="K = 4")
-	box(lwd=2)
-	points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-dev.off()
-
-
-
-pdf(file="~/desktop/barrier_pops_spatial_adprop_piemaps.pdf",width=8,height=8,pointsize=12)
-x.lim <- c(min(geo.coords[,1]) - 1, max(geo.coords[,1]) + 1)
-y.lim <- c(min(geo.coords[,2]) - 1, max(geo.coords[,2]) + 1)
-radius <- 3.5
-par(mfrow=c(2,2),mar=c(1,1,1,1))
-require(caroline)
-
-#K_2
-load("barrier_sim_1ibd/k_2/k_2_1ibd_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 2",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_3
-load("barrier_sim_1ibd/k_3/k_3_1ibd_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 3",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-#K_4
-load("barrier_sim_1ibd/k_4/k_4_1ibd_output.Robj")
-sample.names <- unlist(lapply(1:data.list$n.ind,function(i){paste("sample_",i,sep="")}))
-cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-color.tab <- nv(c(all.colors[1:super.list$model.options$n.clusters]),cluster.names)
-pie.list <- lapply(1:data.list$n.ind,function(i){nv(super.list$parameter.list$admix.proportions[i,],cluster.names)})
-names(pie.list) <- sample.names
-pies(pie.list,x0=geo.coords[,1],
-				y0=geo.coords[,2],
-				color.table=color.tab,border="black",radii=radius,
-				xlab="",ylab="",main="K = 4",lty=1,density=NULL,xaxt='n',yaxt='n',xlim=x.lim,ylim=y.lim)
-box(lwd=2)
-dev.off()
-
-
-
-#Spatial vs. Nonspatial LnL comparison
-prob.vec.spatial <- numeric(4)
-prob.vec.spatial.1ibd <- numeric(4)
-prob.vec.nonspatial <- numeric(4)
-for(i in 1:4){
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
-	setwd(paste("spatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.spatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
-	setwd(paste("nonspatial/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.nonspatial[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
-	if(i > 1){
-	setwd(paste("barrier_sim_1ibd/k_",i,sep=""))
-		load(list.files(pattern="output"))
-		prob.vec.spatial.1ibd[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-	}
-	setwd("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/barrier_sim")
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_5/k_5_output.Robj",sep=""))						
+make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=NULL,
+						sample.names=NULL,sort.by=NULL)
+for(i in 1:length(inds)){
+	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
 }
 
-pdf(file="~/desktop/barrier_pops_spatial_vs_nonspatial_vs1ratespatial.pdf",width=10,height=3,pointsize=11)
-par(mfrow=c(1,4))
-plot(prob.vec.nonspatial,pch=19,col="blue",ylab="Posterior Probability",
-		ylim=c(min(prob.vec.nonspatial,prob.vec.spatial),
-				max(prob.vec.nonspatial, prob.vec.spatial)),
-		xaxt='n',cex=2,xlab="")
-	axis(side=1,at=c(1,2,3,4),labels=c("K=1","K=2","K=3","K=4"))
-	points(prob.vec.spatial,pch=19,col="green",cex=2)
-	points(prob.vec.spatial.1ibd,pch=19,col="purple",cex=2)
-	box(lwd=2)
-	legend(x="bottomright",pch=19,col=c("blue","green","purple"),legend=c("nonspatial","spatial","one-rate spatial"))
-plot(diff(prob.vec.nonspatial),pch=19,col="blue",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-plot(diff(prob.vec.spatial),pch=19,col="green",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(1,2,3),labels=c("K=2 vs. K=1","K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-plot(c(1,2,3),c(NA,diff(prob.vec.spatial.1ibd[2:4])),pch=19,col="purple",ylab="Difference in Posterior Probability",cex=2,xaxt='n',xlab="")
-	axis(side=1,at=c(2,3),labels=c("K=3 vs. K=2","K=4 vs. K=3"))
-	box(lwd=2)
-dev.off()
+
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_6/k_6_output.Robj",sep=""))						
+make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=NULL,
+						sample.names=NULL,sort.by=NULL)
+for(i in 1:length(inds)){
+	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
+}
+
+
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_7/k_7_output.Robj",sep=""))						
+make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=NULL,
+						sample.names=NULL,sort.by=NULL)
+for(i in 1:length(inds)){
+	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
+}
+
+
+load(paste(my.path,"spatialStructure/datasets/warblers/analyses/spatial/k_8/k_8_output.Robj",sep=""))						
+make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=NULL,
+						sample.names=NULL,sort.by=NULL)
+for(i in 1:length(inds)){
+	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
+}
+
