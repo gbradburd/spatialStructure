@@ -386,3 +386,40 @@ for(i in 1:length(inds)){
 	axis(side=1,at=seq(0.5,length(inds)-0.5,1)[i],labels=plot.inds[i],col.axis=inds.col[i],las=2,cex.axis=0.6,font=2)
 }
 
+#HAAK
+metadata <- read.table(paste(my.path,"spatialStructure/datasets/HumanData/analyses/human_sample_metadata.txt",sep=""),header=TRUE,stringsAsFactors=FALSE)
+source(paste(my.path,"spatialStructure/code/viz_funcs.R",sep=""))
+
+#spatiotemporal
+load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_2/haak_k2_st_output.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_2/data.list.Robj",sep=""))
+make.structure.plot(data.list,super.list,
+					sample.order=rev(order(metadata$time)),
+					cluster.order=NULL,
+					sample.names=row.names(data.list$sample.covariance),
+					sort.by=NULL)
+
+
+load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_3/haak_k3_st_output.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_3/data.list.Robj",sep=""))
+make.structure.plot(data.list,super.list,
+					sample.order=rev(order(metadata$time)),
+					cluster.order=NULL,
+					sample.names=row.names(data.list$sample.covariance),
+					sort.by=NULL)
+
+
+load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_4/haak_k4_st_output.Robj",sep=""))
+load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_4/data.list.Robj",sep=""))
+make.structure.plot(data.list,super.list,
+					sample.order=rev(order(metadata$time)),
+					cluster.order=NULL,
+					sample.names=row.names(data.list$sample.covariance),
+					sort.by=NULL)
+
+
+
+
+
+
+
