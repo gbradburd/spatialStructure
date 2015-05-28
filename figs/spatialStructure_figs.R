@@ -394,7 +394,7 @@ source(paste(my.path,"spatialStructure/code/viz_funcs.R",sep=""))
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_2/haak_k2_st_output.Robj",sep=""))
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_2/data.list.Robj",sep=""))
 make.structure.plot(data.list,super.list,
-					sample.order=rev(order(metadata$time)),
+					sample.order=order(metadata$time),
 					cluster.order=NULL,
 					sample.names=row.names(data.list$sample.covariance),
 					sort.by=NULL)
@@ -403,7 +403,7 @@ make.structure.plot(data.list,super.list,
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_3/haak_k3_st_output.Robj",sep=""))
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_3/data.list.Robj",sep=""))
 make.structure.plot(data.list,super.list,
-					sample.order=rev(order(metadata$time)),
+					sample.order=order(metadata$time),
 					cluster.order=NULL,
 					sample.names=row.names(data.list$sample.covariance),
 					sort.by=NULL)
@@ -412,7 +412,7 @@ make.structure.plot(data.list,super.list,
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_4/haak_k4_st_output.Robj",sep=""))
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_4/data.list.Robj",sep=""))
 make.structure.plot(data.list,super.list,
-					sample.order=rev(order(metadata$time)),
+					sample.order=order(metadata$time),
 					cluster.order=NULL,
 					sample.names=row.names(data.list$sample.covariance),
 					sort.by=NULL)
