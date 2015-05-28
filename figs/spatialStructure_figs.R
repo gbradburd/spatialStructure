@@ -389,33 +389,70 @@ for(i in 1:length(inds)){
 #HAAK
 metadata <- read.table(paste(my.path,"spatialStructure/datasets/HumanData/analyses/human_sample_metadata.txt",sep=""),header=TRUE,stringsAsFactors=FALSE)
 source(paste(my.path,"spatialStructure/code/viz_funcs.R",sep=""))
+sample.order <- c(which(metadata$time < 0)[order(metadata$time[which(metadata$time < 0)])],
+					which(metadata$time == 0)[order(metadata$lat[which(metadata$time == 0)])])
+#order(metadata$time)
+
 
 #spatiotemporal
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_2/haak_k2_st_output.Robj",sep=""))
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_2/data.list.Robj",sep=""))
+
 make.structure.plot(data.list,super.list,
-					sample.order=order(metadata$time),
+					sample.order=sample.order,
 					cluster.order=NULL,
 					sample.names=row.names(data.list$sample.covariance),
 					sort.by=NULL)
 
+k2super.list <- super.list
 
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_3/haak_k3_st_output.Robj",sep=""))
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_3/data.list.Robj",sep=""))
+
+which.max(c(
+	cov(super.list$parameter.list$admix.proportions[,1],k2super.list$parameter.list$admix.proportions[,1]),
+	cov(super.list$parameter.list$admix.proportions[,2],k2super.list$parameter.list$admix.proportions[,1]),
+	cov(super.list$parameter.list$admix.proportions[,3],k2super.list$parameter.list$admix.proportions[,1])))
+which.max(c(
+	cov(super.list$parameter.list$admix.proportions[,1],k2super.list$parameter.list$admix.proportions[,2]),
+	cov(super.list$parameter.list$admix.proportions[,2],k2super.list$parameter.list$admix.proportions[,2]),
+	cov(super.list$parameter.list$admix.proportions[,3],k2super.list$parameter.list$admix.proportions[,2])))
+	
 make.structure.plot(data.list,super.list,
-					sample.order=order(metadata$time),
+					sample.order=sample.order,
 					cluster.order=NULL,
 					sample.names=row.names(data.list$sample.covariance),
 					sort.by=NULL)
 
+k3super.list <- super.list
 
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_4/haak_k4_st_output.Robj",sep=""))
 load(paste(my.path,"spatialStructure/datasets/HumanData/analyses/temporal/spatial/k_4/data.list.Robj",sep=""))
+
+which.max(c(
+	cov(super.list$parameter.list$admix.proportions[,1],k3super.list$parameter.list$admix.proportions[,1]),
+	cov(super.list$parameter.list$admix.proportions[,2],k3super.list$parameter.list$admix.proportions[,1]),
+	cov(super.list$parameter.list$admix.proportions[,3],k3super.list$parameter.list$admix.proportions[,1]),
+	cov(super.list$parameter.list$admix.proportions[,4],k3super.list$parameter.list$admix.proportions[,1])))
+which.max(c(
+	cov(super.list$parameter.list$admix.proportions[,1],k3super.list$parameter.list$admix.proportions[,2]),
+	cov(super.list$parameter.list$admix.proportions[,2],k3super.list$parameter.list$admix.proportions[,2]),
+	cov(super.list$parameter.list$admix.proportions[,3],k3super.list$parameter.list$admix.proportions[,2]),
+	cov(super.list$parameter.list$admix.proportions[,4],k3super.list$parameter.list$admix.proportions[,2])))
+which.max(c(
+	cov(super.list$parameter.list$admix.proportions[,1],k3super.list$parameter.list$admix.proportions[,3]),
+	cov(super.list$parameter.list$admix.proportions[,2],k3super.list$parameter.list$admix.proportions[,3]),
+	cov(super.list$parameter.list$admix.proportions[,3],k3super.list$parameter.list$admix.proportions[,3]),
+	cov(super.list$parameter.list$admix.proportions[,4],k3super.list$parameter.list$admix.proportions[,3])))
+
+cluster.colors <- c("blue","red","green","yellow")[c(3,1,2,4)]
+
 make.structure.plot(data.list,super.list,
-					sample.order=order(metadata$time),
-					cluster.order=NULL,
+					sample.order=sample.order,
+					cluster.order=c(2,3,1,4),
 					sample.names=row.names(data.list$sample.covariance),
-					sort.by=NULL)
+					sort.by=NULL,
+					cluster.colors=cluster.colors)
 
 
 

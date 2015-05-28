@@ -16,7 +16,7 @@ make.structure.polygon.layer <- function(plotting.admix.props,i,use.colors,sampl
 	return(invisible(i))
 }
 
-make.structure.plot <- function(data.list,super.list,sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL){
+make.structure.plot <- function(data.list,super.list,sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL,cluster.colors=NULL){
 	# recover()
 	quartz(width=10,height=5)
 	if(is.null(cluster.order)){
@@ -28,7 +28,10 @@ make.structure.plot <- function(data.list,super.list,sample.order=NULL,cluster.o
 	if(!is.null(sort.by)){
 		sample.order <- order(super.list$parameter.list$admix.proportions[,sort.by])
 	}
-all.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen")
+	if(is.null(cluster.colors)){
+		cluster.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen")
+	}
+	all.colors <- cluster.colors
 	use.colors <- all.colors[1:length(super.list$parameter.list$cluster.list)][cluster.order]
 	plot(0,xlim=c(0,data.list$n.ind),ylim=c(0,1),type='n',ylab="admixture",xlab="",xaxt='n')
 	plotting.admix.props <- apply(cbind(0,super.list$parameter.list$admix.proportions[,cluster.order]),1,cumsum)
