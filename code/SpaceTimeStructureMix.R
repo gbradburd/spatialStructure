@@ -768,3 +768,15 @@ MCMC.gid <- function(	data,
 	save(super.list,file=mcmc.options$output.file.name)
 	return("run complete")
 }
+
+random.switcharoo <- function(x){
+	x <- ifelse(rep(runif(1) < 0.5,length(x)),
+					x,
+					1-x)
+	return(x)
+}
+
+switcharoo.data <- function(frequencies){
+	frequencies <- apply(frequencies,2,random.switcharoo)
+	return(frequencies)
+}
