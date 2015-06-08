@@ -193,4 +193,30 @@ plot.sample.ellipses2 <- function(metadata,radii,alpha=0.5,fineness=100,thicknes
 	return(invisible("done"))
 }
 
-# plot.sample.ellipses2(metadata,radii=1)
+plot.cluster.covariances <- function(data.list,super.list,time.dist=FALSE){
+	dist.mat <- ifelse(matrix(time.dist,nrow=data.list$n.ind,ncol=data.list$n.ind),
+						data.list$time.dist,
+						data.list$geo.dist)
+	cluster.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen")
+	ind.mat <- upper.tri(dist.mat,diag=TRUE)
+	y.min <- min(data.list$sample.covariance,
+						unlist(lapply(seq_along(1:super.list$model.options$n.clusters),
+										function(i){super.list$parameter.list$cluster.list[[i]]$covariance + 
+													super.list$parameter.list$cluster.list[[i]]$cluster.mean})))
+	y.max <- max(data.list$sample.covariance,
+						unlist(lapply(seq_along(1:super.list$model.options$n.clusters),
+										function(i){super.list$parameter.list$cluster.list[[i]]$covariance + 
+													super.list$parameter.list$cluster.list[[i]]$cluster.mean})))
+	y.range <- c(y.min,y.max)
+	plot(dist.mat[ind.mat],data.list$sample.covariance[ind.mat],
+			ylab="sample covariance",xlab="distance",
+			ylim=y.range + diff(range(y.range))/10 * c(-1,1))
+	abline(h=super.list$parameter.list$shared.mean,col="gray",lty=2)
+	for(i in 1:super.list$model.options$n.clusters){
+		points(dist.mat[ind.mat],
+				super.list$parameter.list$cluster.list[[i]]$covariance[ind.mat] + 
+				super.list$parameter.list$cluster.list[[i]]$cluster.mean,
+				col=cluster.colors[i],pch=20,cex=0.7)
+	}
+	return(invisible("plotted"))
+}

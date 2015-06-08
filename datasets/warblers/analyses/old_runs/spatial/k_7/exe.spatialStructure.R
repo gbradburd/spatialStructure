@@ -1,0 +1,19 @@
+source("SpaceTimeStructureMix.R")
+
+load(list.files(pattern="dataset.Robj"))
+
+sample.cov <- cov(t(warbler.ind.allele.counts/warbler.ind.sample.sizes),use="pairwise.complete.obs")
+sim.data <- list("geo.coords" = warbler.ind.coords,
+				"time.coords" = matrix(0,nrow=nrow(warbler.ind.coords),ncol=2),
+				"sample.covariance" = sample.cov,
+				"n.loci" = 2247)
+model.options = list("round.earth" = FALSE,
+						"n.clusters" = 7,
+						"temporal.sampling"=FALSE,
+						no.st=FALSE)
+mcmc.options = list("ngen" = 1e7,
+					"samplefreq" = 1e4,
+					"printfreq" = 1e3,
+					"savefreq" = 1e6,
+					"output.file.name"="k_7_output.Robj")
+MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters=NULL)
