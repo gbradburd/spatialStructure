@@ -21,7 +21,8 @@ geo.coords <- spacemix.dataset$population.coordinates
 #Warbler
 	geo.coords <- warbler.ind.coords
 
-
+#Model Sims
+geo.coords <- sim.data$sampling.data$geo.coords
 
 all.colors <- c("blue","red","green","yellow","purple","brown")
 cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
@@ -97,15 +98,15 @@ plot(super.list$output.list$shared.mean,type='l',
 	
 quartz(width=11,height=4)
 par(mfrow=c(1,4),mar=c(1,1,1,1))
-matplot(t(super.list$output.list$acceptance.rates$cov.par1),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)])
-matplot(t(super.list$output.list$acceptance.rates$cov.par2),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)])
-matplot(t(super.list$output.list$acceptance.rates$cov.par3),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)])
-matplot(t(super.list$output.list$acceptance.rates$cluster.mean),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)])
+matplot(t(super.list$output.list$acceptance.rates$cov.par1),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)],ylim=c(0,1))
+matplot(t(super.list$output.list$acceptance.rates$cov.par2),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)],ylim=c(0,1))
+matplot(t(super.list$output.list$acceptance.rates$cov.par3),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)],ylim=c(0,1))
+matplot(t(super.list$output.list$acceptance.rates$cluster.mean),type='l',xlab="",ylab="",col=all.colors[1:length(super.list$parameter.list$cluster.list)],ylim=c(0,1))
 
 par(mfrow=c(3,1),mar=c(1,1,1,1))
-matplot(t(super.list$output.list$acceptance.rates$admix.proportions),type='l',xlab="",ylab="")
-matplot(t(super.list$output.list$acceptance.rates$nuggets),type='l',xlab="",ylab="")
-plot(super.list$output.list$acceptance.rates$shared.mean,type='l',xlab="",ylab="")
+matplot(t(super.list$output.list$acceptance.rates$admix.proportions),type='l',xlab="",ylab="",ylim=c(0,1))
+matplot(t(super.list$output.list$acceptance.rates$nuggets),type='l',xlab="",ylab="",ylim=c(0,1))
+plot(super.list$output.list$acceptance.rates$shared.mean,type='l',xlab="",ylab="",ylim=c(0,1))
 
 
 require(caroline)

@@ -37,9 +37,9 @@ make.spstr.run.dirs <- function(spacemix.code,exe.code,dataset,K,path,output.fil
 }
 
 make.spstr.run.dirs(spacemix.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/code/SpaceTimeStructureMix.R",
-					exe.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/code/exe.spatialStructure.R",
-					dataset="~/Desktop/k1_exp_dataset.Robj",
-					K=4,
-					path="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/model_sim/k_1_exp",
-					output.file.name = "exp_output")
+					exe.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/exe.spatialStructure.R",
+					dataset="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/warbler.ind.dataset.Robj",
+					K=10,
+					path="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/analyses/new_runs",
+					output.file.name = "warb_output")
 
