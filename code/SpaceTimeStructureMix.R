@@ -84,7 +84,9 @@ make.data.list <- function(data,model.options){
 	} else {
 		dist.func <- fields::rdist
 	}
-	data.list <- list("geo.dist" = dist.func(data$geo.coords),
+	data.list <- list(  "geo.coords" = data$geo.coords,
+						"time.coords" = data$time.coords,
+						"geo.dist" = dist.func(data$geo.coords),
 						"time.dist" = dist.func(data$time.coords),
 						"n.ind" = nrow(data$geo.coords),
 						"sample.covariance" = data$sample.covariance,
@@ -310,7 +312,7 @@ prior.prob.param.list <- function(parameter.list,element,function.name,other.arg
 }
 
 prior.prob.nuggets <- function(nuggets){
-	dexp(nuggets,log=TRUE)
+	dexp(nuggets,rate=50,log=TRUE)
 }
 
 prior.prob.admix.proportions <- function(x,alpha){
@@ -318,7 +320,7 @@ prior.prob.admix.proportions <- function(x,alpha){
 }
 
 prior.prob.shared.mean <- function(shared.mean){
-	dexp(shared.mean,log=TRUE)
+	dexp(shared.mean,rate=100,log=TRUE)
 }
 
 prior.prob.covariance.param <- function(cluster,element,function.name){
@@ -330,11 +332,11 @@ prior.prob.covariance.param.clusters <- function(cluster.list,element,function.n
 }
 
 prior.prob.cov.par1 <- function(cov.par1){
-	dexp(cov.par1,10,log=TRUE)
+	dexp(cov.par1,rate=100,log=TRUE)
 }
 
 prior.prob.cov.par2 <- function(cov.par2){
-	dexp(cov.par2,1,log=TRUE)
+	dexp(cov.par2,rate=1,log=TRUE)
 }
 
 prior.prob.cov.par3 <- function(cov.par3){
@@ -346,7 +348,7 @@ prior.prob.cov.par4 <- function(cov.par4){
 }
 
 prior.prob.cluster.mean <- function(cluster.mean){
-	dexp(cluster.mean,1,log=TRUE)
+	dexp(cluster.mean,rate=200,log=TRUE)
 }
 
 initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mcmc.options,initial.parameters=NULL){
