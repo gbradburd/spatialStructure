@@ -1,4 +1,4 @@
-load("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/warbler_ind_dataset.Robj")
+load("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/old_warbler_ind_dataset.Robj")
 setwd("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers")
 
 warb.counts <- warbler.ind.allele.counts

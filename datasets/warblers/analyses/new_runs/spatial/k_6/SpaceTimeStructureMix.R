@@ -1,14 +1,5 @@
-spatiotemporal.covariance <- function(geo.dist,time.dist,alpha,nu,zeta){
-    d <- 2  # two spatial dimensions
-    return( exp(
-            d/2 * log(pi) +
-            d * log(alpha) -
-            ( (nu + zeta*time.dist - 1)*log(2) +
-                    gsl::lngamma(nu + zeta*time.dist + d/2) 
-                ) +
-            nu * log(alpha*geo.dist) +
-            gsl::bessel_lnKnu(nu=nu,x=alpha*geo.dist)
-    ) )
+spatiotemporal.covariance <- function(geo.dist,time.dist,sill,geo.effect,exponent,time.effect){
+	return(exp(log(sill) + -(geo.dist/geo.effect + time.dist/time.effect)^exponent))
 }
 
 cluster.covariance <- function(geo.dist,time.dist,params){
@@ -16,7 +7,8 @@ cluster.covariance <- function(geo.dist,time.dist,params){
 								time.dist,
 								params$cov.par1,
 								params$cov.par2,
-								params$cov.par3)
+								params$cov.par3,
+								params$cov.par4)
 }
 
 cluster.admixed.covariance <- function(cluster){
@@ -61,7 +53,8 @@ declare.cluster.list <- function(){
 	cluster.list <- list(
 		"covariance.params" = list(	"cov.par1" = NULL,
 									"cov.par2" = NULL,
-									"cov.par3" = NULL),
+									"cov.par3" = NULL,
+									"cov.par4" = NULL),
 		"cluster.mean" = NULL,
 		"covariance" = NULL,
 		"admix.prop.matrix" = NULL)
@@ -91,7 +84,9 @@ make.data.list <- function(data,model.options){
 	} else {
 		dist.func <- fields::rdist
 	}
-	data.list <- list("geo.dist" = dist.func(data$geo.coords),
+	data.list <- list(  "geo.coords" = data$geo.coords,
+						"time.coords" = data$time.coords,
+						"geo.dist" = dist.func(data$geo.coords),
 						"time.dist" = dist.func(data$time.coords),
 						"n.ind" = nrow(data$geo.coords),
 						"sample.covariance" = data$sample.covariance,
@@ -124,14 +119,16 @@ populate.cluster <- function(cluster,geo.dist,time.dist,admix.proportions,model.
 			while(any(is.na(cluster$covariance))){
 				cluster$covariance.params$cov.par1 <- runif(1,1e-10,10)
 				cluster$covariance.params$cov.par2 <- runif(1,1e-10,10)
-				cluster$covariance.params$cov.par3 <- runif(1,1e-10,10)
+				cluster$covariance.params$cov.par3 <- runif(1,1e-10,1)
+				cluster$covariance.params$cov.par4 <- runif(1,1e-10,10)
 				cluster$covariance <- cluster.covariance(geo.dist,time.dist,cluster$covariance.params)
 			}
 		} else {
 			while(any(is.na(cluster$covariance))){
 				cluster$covariance.params$cov.par1 <- runif(1,1e-10,10)
 				cluster$covariance.params$cov.par2 <- runif(1,1e-10,10)
-				cluster$covariance.params$cov.par3 <- 0
+				cluster$covariance.params$cov.par3 <- runif(1,1e-10,1)
+				cluster$covariance.params$cov.par4 <- Inf
 				cluster$covariance <- cluster.covariance(geo.dist,time.dist,cluster$covariance.params)
 			}
 		}
@@ -139,6 +136,7 @@ populate.cluster <- function(cluster,geo.dist,time.dist,admix.proportions,model.
 			cluster$covariance.params$cov.par1 <- 0
 			cluster$covariance.params$cov.par2 <- 0
 			cluster$covariance.params$cov.par3 <- 0
+			cluster$covariance.params$cov.par4 <- 0
 			cluster$covariance <- matrix(0,nrow=nrow(geo.dist),ncol=ncol(geo.dist))
 	}
 	cluster$cluster.mean <- rexp(1)
@@ -201,10 +199,12 @@ make.output.list <- function(n.ind,model.options,mcmc.options){
 						"cluster.params" = list("cov.par1" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 												"cov.par2" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 												"cov.par3" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+												"cov.par4" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 												"cluster.mean" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length)),
 						"acceptance.rates" = list("cov.par1" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 													"cov.par2" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 													"cov.par3" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
+													"cov.par4" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 													"cluster.mean" = matrix(NA,nrow=model.options$n.clusters,ncol=output.length),
 													"nuggets" = matrix(NA,nrow=n.ind,ncol=output.length),
 													"admix.proportions" = matrix(NA,nrow=n.ind,ncol=output.length),
@@ -225,22 +225,25 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 							"prior.probs" = list("cov.par1" = rep(NA,model.options$n.clusters),
 													"cov.par2" = rep(NA,model.options$n.clusters),
 													"cov.par3" = rep(NA,model.options$n.clusters),
+													"cov.par4" = rep(NA,model.options$n.clusters),
 													"cluster.mean" = rep(NA,model.options$n.clusters),
 													"nuggets" = rep(NA,n.ind),
 													"admix.proportions" = matrix(NA,nrow=n.ind,ncol=model.options$n.clusters),
 													"shared.mean" = NA),
 							"acceptance.rates" = list("cov.par1" = rep(0,model.options$n.clusters),
-															 "cov.par2" = rep(0,model.options$n.clusters),
- 															 "cov.par3" = rep(0,model.options$n.clusters),
-  															 "cluster.mean" = rep(0,model.options$n.clusters),
-															 "nuggets" = rep(0,n.ind),
-															 "admix.proportions" = rep(0,n.ind),
-															 "shared.mean" = 0),
+														 "cov.par2" = rep(0,model.options$n.clusters),
+ 														 "cov.par3" = rep(0,model.options$n.clusters),
+ 														 "cov.par4" = rep(0,model.options$n.clusters),
+  														 "cluster.mean" = rep(0,model.options$n.clusters),
+														 "nuggets" = rep(0,n.ind),
+														 "admix.proportions" = rep(0,n.ind),
+														 "shared.mean" = 0),
 							"adaptive.mcmc" = list( "n.batch" = 0,
 													"n.moves" = 
 														list("cov.par1" = rep(0,model.options$n.clusters),
 															 "cov.par2" = rep(0,model.options$n.clusters),
  															 "cov.par3" = rep(0,model.options$n.clusters),
+ 															 "cov.par4" = rep(0,model.options$n.clusters),
   															 "cluster.mean" = rep(0,model.options$n.clusters),
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
@@ -249,6 +252,7 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 														list("cov.par1" = rep(0,model.options$n.clusters),
 															 "cov.par2" = rep(0,model.options$n.clusters),
  															 "cov.par3" = rep(0,model.options$n.clusters),
+ 															 "cov.par4" = rep(0,model.options$n.clusters),
   															 "cluster.mean" = rep(0,model.options$n.clusters),
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
@@ -257,6 +261,7 @@ make.mcmc.quantities <- function(n.ind,model.options,mcmc.options){
 														list("cov.par1" = rep(0,model.options$n.clusters),
 															 "cov.par2" = rep(0,model.options$n.clusters),
  															 "cov.par3" = rep(0,model.options$n.clusters),
+ 															 "cov.par4" = rep(0,model.options$n.clusters),
   															 "cluster.mean" = rep(0,model.options$n.clusters),
 															 "nuggets" = rep(0,n.ind),
 															 "admix.proportions" = rep(0,n.ind),
@@ -276,20 +281,24 @@ declare.covariance.params.list <- function(model.options){
 		covariance.params.list <- list(
 					"covariance.params" = list(
 						"cov.par1",
-						"cov.par2"),
-					"covariance.param.prior.functions" = list(
-						prior.prob.cov.par1,
-						prior.prob.cov.par2))
-	} else {
-		covariance.params.list <- list(
-					"covariance.params" = list(
-						"cov.par1",
 						"cov.par2",
 						"cov.par3"),
 					"covariance.param.prior.functions" = list(
 						prior.prob.cov.par1,
 						prior.prob.cov.par2,
 						prior.prob.cov.par3))
+	} else {
+		covariance.params.list <- list(
+					"covariance.params" = list(
+						"cov.par1",
+						"cov.par2",
+						"cov.par3",
+						"cov.par4"),
+					"covariance.param.prior.functions" = list(
+						prior.prob.cov.par1,
+						prior.prob.cov.par2,
+						prior.prob.cov.par3,
+						prior.prob.cov.par4))
 	}
 	return(covariance.params.list)
 }
@@ -303,7 +312,7 @@ prior.prob.param.list <- function(parameter.list,element,function.name,other.arg
 }
 
 prior.prob.nuggets <- function(nuggets){
-	dexp(nuggets,log=TRUE)
+	dexp(nuggets,rate=50,log=TRUE)
 }
 
 prior.prob.admix.proportions <- function(x,alpha){
@@ -311,7 +320,7 @@ prior.prob.admix.proportions <- function(x,alpha){
 }
 
 prior.prob.shared.mean <- function(shared.mean){
-	dexp(shared.mean,log=TRUE)
+	dexp(shared.mean,rate=100,log=TRUE)
 }
 
 prior.prob.covariance.param <- function(cluster,element,function.name){
@@ -323,19 +332,23 @@ prior.prob.covariance.param.clusters <- function(cluster.list,element,function.n
 }
 
 prior.prob.cov.par1 <- function(cov.par1){
-	dunif(cov.par1,0,1e20,log=TRUE)
+	dexp(cov.par1,rate=100,log=TRUE)
 }
 
 prior.prob.cov.par2 <- function(cov.par2){
-	dexp(cov.par2,1,log=TRUE)
+	dexp(cov.par2,rate=1,log=TRUE)
 }
 
 prior.prob.cov.par3 <- function(cov.par3){
-	dunif(cov.par3,0,1e20,log=TRUE)
+	dunif(cov.par3,0.0001,1,log=TRUE)
+}
+
+prior.prob.cov.par4 <- function(cov.par4){
+	dexp(cov.par4,1,log=TRUE)
 }
 
 prior.prob.cluster.mean <- function(cluster.mean){
-	dexp(cluster.mean,1,log=TRUE)
+	dexp(cluster.mean,rate=200,log=TRUE)
 }
 
 initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mcmc.options,initial.parameters=NULL){
@@ -352,10 +365,11 @@ initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mc
 		if(!model.options$no.st){
 			mcmc.quantities$prior.probs$cov.par1 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par1",prior.prob.cov.par1)
 			mcmc.quantities$prior.probs$cov.par2 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par2",prior.prob.cov.par2)
+			mcmc.quantities$prior.probs$cov.par3 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par3",prior.prob.cov.par3)
 			if(model.options$temporal.sampling){
-				mcmc.quantities$prior.probs$cov.par3 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par3",prior.prob.cov.par3)
+				mcmc.quantities$prior.probs$cov.par4 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par4",prior.prob.cov.par4)
 			} else {
-				mcmc.quantities$prior.probs$cov.par3 <- 0
+				mcmc.quantities$prior.probs$cov.par4 <- 0
 			}
 		}
 		mcmc.quantities$prior.probs$cluster.mean <- prior.prob.cluster.mean(unlist(lapply(parameter.list$cluster.list,"[[","cluster.mean")))
@@ -653,6 +667,7 @@ bookkeep.nth.batch.acceptance.rates <- function(mcmc.quantities,adaption.step){
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par1 <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par1 + mcmc.quantities$acceptance.rates$cov.par1/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par2 <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par2 + mcmc.quantities$acceptance.rates$cov.par2/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par3 <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par3 + mcmc.quantities$acceptance.rates$cov.par3/50) ;
+		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par4 <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cov.par4 + mcmc.quantities$acceptance.rates$cov.par4/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cluster.mean <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$cluster.mean + mcmc.quantities$acceptance.rates$cluster.mean/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$nuggets <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$nuggets + mcmc.quantities$acceptance.rates$nuggets/50) ;
 		mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$admix.proportions <- adaption.step * (mcmc.quantities$adaptive.mcmc$nth.batch.accept.rates$admix.proportions + mcmc.quantities$acceptance.rates$admix.proportions/50) ;
@@ -682,6 +697,7 @@ bookkeep.acceptance.rates <- function(super.list,step){
 	super.list$output.list$acceptance.rates$cov.par1[,step] <- super.list$mcmc.quantities$acceptance.rates$cov.par1
 	super.list$output.list$acceptance.rates$cov.par2[,step] <- super.list$mcmc.quantities$acceptance.rates$cov.par2
 	super.list$output.list$acceptance.rates$cov.par3[,step] <- super.list$mcmc.quantities$acceptance.rates$cov.par3
+	super.list$output.list$acceptance.rates$cov.par4[,step] <- super.list$mcmc.quantities$acceptance.rates$cov.par4
 	super.list$output.list$acceptance.rates$cluster.mean[,step] <- super.list$mcmc.quantities$acceptance.rates$cluster.mean
 	return(super.list)
 }
@@ -695,6 +711,7 @@ bookkeep.params <- function(super.list,step){
 	super.list$output.list$cluster.params$cov.par1[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"cov.par1")
 	super.list$output.list$cluster.params$cov.par2[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"cov.par2")
 	super.list$output.list$cluster.params$cov.par3[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"cov.par3")
+	super.list$output.list$cluster.params$cov.par4[,step] <- index.cluster.param(super.list$parameter.list$cluster.list,"cov.par4")
 	super.list$output.list$cluster.params$cluster.mean[,step] <- unlist(lapply(super.list$parameter.list$cluster.list,"[[","cluster.mean"))
 	return(super.list)
 }
@@ -712,7 +729,7 @@ make.update.parameters.list <- function(model.options){
 							"update.cluster.mean.k" =  update.cluster.mean.k,
 							"update.nugget.i" = update.nugget.i,
 							"update.shared.mean" = update.shared.mean)
-	function.sample.probs <- c(0.8,0.17,0.01,0.01,0.01)
+	function.sample.probs <- c(0.75,0.17,0.02,0.01,0.05)
 	if(model.options$no.st){
 		drop <- grepl("update.cluster.covariance.param",names(update.function.list))
 		update.function.list <- update.function.list[-which(drop)]
@@ -767,4 +784,16 @@ MCMC.gid <- function(	data,
 	}
 	save(super.list,file=mcmc.options$output.file.name)
 	return("run complete")
+}
+
+random.switcharoo <- function(x){
+	x <- ifelse(rep(runif(1) < 0.5,length(x)),
+					x,
+					1-x)
+	return(x)
+}
+
+switcharoo.data <- function(frequencies){
+	frequencies <- apply(frequencies,2,random.switcharoo)
+	return(frequencies)
 }

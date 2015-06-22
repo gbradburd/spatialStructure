@@ -12,10 +12,10 @@ sim.data <- list("geo.coords" = warbler.ind.coords,
 model.options = list("round.earth" = FALSE,
 						"n.clusters" = 6,
 						"temporal.sampling"=FALSE,
-						no.st=FALSE)
+						"no.st" = FALSE)
 mcmc.options = list("ngen" = 1e7,
 					"samplefreq" = 1e4,
 					"printfreq" = 1e3,
 					"savefreq" = 1e6,
-					"output.file.name"="k_6_output.Robj")
+					"output.file.name" = "k6_warb_output.Robj")
 MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters=NULL)
