@@ -36,10 +36,11 @@ make.spstr.run.dirs <- function(spacemix.code,exe.code,dataset,K,path,output.fil
 	return(invisible("rock&roll"))
 }
 
+if(FALSE){
 make.spstr.run.dirs(spacemix.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/code/SpaceTimeStructureMix.R",
-					exe.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/exe.spatialStructure.R",
-					dataset="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/warbler.ind.dataset.Robj",
+					exe.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/exe.spatialStructure.R",
+					dataset="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/globe.spStr.dataset.Robj",
 					K=10,
-					path="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/analyses/new_runs",
-					output.file.name = "warb_output")
-
+					path="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/analyses",
+					output.file.name = "globe_output")
+}

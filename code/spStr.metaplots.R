@@ -48,16 +48,14 @@ get.color.order <- function(ref.ad.props,super.list,use.colors,all.colors){
 	return(use.colors)
 }
 
-plot.pie.grid <- function(dir,all.colors){
+plot.pie.grid <- function(dir,all.colors,n.k){
 	# recover()
 	setwd(dir)
-	sub.dirs <- list.dirs(recursive=FALSE,full.names=FALSE)
-	n.k <- length(sub.dirs)
 	dims <- make.nice.mfrow(n.k)
 	use.colors <- all.colors
 	par(mfrow=c(dims$n.row,dims$n.col))
 	for(i in 1:n.k){
-		setwd(sub.dirs[i])
+		setwd(paste(dir,"/k_",i,sep=""))
 		load(list.files(pattern="data.list"))
 		load(list.files(pattern="output"))
 		if(i > 2){
@@ -71,15 +69,13 @@ plot.pie.grid <- function(dir,all.colors){
 	}
 }
 
-plot.structure.plot.grid <- function(dir,all.colors,sample.order=NULL,sample.names=NULL,sort.by=NULL){
-	# recover()
+plot.structure.plot.grid <- function(dir,n.k,all.colors,sample.order=NULL,sample.names=NULL,sort.by=NULL){
+	#recover()
 	setwd(dir)
-	sub.dirs <- list.dirs(dir,recursive=FALSE,full.names=FALSE)
-	n.k <- length(sub.dirs)
 	use.colors <- all.colors
 	par(mfrow=c(n.k,1),mar=c(0.1,1.5,0.1,0.1))
 	for(i in 1:n.k){
-		setwd(sub.dirs[i])
+		setwd(paste(dir,"/k_",i,sep=""))
 		load(list.files(pattern="data.list"))
 		load(list.files(pattern="output"))
 		if(i > 2){
@@ -128,7 +124,16 @@ get.avg.params <- function(n.clusters,super.list,data.list,sampled.gens,no.IBD){
 	return(avg.parameters)
 }
 
-calc.DIC <- function(dir, burnin=250){
+n.params <- function(n.ind,k,time,spatial){
+	n.params <- n.ind + 				#nuggets
+				spatial*k*(3+time*1) +	#cov.pars, w/ or w/o time
+				k + 					#cluster means
+				n.ind * (k-1) + 		#admix proportions
+				1						#shared mean
+	return(n.params)
+}
+
+calc.DIC <- function(dir, burnin=500){
 	# recover()
 	setwd(dir)
 	load(list.files(pattern="data.list"))
@@ -141,7 +146,7 @@ calc.DIC <- function(dir, burnin=250){
 	likelihood.at.avg <- calculate.likelihood.2(data.list,avg.parameters$inverse,avg.parameters$determinant)   ### D()
 	avg.likelihood <- mean(super.list$output.list$likelihood[sampled.gens])  ###  Bar(D())
 	pD <- (-2)*avg.likelihood - (-2)*likelihood.at.avg
-	pV <- var((-2)*super.list$output.list$likelihood[sampled.gens])/2
+	pV <- n.params(n.ind=data.list$n.ind,k=super.list$model.options$n.clusters,time=super.list$model.options$temporal.sampling,spatial=!super.list$model.options$no.st)			#var((-2)*super.list$output.list$likelihood[sampled.gens])/2
 	DIC <- (-2*likelihood.at.avg) + 2*pV  # 2*pD
 	cat(avg.likelihood, likelihood.at.avg, pD, pV,"\n")
 	return(c(DIC, pD, pV))
@@ -187,30 +192,95 @@ plot.model.comp <- function(dir,n.runs=4){
 			axis(side=1,at=c(1:n.runs),labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
 			box(lwd=2)
 		plot(DIC.spatial[,1],pch=19,col="green",ylab="DIC",xaxt='n',cex=2,xlab="",xlim=c(0.9,n.runs+0.5)) 
+			points(which.min(DIC.spatial[,1]),min(DIC.spatial[,1]),col="red",cex=2)
 			text(x=1:length(DIC.spatial)+.3,y=DIC.spatial[,1], format(DIC.spatial[,3],dig=3))
 			axis(side=1,at=c(1:n.runs),labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
 			box(lwd=2)
+	return(invisible(0))
+}
+
+plot.K.comp <- function(sub.dir,n.runs=4){
+	# recover()
+	#Cross-Run LnL comparison
+	prob.vec <- rep(NA,n.runs)
+	DIC.vec <- numeric()
+	setwd(sub.dir)
+	for(k in 1:n.runs){
+		sub.sub.dir <- paste(sub.dir,"/k_",k,sep="")
+		setwd(sub.sub.dir)
+			load(list.files(pattern="output"))
+			prob.vec[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
+			DIC.vec <- rbind(DIC.vec,calc.DIC(sub.sub.dir))
+	}
+	par(mfrow=c(1,2),mar=c(2.5,2.5,1,1))
+		plot(prob.vec,pch=19,col="blue",ylab="Posterior Probability",
+				xaxt='n',cex=2,xlab="")
+			axis(side=1,at=1:n.runs,labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
+			box(lwd=2)
+		DIC.vec[,1] <- DIC.vec[,1] - min(DIC.vec[,1])
+		plot(DIC.vec[,1],pch=19,col="blue",ylab="DIC",xlim=c(0.9,n.runs+0.5),xaxt='n',cex=2,xlab="")
+			points(which.min(DIC.vec[,1]),min(DIC.vec[,1]),col="red",cex=2)
+			text(x=1:length(DIC.vec[,1]) +.3,y=DIC.vec[,1], format(DIC.vec[,3],dig=3))
+			axis(side=1,at=c(1:n.runs),labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
+			box(lwd=2)
+	return(invisible(0))
+}
+
+plot.admix.pie.maps <- function(sub.dir,all.colors,n.runs,map.xlim=NULL,map.ylim=NULL,pdf.size=NULL){
+	# recover()
+	require(maps)
+	setwd(sub.dir)
+	use.colors <- all.colors
+	for(i in 1:n.runs){
+		sub.sub.dir <- paste(sub.dir,"/k_",i,sep="")
+		setwd(sub.sub.dir)
+			load(list.files(pattern="output"))
+			load(list.files(pattern="data.list"))
+		if(i > 2){
+			use.colors <- get.color.order(ref.ad.props,super.list,use.colors,all.colors)
+		}
+		ref.ad.props <- super.list$parameter.list$admix.proportions
+		cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
+		if(is.null(map.xlim)){
+			map.xlim <- range(data.list$geo.coords[,1]) + diff(range(data.list$geo.coords[,1]))/25 * c(-1,1)
+		}
+		if(is.null(map.ylim)){
+			map.ylim <- range(data.list$geo.coords[,2]) + diff(range(data.list$geo.coords[,2]))/25 * c(-1,1)
+		}
+		if(is.null(pdf.size)){
+			scale <- diff(map.xlim)%/%10
+			pdf.size <- c(diff(map.xlim),diff(map.ylim)) / c(scale,scale)
+		}
+		setwd("..")
+		pdf(file=paste("pie.admix.map.k_",i,".pdf",sep=""),width=pdf.size[1],height=pdf.size[2])
+			par(mar=c(1,1,1,1))
+			map(database="world",xlim=map.xlim,ylim=map.ylim,col="darkgray")
+			make.admix.pie.plot(super.list,data.list,use.colors,cluster.names,radii=2.7,add=TRUE,title=paste("K=",i,sep=""))
+			box(lwd=2)
+		dev.off()
+	}
+	return(invisible(0))
 }
 
 make.all.metaplots <- function(dir,output.dir,K,sample.order=NULL,sample.names=NULL,sort.by=NULL){
 	setwd(dir)
 	sp.sub.dir <- paste(dir,"/spatial",sep="")
 	nsp.sub.dir <- paste(dir,"/nonspatial",sep="")
-	all.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen")
+	all.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray")
 	pdf(file=paste(output.dir,"/spatial.admix.pie.grid.pdf",sep=""),width=10,height=3*ceiling(K/4))
-		plot.pie.grid(dir=sp.sub.dir,all.colors)
+		plot.pie.grid(dir=sp.sub.dir,all.colors,K)
 	dev.off()
 	if(file.exists(nsp.sub.dir)){
 	pdf(file=paste(output.dir,"/nonspatial.admix.pie.grid.pdf",sep=""),width=10,height=3*ceiling(K/4))
-		plot.pie.grid(dir=nsp.sub.dir,all.colors)
+		plot.pie.grid(dir=nsp.sub.dir,all.colors,K)
 	dev.off()
 	}
 	pdf(file=paste(output.dir,"/spatial.str.plots.pdf",sep=""),width=10,height=2*K)
-		plot.structure.plot.grid(dir=sp.sub.dir,all.colors,sample.order,sample.names,sort.by)
+		plot.structure.plot.grid(dir=sp.sub.dir,K,all.colors,sample.order,sample.names,sort.by)
 	dev.off()
 	if(file.exists(nsp.sub.dir)){
 	pdf(file=paste(output.dir,"/nonspatial.str.plots.pdf",sep=""),width=10,height=2*K)
-		plot.structure.plot.grid(dir=nsp.sub.dir,all.colors,sample.order,sample.names,sort.by)
+		plot.structure.plot.grid(dir=nsp.sub.dir,K,all.colors,sample.order,sample.names,sort.by)
 	dev.off()
 	}
 	if(file.exists(nsp.sub.dir)){
@@ -218,7 +288,25 @@ make.all.metaplots <- function(dir,output.dir,K,sample.order=NULL,sample.names=N
 		plot.model.comp(dir,n.runs=K)
 	dev.off()
 	}
+	pdf(file=paste(output.dir,"/spatial.K.comp.pdf",sep=""),width=10,height=5)
+		plot.K.comp(sub.dir=sp.sub.dir,n.runs=K)
+	dev.off()
+	if(file.exists(nsp.sub.dir)){
+	pdf(file=paste(output.dir,"/nonspatial.K.comp.pdf",sep=""),width=10,height=5)
+		plot.K.comp(sub.dir=nsp.sub.dir,n.runs=K)
+	dev.off()
+	}
+	plot.admix.pie.maps(sub.dir=sp.sub.dir,all.colors=all.colors,n.runs=K)
+	if(file.exists(nsp.sub.dir)){
+		plot.admix.pie.maps(sub.dir=nsp.sub.dir,all.colors=all.colors,n.runs=K)
+	}
 	return(invisible(0))
 }
 
-make.all.metaplots("~/Desktop/new_runs","~/desktop",8)
+# make.all.metaplots("~/Desktop/new_runs","~/desktop",10)
+
+make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/globe_analyses","~/desktop",10)
+
+make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/hgdp/hgdp_analyses","~/desktop",10)
+
+make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/analyses/new_runs","~/desktop",10)
