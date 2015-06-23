@@ -450,6 +450,7 @@ make.all.the.plots <- function(dir,output.dir,K){
 	dev.off()
 }
 
+if(FALSE){
 #spatial
 for(i in 1:10){
 	dir <- paste("~/Desktop/hgdp_analyses/spatial/k_",i,sep="")	#paste("~/Desktop/globe/globe_analyses/spatial/k_",i,sep="")
@@ -475,7 +476,7 @@ for(i in 1:10){
 	dev.off()
 }
 # make.all.the.plots("~/Desktop/globe/spatial/k_1","~/Desktop/globe/spatial/k_1",1)
-
+}
 
 
 

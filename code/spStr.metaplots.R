@@ -305,8 +305,8 @@ make.all.metaplots <- function(dir,output.dir,K,sample.order=NULL,sample.names=N
 
 # make.all.metaplots("~/Desktop/new_runs","~/desktop",10)
 
-make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/globe_analyses","~/desktop",10)
+#make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/globe_analyses","~/desktop",10)
 
-make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/hgdp/hgdp_analyses","~/desktop",10)
+#make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/hgdp/hgdp_analyses","~/desktop",10)
 
-make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/analyses/new_runs","~/desktop",10)
+#make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/analyses/new_runs","~/desktop",10)
