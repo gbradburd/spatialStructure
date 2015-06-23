@@ -199,7 +199,7 @@ plot.model.comp <- function(dir,n.runs=4){
 	return(invisible(0))
 }
 
-plot.K.comp <- function(sub.dir,n.runs=4){
+plot.K.comp <- function(sub.dir,n.runs=4,pt.col="green"){
 	# recover()
 	#Cross-Run LnL comparison
 	prob.vec <- rep(NA,n.runs)
@@ -212,13 +212,13 @@ plot.K.comp <- function(sub.dir,n.runs=4){
 			prob.vec[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
 			DIC.vec <- rbind(DIC.vec,calc.DIC(sub.sub.dir))
 	}
-	par(mfrow=c(1,2),mar=c(2.5,2.5,1,1))
-		plot(prob.vec,pch=19,col="blue",ylab="Posterior Probability",
+	par(mfrow=c(1,2),mar=c(4.5,4.5,1,1))
+		plot(prob.vec,pch=19,col=pt.col,ylab="Posterior Probability",
 				xaxt='n',cex=2,xlab="")
 			axis(side=1,at=1:n.runs,labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
 			box(lwd=2)
 		DIC.vec[,1] <- DIC.vec[,1] - min(DIC.vec[,1])
-		plot(DIC.vec[,1],pch=19,col="blue",ylab="DIC",xlim=c(0.9,n.runs+0.5),xaxt='n',cex=2,xlab="")
+		plot(DIC.vec[,1],pch=19,col=pt.col,ylab="DIC",xlim=c(0.9,n.runs+0.5),xaxt='n',cex=2,xlab="")
 			points(which.min(DIC.vec[,1]),min(DIC.vec[,1]),col="red",cex=2)
 			text(x=1:length(DIC.vec[,1]) +.3,y=DIC.vec[,1], format(DIC.vec[,3],dig=3))
 			axis(side=1,at=c(1:n.runs),labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
@@ -289,11 +289,11 @@ make.all.metaplots <- function(dir,output.dir,K,sample.order=NULL,sample.names=N
 	dev.off()
 	}
 	pdf(file=paste(output.dir,"/spatial.K.comp.pdf",sep=""),width=10,height=5)
-		plot.K.comp(sub.dir=sp.sub.dir,n.runs=K)
+		plot.K.comp(sub.dir=sp.sub.dir,n.runs=K,pt.col="green")
 	dev.off()
 	if(file.exists(nsp.sub.dir)){
 	pdf(file=paste(output.dir,"/nonspatial.K.comp.pdf",sep=""),width=10,height=5)
-		plot.K.comp(sub.dir=nsp.sub.dir,n.runs=K)
+		plot.K.comp(sub.dir=nsp.sub.dir,n.runs=K,pt.col="blue")
 	dev.off()
 	}
 	plot.admix.pie.maps(sub.dir=sp.sub.dir,all.colors=all.colors,n.runs=K)

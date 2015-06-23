@@ -266,12 +266,12 @@ plot.cluster.covariances <- function(data.list,super.list,time){
 
 model.fit.plot <- function(data.list,super.list,time){
 	n.col <- ifelse(time,3,2)
-	par(mfrow=c(1,n.col),mar=c(4,4,2,2))
+	par(mfrow=c(1,n.col),mar=c(4.5,4.5,1,1))
 		plot(data.list$geo.dist,data.list$sample.covariance,
 			xlab="geographic distance",
 			ylab="covariance")
 		points(data.list$geo.dist,super.list$parameter.list$admixed.covariance,pch=20,col="red",cex=0.8)
-		legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"))
+		legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"),cex=0.7)
 		if(time){
 			plot(data.list$time.dist,data.list$sample.covariance,
 				xlab="temporal distance",
@@ -418,7 +418,7 @@ make.all.the.plots <- function(dir,output.dir,K){
 	all.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray")
 	cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
 	#sample covariance fit
-	pdf(file=paste(output.dir,"/","model.fit.",K,".pdf",sep=""),width=(8+time*4),height=5,pointsize=18)
+	pdf(file=paste(output.dir,"/","model.fit.",K,".pdf",sep=""),width=(8+time*4),height=4,pointsize=14)
 		model.fit.plot(data.list,super.list,time)
 	dev.off()
 	pdf(file=paste(output.dir,"/","cluster.cov.curves.",K,".pdf",sep=""),width=(5+time*5),height=5,pointsize=18)
@@ -449,35 +449,3 @@ make.all.the.plots <- function(dir,output.dir,K){
 		make.structure.plot(data.list,super.list,sort.by=NULL,cluster.colors=all.colors)
 	dev.off()
 }
-
-if(FALSE){
-#spatial
-for(i in 1:10){
-	dir <- paste("~/Desktop/hgdp_analyses/spatial/k_",i,sep="")	#paste("~/Desktop/globe/globe_analyses/spatial/k_",i,sep="")
-	make.all.the.plots(dir,dir,i)
-	load(list.files(pattern="output"))
-	load(list.files(pattern="data.list"))
-	pdf(file=paste("sp_admix_map_k=",i,".pdf",sep=""),width=10,height=5)
-		map()
-		make.admix.pie.plot(super.list,data.list,all.colors=c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray"),
-							cluster.names=paste(1:i),radii=2,add=TRUE,title=NULL,xlim=NULL,ylim=NULL)
-	dev.off()
-}
-#nonspatial
-for(i in 1:10){
-	dir <- paste("~/Desktop/hgdp_analyses/nonspatial/k_",i,sep="")	#paste("~/Desktop/globe/globe_analyses/nonspatial/k_",i,sep="")
-	make.all.the.plots(dir,dir,i)
-	load(list.files(pattern="output"))
-	load(list.files(pattern="data.list"))
-	pdf(file=paste("nsp_admix_map_k=",i,".pdf",sep=""),width=10,height=5)
-		map()
-		make.admix.pie.plot(super.list,data.list,all.colors=c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray"),
-							cluster.names=paste(1:i),radii=2,add=TRUE,title=NULL,xlim=NULL,ylim=NULL)
-	dev.off()
-}
-# make.all.the.plots("~/Desktop/globe/spatial/k_1","~/Desktop/globe/spatial/k_1",1)
-}
-
-
-
-
