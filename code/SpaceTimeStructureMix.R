@@ -106,7 +106,6 @@ rdirichlet <- function(n, alpha){
     x/as.vector(sm)
 }
 
-
 make.admix.prop.matrix <- function(admix.proportions){
 	admix.proportions%*%t(admix.proportions)
 }
@@ -139,7 +138,7 @@ populate.cluster <- function(cluster,geo.dist,time.dist,admix.proportions,model.
 			cluster$covariance.params$cov.par4 <- 0
 			cluster$covariance <- matrix(0,nrow=nrow(geo.dist),ncol=ncol(geo.dist))
 	}
-	cluster$cluster.mean <- rexp(1)
+	cluster$cluster.mean <- 0
 	cluster$admix.prop.matrix <- make.admix.prop.matrix(admix.proportions)
 	return(cluster)
 }
@@ -172,7 +171,7 @@ initialize.param.list <- function(data,model.options,initial.parameters=NULL){
 		parameters$inverse <- solve(parameters$admixed.covariance)
 		parameters$determinant <- determinant(parameters$admixed.covariance,logarithm=TRUE)$modulus
 	} else {
-		parameters$shared.mean <- rexp(1,100)
+		parameters$shared.mean <- max(min(data$sample.covariance),0)
 		parameters$admix.proportions <- rdirichlet(n = n.ind,alpha = rep(1,model.options$n.clusters))
 		parameters$nuggets <- rexp(n.ind)
 		parameters$cluster.list <- populate.cluster.list(parameters$cluster.list,data,parameters$admix.proportions,model.options)

@@ -57,14 +57,16 @@ plot.pie.grid <- function(dir,all.colors,n.k){
 	for(i in 1:n.k){
 		setwd(paste(dir,"/k_",i,sep=""))
 		load(list.files(pattern="data.list"))
-		load(list.files(pattern="output"))
-		if(i > 2){
-			use.colors <- get.color.order(ref.ad.props,super.list,use.colors,all.colors)
+		if(length(list.files(pattern="output")) > 0){
+			load(list.files(pattern="output"))
+			if(i > 2){
+				use.colors <- get.color.order(ref.ad.props,super.list,use.colors,all.colors)
+			}
+			# cat(i,use.colors,"\n")
+			ref.ad.props <- super.list$parameter.list$admix.proportions
+			cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
+			make.admix.pie.plot(super.list,data.list,use.colors,cluster.names,radii=2.7,add=FALSE,title=paste("K=",i,sep=""))
 		}
-		# cat(i,use.colors,"\n")
-		ref.ad.props <- super.list$parameter.list$admix.proportions
-		cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-		make.admix.pie.plot(super.list,data.list,use.colors,cluster.names,radii=2.7,add=FALSE,title=paste("K=",i,sep=""))
 		setwd("..")
 	}
 }
@@ -77,18 +79,20 @@ plot.structure.plot.grid <- function(dir,n.k,all.colors,sample.order=NULL,sample
 	for(i in 1:n.k){
 		setwd(paste(dir,"/k_",i,sep=""))
 		load(list.files(pattern="data.list"))
-		load(list.files(pattern="output"))
-		if(i > 2){
-			use.colors <- get.color.order(ref.ad.props,super.list,use.colors,all.colors)
+		if(length(list.files(pattern="output")) > 0){
+			load(list.files(pattern="output"))
+			if(i > 2){
+				use.colors <- get.color.order(ref.ad.props,super.list,use.colors,all.colors)
+			}
+			# cat(i,use.colors,"\n")
+			if(i > 2){
+				cluster.order <- match(all.colors,use.colors)[which(!is.na(match(all.colors,use.colors)))]
+			} else {
+				cluster.order <- NULL
+			}
+			make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=cluster.order,sample.names=NULL,sort.by=NULL,cluster.colors=use.colors)
+			ref.ad.props <- super.list$parameter.list$admix.proportions
 		}
-		# cat(i,use.colors,"\n")
-		if(i > 2){
-			cluster.order <- match(all.colors,use.colors)[which(!is.na(match(all.colors,use.colors)))]
-		} else {
-			cluster.order <- NULL
-		}
-		make.structure.plot(data.list,super.list,sample.order=NULL,cluster.order=cluster.order,sample.names=NULL,sort.by=NULL,cluster.colors=use.colors)
-		ref.ad.props <- super.list$parameter.list$admix.proportions
 		setwd("..")
 	}
 }
@@ -137,19 +141,24 @@ calc.DIC <- function(dir, burnin=500){
 	# recover()
 	setwd(dir)
 	load(list.files(pattern="data.list"))
-	load(list.files(pattern="output"))
-	sampled.gens <- burnin:(max(which(!is.na(super.list$output.list$likelihood))))
-	n.clusters <- super.list$model.options$n.clusters
-	no.IBD <- super.list$model.options$no.st
-	n.ind <- data.list$n.ind
-	avg.parameters <- get.avg.params(n.clusters,super.list,data.list,sampled.gens,no.IBD)
-	likelihood.at.avg <- calculate.likelihood.2(data.list,avg.parameters$inverse,avg.parameters$determinant)   ### D()
-	avg.likelihood <- mean(super.list$output.list$likelihood[sampled.gens])  ###  Bar(D())
-	pD <- (-2)*avg.likelihood - (-2)*likelihood.at.avg
-	pV <- n.params(n.ind=data.list$n.ind,k=super.list$model.options$n.clusters,time=super.list$model.options$temporal.sampling,spatial=!super.list$model.options$no.st)			#var((-2)*super.list$output.list$likelihood[sampled.gens])/2
-	DIC <- (-2*likelihood.at.avg) + 2*pV  # 2*pD
-	cat(avg.likelihood, likelihood.at.avg, pD, pV,"\n")
-	return(c(DIC, pD, pV))
+	if(length(list.files(pattern="output")) > 0){
+		load(list.files(pattern="output"))
+		sampled.gens <- burnin:(max(which(!is.na(super.list$output.list$likelihood))))
+		n.clusters <- super.list$model.options$n.clusters
+		no.IBD <- super.list$model.options$no.st
+		n.ind <- data.list$n.ind
+		avg.parameters <- get.avg.params(n.clusters,super.list,data.list,sampled.gens,no.IBD)
+		likelihood.at.avg <- calculate.likelihood.2(data.list,avg.parameters$inverse,avg.parameters$determinant)   ### D()
+		avg.likelihood <- mean(super.list$output.list$likelihood[sampled.gens])  ###  Bar(D())
+		pD <- (-2)*avg.likelihood - (-2)*likelihood.at.avg
+		pV <- n.params(n.ind=data.list$n.ind,k=super.list$model.options$n.clusters,time=super.list$model.options$temporal.sampling,spatial=!super.list$model.options$no.st)			#var((-2)*super.list$output.list$likelihood[sampled.gens])/2
+		DIC <- (-2*likelihood.at.avg) + 2*pV  # 2*pD
+		cat(avg.likelihood, likelihood.at.avg, pD, pV,"\n")
+		DIC.vec <- c(DIC, pD, pV)
+	} else {
+		DIC.vec <- c(NA,NA,NA)
+	}
+	return(DIC.vec)
 }
 
 plot.model.comp <- function(dir,n.runs=4){
@@ -164,13 +173,23 @@ plot.model.comp <- function(dir,n.runs=4){
 		sp.sub.dir <- paste(dir,"/spatial/k_",k,sep="")
 		nsp.sub.dir <- paste(dir,"/nonspatial/k_",k,sep="")
 		setwd(sp.sub.dir)
-			load(list.files(pattern="output"))
-			prob.vec.spatial[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-			DIC.spatial <- rbind(DIC.spatial,calc.DIC(sp.sub.dir))
+			if(length(list.files(pattern="output")) > 0){
+				load(list.files(pattern="output"))
+				prob.vec.spatial[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
+				DIC.spatial <- rbind(DIC.spatial,calc.DIC(sp.sub.dir))
+			} else {
+				prob.vec.spatial[k] <- NA
+				DIC.spatial <- rbind(DIC.spatial,c(NA,NA,NA))
+			}
 		setwd(nsp.sub.dir)
-			load(list.files(pattern="output"))
-			prob.vec.nonspatial[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
-			DIC.nonspatial <- rbind(DIC.nonspatial,calc.DIC(nsp.sub.dir))
+			if(length(list.files(pattern="output")) > 0){
+				load(list.files(pattern="output"))
+				prob.vec.nonspatial[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
+				DIC.nonspatial <- rbind(DIC.nonspatial,calc.DIC(nsp.sub.dir))
+			} else {
+				prob.vec.nonspatial[k] <- NA
+				DIC.nonspatial <- rbind(DIC.nonspatial,c(NA,NA,NA))
+			}
 	}
 	layout(t(c(1:3)))
 		plot(prob.vec.nonspatial,pch=19,col="blue",ylab="Posterior Probability",
@@ -182,10 +201,10 @@ plot.model.comp <- function(dir,n.runs=4){
 			legend(x="bottomright",pch=19,col=c("blue","green"),legend=c("nonspatial","spatial"))
 			box(lwd=2)
 		all.dev <- c(DIC.nonspatial[,1],DIC.spatial[,1])
-		min.dev <- min(all.dev)
+		min.dev <- min(all.dev,na.rm=TRUE)
 		DIC.nonspatial[,1] <- DIC.nonspatial[,1] - min.dev
 		DIC.spatial[,1] <- DIC.spatial[,1] - min.dev
-		plot(DIC.nonspatial[,1],pch=19,col="blue",ylab="DIC",ylim=c(0,max(all.dev - min.dev)),xlim=c(0.9,n.runs+0.5),xaxt='n',cex=2,xlab="") 
+		plot(DIC.nonspatial[,1],pch=19,col="blue",ylab="DIC",ylim=c(0,max(all.dev - min.dev,na.rm=TRUE)),xlim=c(0.9,n.runs+0.5),xaxt='n',cex=2,xlab="") 
 			points(DIC.spatial[,1],pch=19,col="green",cex=2)
 			text(x=1:length(DIC.spatial[,1]) +.3,y=DIC.spatial[,1], format(DIC.spatial[,3],dig=3))
 			text(x=1:length(DIC.nonspatial[,1])+.3,y=DIC.nonspatial[,1], format(DIC.nonspatial[,3],dig=3))
@@ -208,16 +227,21 @@ plot.K.comp <- function(sub.dir,n.runs=4,pt.col="green"){
 	for(k in 1:n.runs){
 		sub.sub.dir <- paste(sub.dir,"/k_",k,sep="")
 		setwd(sub.sub.dir)
+		if(length(list.files(pattern="output")) > 0){
 			load(list.files(pattern="output"))
 			prob.vec[k] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
 			DIC.vec <- rbind(DIC.vec,calc.DIC(sub.sub.dir))
+		} else {
+			prob.vec[k] <- NA
+			DIC.vec <- rbind(DIC.vec,c(NA,NA,NA))
+		}
 	}
 	par(mfrow=c(1,2),mar=c(4.5,4.5,1,1))
 		plot(prob.vec,pch=19,col=pt.col,ylab="Posterior Probability",
 				xaxt='n',cex=2,xlab="")
 			axis(side=1,at=1:n.runs,labels=unlist(lapply(seq_along(1:n.runs),function(i){paste("K=",i,sep="")})))
 			box(lwd=2)
-		DIC.vec[,1] <- DIC.vec[,1] - min(DIC.vec[,1])
+		DIC.vec[,1] <- DIC.vec[,1] - min(DIC.vec[,1],na.rm=TRUE)
 		plot(DIC.vec[,1],pch=19,col=pt.col,ylab="DIC",xlim=c(0.9,n.runs+0.5),xaxt='n',cex=2,xlab="")
 			points(which.min(DIC.vec[,1]),min(DIC.vec[,1]),col="red",cex=2)
 			text(x=1:length(DIC.vec[,1]) +.3,y=DIC.vec[,1], format(DIC.vec[,3],dig=3))
@@ -234,30 +258,32 @@ plot.admix.pie.maps <- function(sub.dir,all.colors,n.runs,map.xlim=NULL,map.ylim
 	for(i in 1:n.runs){
 		sub.sub.dir <- paste(sub.dir,"/k_",i,sep="")
 		setwd(sub.sub.dir)
-			load(list.files(pattern="output"))
-			load(list.files(pattern="data.list"))
-		if(i > 2){
-			use.colors <- get.color.order(ref.ad.props,super.list,use.colors,all.colors)
+		if(length(list.files(pattern="output")) > 0){
+				load(list.files(pattern="output"))
+				load(list.files(pattern="data.list"))
+			if(i > 2){
+				use.colors <- get.color.order(ref.ad.props,super.list,use.colors,all.colors)
+			}
+			ref.ad.props <- super.list$parameter.list$admix.proportions
+			cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
+			if(is.null(map.xlim)){
+				map.xlim <- range(data.list$geo.coords[,1]) + diff(range(data.list$geo.coords[,1]))/25 * c(-1,1)
+			}
+			if(is.null(map.ylim)){
+				map.ylim <- range(data.list$geo.coords[,2]) + diff(range(data.list$geo.coords[,2]))/25 * c(-1,1)
+			}
+			if(is.null(pdf.size)){
+				scale <- diff(map.xlim)%/%10
+				pdf.size <- c(diff(map.xlim),diff(map.ylim)) / c(scale,scale)
+			}
+			setwd("..")
+			pdf(file=paste("pie.admix.map.k_",i,".pdf",sep=""),width=pdf.size[1],height=pdf.size[2])
+				par(mar=c(1,1,1,1))
+				map(database="world",xlim=map.xlim,ylim=map.ylim,col="darkgray")
+				make.admix.pie.plot(super.list,data.list,use.colors,cluster.names,radii=2.7,add=TRUE,title=paste("K=",i,sep=""))
+				box(lwd=2)
+			dev.off()
 		}
-		ref.ad.props <- super.list$parameter.list$admix.proportions
-		cluster.names <- unlist(lapply(1:super.list$model.options$n.clusters,function(i){paste("Cluster_",i,sep="")}))
-		if(is.null(map.xlim)){
-			map.xlim <- range(data.list$geo.coords[,1]) + diff(range(data.list$geo.coords[,1]))/25 * c(-1,1)
-		}
-		if(is.null(map.ylim)){
-			map.ylim <- range(data.list$geo.coords[,2]) + diff(range(data.list$geo.coords[,2]))/25 * c(-1,1)
-		}
-		if(is.null(pdf.size)){
-			scale <- diff(map.xlim)%/%10
-			pdf.size <- c(diff(map.xlim),diff(map.ylim)) / c(scale,scale)
-		}
-		setwd("..")
-		pdf(file=paste("pie.admix.map.k_",i,".pdf",sep=""),width=pdf.size[1],height=pdf.size[2])
-			par(mar=c(1,1,1,1))
-			map(database="world",xlim=map.xlim,ylim=map.ylim,col="darkgray")
-			make.admix.pie.plot(super.list,data.list,use.colors,cluster.names,radii=2.7,add=TRUE,title=paste("K=",i,sep=""))
-			box(lwd=2)
-		dev.off()
 	}
 	return(invisible(0))
 }
@@ -284,7 +310,7 @@ make.all.metaplots <- function(dir,output.dir,K,sample.order=NULL,sample.names=N
 	dev.off()
 	}
 	if(file.exists(nsp.sub.dir)){
-	pdf(file=paste(output.dir,"/model.comp.pdf",sep=""),width=10,height=5)
+	pdf(file=paste(output.dir,"/model.comp.pdf",sep=""),width=10,height=4)
 		plot.model.comp(dir,n.runs=K)
 	dev.off()
 	}
