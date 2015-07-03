@@ -6,12 +6,18 @@ drainages <- unique(pop.metadata$Drainage.Location.name)
 drainage.freqs <- matrix(NA,nrow=length(drainages),ncol=ncol(poplar.freqs))
 drainage.long <- numeric(length(drainages))
 drainage.lat <- numeric(length(drainages))
+drainage.sp <- numeric(length(drainages))
 
 for(i in 1:length(drainages)){
 	ind.drainage.indices <- which(pop.metadata$Drainage.Location.name==drainages[i])
 	drainage.freqs[i,] <- colSums(ind.freqs[ind.drainage.indices,,drop=FALSE],na.rm=TRUE)/length(ind.drainage.indices)
 	drainage.long[i] <- mean(as.numeric(pop.metadata$Longitude[ind.drainage.indices]))
 	drainage.lat[i] <- mean(as.numeric(pop.metadata$Latitude[ind.drainage.indices]))
+	if(length(unique(pop.metadata$Species[ind.drainage.indices])) < 2){
+		drainage.sp[i] <- unique(pop.metadata$Species[ind.drainage.indices])
+	}	else {
+		drainage.sp[i] <- "mixed"
+	}
 }
 
 drainage.coords <- cbind(drainage.long,drainage.lat)
@@ -34,12 +40,17 @@ for(i in 1:ncol(poplar.freqs)){
 	drainage.freqs[,i] <- random.switcharoo(drainage.freqs[,i])
 }
 
-
 drainage.cov <- cov(t(drainage.freqs),use="pairwise.complete.obs")
 poplar.data <- list("geo.coords" = drainage.coords,
 					"sample.cov" = drainage.cov,
 					"n.loci" = ncol(poplar.freqs))
-					
+
+poplar.drainage.freq.data <- list("drainage.cov" = drainage.cov,
+								  "geo.coords" = drainage.coords,
+								  "drainage.freqs" = drainage.freqs,
+								  "n.loci" = ncol(drainage.freqs))
+save(poplar.drainage.freq.data,file="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/poplar.drainage.freq.data.Robj")
+
 save(poplar.data,file="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/poplar.spStr.dataset.Robj")
 
 if(FALSE){
