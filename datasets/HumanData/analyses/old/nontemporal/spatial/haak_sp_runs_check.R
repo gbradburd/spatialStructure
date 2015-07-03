@@ -1,0 +1,26 @@
+max.lnl <- numeric(4)
+max.prob <- numeric(4)
+mean.lnl <- numeric(4)
+mean.prob <- numeric(4)
+median.lnl <- numeric(4)
+median.prob <- numeric(4)
+
+for(i in 1:4){
+	setwd(paste("k_",i,sep=""))
+	load(list.files(pattern="output"))
+	max.lnl[i] <- max(super.list$output.list$likelihood,na.rm=TRUE)
+	max.prob[i] <- max(super.list$output.list$posterior.prob,na.rm=TRUE)
+	mean.lnl[i] <- mean(super.list$output.list$likelihood,na.rm=TRUE)
+	mean.prob[i] <- mean(super.list$output.list$posterior.prob,na.rm=TRUE)
+	median.lnl[i] <- median(super.list$output.list$likelihood,na.rm=TRUE)
+	median.prob[i] <- median(super.list$output.list$posterior.prob,na.rm=TRUE)
+	setwd("..")
+}
+
+par(mfrow=c(3,2))
+plot(max.lnl)
+plot(max.prob)
+plot(mean.lnl)
+plot(mean.prob)
+plot(median.lnl)
+plot(median.prob)

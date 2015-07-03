@@ -85,10 +85,10 @@ plot(eig.covmat$vectors[,2],eig.covmat$vectors[,3],type='n',xlim=c(-0.07,0.05),y
 
 
 #metadata
-pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/haak_pop_names.txt",what="character")
-haak.metadata <- read.csv("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/Haak_table.csv",header=TRUE,skip=1,stringsAsFactors=FALSE)
-laz.metadata <- read.csv("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/Lazaridis_table_poplatlong.csv",header=TRUE,stringsAsFactors=FALSE)
-popres.metadata <- read.table("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/popres_geo_data.txt",header=TRUE,stringsAsFactors=FALSE)
+pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/haak_pop_names.txt",what="character")
+haak.metadata <- read.csv("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/Haak_table.csv",header=TRUE,skip=1,stringsAsFactors=FALSE)
+laz.metadata <- read.csv("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/Lazaridis_table_poplatlong.csv",header=TRUE,stringsAsFactors=FALSE)
+popres.metadata <- read.table("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/popres_geo_data.txt",header=TRUE,stringsAsFactors=FALSE)
 	popres.metadata$COUNTRY_SELF[2] <- "Swiss-French"
 	popres.metadata$COUNTRY_SELF[4] <- "Czech-Republic"
 	popres.metadata$COUNTRY_SELF[5] <- "Swiss-German"
