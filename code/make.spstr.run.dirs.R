@@ -29,6 +29,7 @@ make.spstr.run.dirs <- function(spacemix.code,exe.code,dataset,K,path,output.fil
 		y.spatial <- y
 		y.nonspatial <- y
 		y.spatial[grep("no.st",y.spatial)] <- paste(get.tabs(y.spatial,"no.st"),'"no.st" = FALSE)',sep="")
+		y.nonspatial[grep("temporal.sampling",y.spatial)] <- paste(get.tabs(y.nonspatial,"temporal.sampling"),'"temporal.sampling" = FALSE,',sep="")
 		y.nonspatial[grep("no.st",y.spatial)] <- paste(get.tabs(y.nonspatial,"no.st"),'"no.st" = TRUE)',sep="")
 		cat(y.spatial,file=paste("spatial/",dir.name,"/exe.spatialStructure.R",sep=""),sep="\n")
 		cat(y.nonspatial,file=paste("nonspatial/",dir.name,"/exe.spatialStructure.R",sep=""),sep="\n")
@@ -41,6 +42,6 @@ make.spstr.run.dirs(spacemix.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialS
 					exe.code="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/exe.spatialStructure.R",
 					dataset="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/globe.spStr.dataset.Robj",
 					K=10,
-					path="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/analyses",
+					path="~/Desktop/TEST",
 					output.file.name = "globe_output")
 }

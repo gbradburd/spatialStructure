@@ -353,27 +353,26 @@ prior.prob.cluster.mean <- function(cluster.mean){
 initialize.mcmc.quantities <- function(data.list,parameter.list,model.options,mcmc.options,initial.parameters=NULL){
 	# recover()
 	mcmc.quantities <- make.mcmc.quantities(data.list$n.ind,model.options,mcmc.options)
-	# if(!is.null(initial.parameters)){	#WILL HAVE TO FIX EVENTUALLY
-		# stop("not built yet")
-	# } else {
-		mcmc.quantities$likelihood <- calculate.likelihood.2(data.list,parameter.list$inverse,parameter.list$determinant)
-		mcmc.quantities$prior.probs$nuggets <- prior.prob.param.list(parameter.list,"nuggets",prior.prob.nuggets)
-		mcmc.quantities$dirich.conc.params <- matrix(rep(0.5,model.options$n.clusters),nrow=data.list$n.ind,ncol=model.options$n.clusters,byrow=TRUE)
-		mcmc.quantities$prior.probs$admix.proportions <- prior.prob.param.list(parameter.list,"admix.proportions",prior.prob.admix.proportions,other.args=mcmc.quantities$dirich.conc.params)
-		mcmc.quantities$prior.probs$shared.mean <- prior.prob.param.list(parameter.list,"shared.mean",prior.prob.shared.mean)
-		if(!model.options$no.st){
-			mcmc.quantities$prior.probs$cov.par1 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par1",prior.prob.cov.par1)
-			mcmc.quantities$prior.probs$cov.par2 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par2",prior.prob.cov.par2)
-			mcmc.quantities$prior.probs$cov.par3 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par3",prior.prob.cov.par3)
-			if(model.options$temporal.sampling){
-				mcmc.quantities$prior.probs$cov.par4 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par4",prior.prob.cov.par4)
-			} else {
-				mcmc.quantities$prior.probs$cov.par4 <- 0
-			}
+	mcmc.quantities$likelihood <- calculate.likelihood.2(data.list,parameter.list$inverse,parameter.list$determinant)
+	mcmc.quantities$prior.probs$nuggets <- prior.prob.param.list(parameter.list,"nuggets",prior.prob.nuggets)
+	mcmc.quantities$dirich.conc.params <- matrix(rep(0.5,model.options$n.clusters),nrow=data.list$n.ind,ncol=model.options$n.clusters,byrow=TRUE)
+	mcmc.quantities$prior.probs$admix.proportions <- prior.prob.param.list(parameter.list,"admix.proportions",prior.prob.admix.proportions,other.args=mcmc.quantities$dirich.conc.params)
+	mcmc.quantities$prior.probs$shared.mean <- prior.prob.param.list(parameter.list,"shared.mean",prior.prob.shared.mean)
+	if(!model.options$no.st){
+		mcmc.quantities$prior.probs$cov.par1 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par1",prior.prob.cov.par1)
+		mcmc.quantities$prior.probs$cov.par2 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par2",prior.prob.cov.par2)
+		mcmc.quantities$prior.probs$cov.par3 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par3",prior.prob.cov.par3)
+		if(model.options$temporal.sampling){
+			mcmc.quantities$prior.probs$cov.par4 <- prior.prob.covariance.param.clusters(parameter.list$cluster.list,"cov.par4",prior.prob.cov.par4)
+		} else {
+			mcmc.quantities$prior.probs$cov.par4 <- 0
 		}
-		mcmc.quantities$prior.probs$cluster.mean <- prior.prob.cluster.mean(unlist(lapply(parameter.list$cluster.list,"[[","cluster.mean")))
-		mcmc.quantities$posterior.prob <- mcmc.quantities$likelihood + sum(unlist(mcmc.quantities$prior.probs),na.rm=TRUE)
-	# }
+	}
+	mcmc.quantities$prior.probs$cluster.mean <- prior.prob.cluster.mean(unlist(lapply(parameter.list$cluster.list,"[[","cluster.mean")))
+	mcmc.quantities$posterior.prob <- mcmc.quantities$likelihood + sum(unlist(mcmc.quantities$prior.probs),na.rm=TRUE)
+	if(!is.null(initial.parameters)){
+		mcmc.quantities$adaptive.mcmc <- initial.parameters$adaptive.mcmc
+	}
 	return(mcmc.quantities)
 }
 
@@ -795,4 +794,15 @@ random.switcharoo <- function(x){
 switcharoo.data <- function(frequencies){
 	frequencies <- apply(frequencies,2,random.switcharoo)
 	return(frequencies)
+}
+
+make.starting.params.list <- function(dir,init.par.file.name){
+	setwd(dir)
+	load(list.files(pattern="output"))
+	initial.parameters <- list("cluster.list" = super.list$parameter.list$cluster.list,
+								"shared.mean" = super.list$parameter.list$shared.mean,
+								"admix.proportions" = super.list$parameter.list$admix.proportions,
+								"nuggets" = super.list$parameter.list$nuggets,
+								"adaptive.mcmc" = super.list$mcmc.quantities$adaptive.mcmc)
+	save(initial.parameters,file=init.par.file.name)
 }

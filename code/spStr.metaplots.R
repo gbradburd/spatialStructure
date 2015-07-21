@@ -329,7 +329,7 @@ make.all.metaplots <- function(dir,output.dir,K,sample.order=NULL,sample.names=N
 	return(invisible(0))
 }
 
-# make.all.metaplots("~/Desktop/new_runs","~/desktop",10)
+# make.all.metaplots("~/Desktop/haak_analyses","~/desktop",6)
 
 #make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/globe/globe_analyses","~/desktop",10)
 

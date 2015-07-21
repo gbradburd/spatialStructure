@@ -66,7 +66,7 @@ make.admix.pie.plot <- function(super.list,data.list,all.colors,cluster.names,ra
 		y.lim <- c(min(data.list$geo.coords[,2]) - 1, max(data.list$geo.coords[,2]) + 1)
 	}
 	pies(pie.list,x0=data.list$geo.coords[,1],y0=data.list$geo.coords[,2],
-				color.table=color.tab,border="black",radii=2.7,
+				color.table=color.tab,border="black",radii=radii,
 				xlab="",ylab="",main=title,lty=1,density=NULL,
 				xlim = xlim, ylim = ylim)
 	box(lwd=2)
