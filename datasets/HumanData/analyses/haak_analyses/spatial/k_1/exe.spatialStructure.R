@@ -1,6 +1,6 @@
 source("SpaceTimeStructureMix.R")
 load("haak.dataset.Robj")
-load(list.files(pattern="init"))
+# load(list.files(pattern="init"))
 sim.data <- list("geo.coords" = haak.dataset$geo.coords,
 				"time.coords" = haak.dataset$time.coords,
 				"sample.covariance" = haak.dataset$sample.cov,
@@ -14,4 +14,5 @@ mcmc.options = list("ngen" = 3e7,
 					"printfreq" = 1e3,
 					"savefreq" = 5e6,
 					"output.file.name" = "k1_haak_output.Robj")
-MCMC.gid(sim.data,model.options,mcmc.options,initial.parameters=initial.parameters)
+MCMC.gid(sim.data,model.options,mcmc.options)
+#initial.parameters=initial.parameters)

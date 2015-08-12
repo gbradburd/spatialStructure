@@ -725,9 +725,9 @@ make.update.parameters.list <- function(model.options){
 	update.function.list <- list("update.w.i " = update.w.i,
 							"update.cluster.covariance.param" = update.cluster.covariance.param,
 							"update.cluster.mean.k" =  update.cluster.mean.k,
-							"update.nugget.i" = update.nugget.i,
-							"update.shared.mean" = update.shared.mean)
-	function.sample.probs <- c(0.75,0.17,0.02,0.01,0.05)
+							"update.nugget.i" = update.nugget.i)
+							# "update.shared.mean" = update.shared.mean)
+	function.sample.probs <- c(0.75,0.17,0.05,0.03) #,0.05
 	if(model.options$no.st){
 		drop <- grepl("update.cluster.covariance.param",names(update.function.list))
 		update.function.list <- update.function.list[-which(drop)]

@@ -141,7 +141,10 @@ movie3d(plotfunc,base1=M2,base2=M3,duration=10,dir="~/Desktop/test_spinny_pies",
 
 make.structure.plot(data.list,super.list,cluster.order=c(2,1,3),sample.names=row.names(data.list$sample.covariance),sort.by=2)
 
-
+load("/Users/gburd/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/analyses/old/haak_analyses/spatial/k_3/k3_haak_output.Robj")
+haak.metadata <- read.table("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/human_sample_metadata.txt",header=TRUE,stringsAsFactors=FALSE)
+plot(1/haak.metadata$sample.size,super.list$parameter.list$nuggets)
+	abline(0,1,col="red")
 
 if(FALSE){
 	M3 <- M2
@@ -155,3 +158,5 @@ if(FALSE){
 							list(M3),
 							lapply(1:10,function(i){rotate3d(M3,-(i*pi)/10,0,0,1)}))
 }
+
+

@@ -65,7 +65,7 @@ save(sample.cov,file="human_sample_covariance.Robj")
 
 
 
-pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/haak_pop_names.txt",what="character")
+pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/haak_pop_names.txt",what="character")
 mc.mat <- diag(nrow(total.cov)) - 1/nrow(total.cov)
 eig.covmat <- eigen(mc.mat %*% total.cov %*% t(mc.mat))
 par(mfrow=c(1,2))
@@ -93,19 +93,23 @@ popres.metadata <- read.table("~/Desktop/Dropbox/InspectorSpaceTime/spatialStruc
 	popres.metadata$COUNTRY_SELF[4] <- "Czech-Republic"
 	popres.metadata$COUNTRY_SELF[5] <- "Swiss-German"
 	popres.metadata$COUNTRY_SELF[15] <- "United-Kingdom"
-sample.metadata <- as.data.frame(matrix(cbind(pops,0,0,0,0),nrow=length(pops),ncol=5),stringsAsFactors=FALSE)
-	colnames(sample.metadata) <- c("Population","test.pop","lon","lat","time")
+popres.sample.sizes <- read.table("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/popres.samplesizes.txt",header=TRUE,stringsAsFactors=FALSE)
+	names(popres.sample.sizes) <- c("pop","sample.size")
+sample.metadata <- as.data.frame(matrix(cbind(pops,0,0,0,0,0),nrow=length(pops),ncol=6),stringsAsFactors=FALSE)
+	colnames(sample.metadata) <- c("Population","test.pop","lon","lat","time","sample.size")
 
 matches <- match(sample.metadata$Population,laz.metadata$Population)
 matches2 <- match(laz.metadata[matches[which(!is.na(matches))],]$Population,sample.metadata$Population)
 sample.metadata[matches2,2] <- laz.metadata$Population[matches[which(!is.na(matches))]]
 sample.metadata[matches2,3] <- laz.metadata$Long[matches[which(!is.na(matches))]]
 sample.metadata[matches2,4] <- laz.metadata$Lat[matches[which(!is.na(matches))]]
+sample.metadata[matches2,6] <- laz.metadata$SampleSize[matches[which(!is.na(matches))]] * 2
 
 
 samp.in.haak <- match(haak.metadata$Culture.ID,sample.metadata$Population)
 	samp.in.haak <- unique(samp.in.haak[which(!is.na(samp.in.haak))])
 haak.samp.variance <- vector("list",length=length(samp.in.haak))
+population.sample.sizes <- vector("list",length=length(samp.in.haak))
 
 process.sample.times <- function(element){
 	# recover()
@@ -144,6 +148,7 @@ for(i in 1:length(samp.in.haak)){
 	sample.metadata$lon[samp.in.haak[i]] <- haak.samp.data.i$loc[1]
 	sample.metadata$lat[samp.in.haak[i]] <- haak.samp.data.i$loc[2]
 	sample.metadata$time[samp.in.haak[i]] <- -haak.samp.data.i$time
+	sample.metadata$sample.size[samp.in.haak[i]] <- length(haak.samp)
 }
 
 popres.in.sample.matches <- match(sample.metadata$Population,popres.metadata$COUNTRY_SELF)
@@ -153,9 +158,10 @@ sample.in.popres.matches <- sample.in.popres.matches[which(!is.na(sample.in.popr
 sample.metadata$test.pop[sample.in.popres.matches] <- popres.metadata$COUNTRY_SELF[popres.in.sample.matches]
 sample.metadata$lon[sample.in.popres.matches] <- popres.metadata$long[popres.in.sample.matches]
 sample.metadata$lat[sample.in.popres.matches] <- popres.metadata$lat[popres.in.sample.matches]
+sample.metadata[which(sample.metadata$sample.size==0),]$sample.size <- popres.sample.sizes[match(sample.metadata[which(sample.metadata$sample.size==0),]$Population, popres.sample.sizes[,1]),2]
 to.drop <- c(grep("other",sample.metadata$Population),grep("Europe",sample.metadata$Population))
 sample.metadata <- sample.metadata[-to.drop,]
-write.table(sample.metadata[,c(1,3,4,5)],file="human_sample_metadata.txt")
+write.table(sample.metadata[,c(1,3,4,5,6)],file="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/human_sample_metadata.txt")
 
 
 # lapply(haak.samp.variance,check.unique)
