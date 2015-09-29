@@ -1,5 +1,5 @@
-source("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/code/SpaceTimeStructureMix.R")
-source("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/code/viz_funcs.R")
+source("~/Dropbox/InspectorSpaceTime/spatialStructure/code/SpaceTimeStructureMix.R")
+source("~/Dropbox/InspectorSpaceTime/spatialStructure/code/viz_funcs.R")
 
 make.nice.mfrow <- function(n.k){
 	dims <- list("n.row" = ceiling(n.k/4),
@@ -336,3 +336,5 @@ make.all.metaplots <- function(dir,output.dir,K,sample.order=NULL,sample.names=N
 #make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/hgdp/hgdp_analyses","~/desktop",10)
 
 #make.all.metaplots("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/warblers/analyses/new_runs","~/desktop",10)
+
+make.all.metaplots("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/poplar_analyses/trichocarpa/tri_analyses","~/desktop",10)

@@ -1,5 +1,5 @@
 #SIMULATE TOY DATA
-source("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/code/SpaceTimeStructureMix.R")
+source("~/Dropbox/InspectorSpaceTime/spatialStructure/code/SpaceTimeStructureMix.R")
 
 generate.sim.param.list <- function(n.clusters,n.samples,sampling.data,time.sampling){
 	sim.param.list <- list( "admix.props" = gtools::rdirichlet(n = n.samples,alpha = rep(0.5,n.clusters)),
@@ -8,7 +8,7 @@ generate.sim.param.list <- function(n.clusters,n.samples,sampling.data,time.samp
 							"cov.par3"= replicate(n.clusters,runif(1,0.01,1)),
 							"cov.par4"= replicate(n.clusters,ifelse(time.sampling,rnorm(1,2*mean(sampling.data$geo.dist),sd=3),0)),
 							"cluster.mean" = replicate(n.clusters,rexp(1,rate=100)),
-							"shared.mean" = rexp(1,rate=100),
+#							"shared.mean" = rexp(1,rate=100),
 							"nuggets" = rexp(n.samples,rate=100))
 	return(sim.param.list)
 }
@@ -51,13 +51,13 @@ simulate.spatialStructure.dataset <- function(n.clusters,n.samples,n.loci,sample
 	sim.param.list <- generate.sim.param.list(n.clusters,n.samples,sampling.data,time.sampling)
 	sim.cluster.list <- lapply(seq_along(1:n.clusters),function(i){declare.cluster.list()})
 	sim.cluster.list <- populate.sim.cluster.list(sim.cluster.list,sim.param.list,sampling.data)
-	sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,n.clusters,sim.param.list$shared.mean,sim.param.list$nuggets)
+	sim.admixed.cov.mat <- admixed.covariance(sim.cluster.list,n.clusters,sim.param.list$shared.mean,sim.param.list$nuggets,rep(0,n.samples),0)
 	sim.data <- list("n.samples" = n.samples,"n.loci" = n.loci,"sampling.data" = sampling.data,
 							"sim.param.list" = sim.param.list,"sim.cluster.list" = sim.cluster.list,
 							"sim.admixed.cov.mat" = sim.admixed.cov.mat,"sim.seed"=sim.seed)
 	if(counts){
 		if(length(sample.sizes) < n.samples){
-			sample.sizes <- rep(sample.sizes,n.samples)
+			sim.data$sample.sizes <- rep(sample.sizes,n.samples)
 		}
 		sim.admixed.cov.mat <- sim.admixed.cov.mat - sim.param.list$shared.mean
 		ancestral.freqs <- rnorm(n.loci,mean=0.5,sd=sqrt(sim.param.list$shared.mean))
@@ -70,7 +70,8 @@ simulate.spatialStructure.dataset <- function(n.clusters,n.samples,n.loci,sample
 		sim.data$ancestral.freqs <- ancestral.freqs
 		sim.data$sim.freqs <- switcharoo.data(sim.freqs)
 		sim.data$sim.counts <- matrix(rbinom(n.samples*n.loci,sample.sizes,sim.freqs),nrow=n.samples,ncol=n.loci)
-		sim.data$sample.covariance <- cov(t(sim.data$sim.freqs))
+		sim.data$sim.sample.freqs <- sim.data$sim.counts/matrix(sample.sizes,nrow=n.samples,ncol=n.loci)
+		sim.data$sample.covariance <- cov(t(sim.data$sim.sample.freqs))
 	}
 	save(sim.data,file=paste(file.name,".Robj",sep=""))
 }
@@ -83,7 +84,7 @@ simulate.spatialStructure.dataset(n.clusters = 1,
 									sample.sizes = 100,
 									file.name = "~/desktop/k1_exp_dataset", #"~/desktop/test.Robj"
 									counts = TRUE,
-									time.sampling = TRUE,
+									time.sampling = FALSE,
 									sim.seed=NULL)
 # load("~/desktop/test.Robj")
 load("~/desktop/k1_exp_dataset.Robj")

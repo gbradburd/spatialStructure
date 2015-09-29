@@ -24,9 +24,9 @@
 
 \newcommand{\e}[1]{{\mathbb E}\left[ #1 \right]}
 \newcommand{\var}[1]{{\mathbb V \textnormal{ar}}\left[ #1 \right]}
-\newcommand{\gb}[1]{{\it\color{ForestGreen}{(#1)}}}
+\newcommand{\gb}[1]{{\color{blue}{(#1)}}}
 \newcommand{\plr}[1]{{\it\color{RedViolet}{(#1)}}}
-\newcommand{\gc}[1]{{\it\color{blue}{(#1)}}}
+\newcommand{\gc}[1]{{\it\color{ForestGreen}{(#1)}}}
 
 \geometry{a4paper}
 
@@ -83,14 +83,91 @@ membership proportions in each cluster.
 
 \begin{equation}
 \label{eq:total_cov}
-\Omega_{i,j} = \sum\limits_K \left(w_i^{(k)}w_j^{(k)} \left( F^{(k)}_{i,j} + \mu^{(k)} \right)\right) + \gamma + \delta_{i=j}
+\Omega_{i,j} = \sum\limits_K \left(w_i^{(k)}w_j^{(k)} \left( F^{(k)}_{i,j} + \mu^{(k)} \right)\right) + \gamma + \delta_{i=j} \eta_i
 \end{equation}
 
 Here, $\mu^{(k)}$ is the population-level effect of sharing some deviation away from an ancestral allele frequency, 
-$\gamma$ is the global effect of sharing an ancestral allele frequency, and $\delta$ is the sample-specific nugget
-on the diagonal of the covariance matrix.
+$\gamma$ is the global effect of sharing an ancestral allele frequency, $\delta$ is an indicator variable that takes the value 1 when index $i$ is equal to index $j$, and $\eta$ is the sample-specific nugget on the diagonal of the covariance matrix.
+\newpage
+\gb{Graham, I have two questions for you:
+\begin{itemize}
+\item First, do you remember the conversation we had in your office about short-term and 
+long-term tweaks to spatialStructure's current model?  I remember that we discussed two 
+short-term tweaks: (1) one that involved incorporating a sample size effect onto the diagonal of the 
+covariance matrix, and (2) \textbf{something else}.  To my shame, I can neither remember what the other 
+thing was nor (since I moved out of the office) can I find the notes that I took on it.  So, question 1 is: 
+do you remember what the other thing was?
+\item Question 2 has to do with the sample size effect.  I've been playing around with it a little bit and 
+hitting a conceptual wall.  Here are my thoughts:
+From the binomial, the variance of $f$ is $\frac{f(1-f)}{N}$, where $N$ is the sample size.  So, if the 
+allele frequencies across all loci in a sample were identical, their variance would be just given by 
+$\frac{f(1-f)}{N}$.
 
-\gb{Peter, our thoughts proceed as follows:\\
+Now, if we allow $f$ to vary across loci, and if we say that $f_{i}$ denotes the vector 
+of allele frequencies in sample $i$ across all $L$ loci, then I think, when we had talked 
+about it, that we arrived at the following:
+
+\begin{equation}
+Var(f_{i}) =  Var(\epsilon) + \frac{1}{L}\sum\limits_{L}\left(f_{\ell}(1-f_{\ell})/N_{i}\right)
+\end{equation}
+where $\epsilon_{\ell}$ gives the ancestral allele frequency at locus $\ell$, 
+and $Var(\epsilon)$ is hopefully captured by our $\gamma$ parameter. 
+This equation appears to hold true in tests, both from simulated 
+and empirical datasets.
+
+So, the question is, how do we incorporate information about sample sizes 
+into the model?  Considerations are: 
+\begin{itemize}
+\item We don't want the sample size effect 
+to be greater than the actual variance in any sample, 
+as the model will not be able fit the data with any parameter 
+(nuggets are all positive).  Also note that we're adding 
+($+ \gamma + \sum\limits_{K}w^{(k)}_i\mu^{(k)} + \eta_{i}$),
+so really that presents the hard limit we don't want to be greater than 
+$Var(f_{i})$
+\item We may want to accommodate different sample sizes 
+across loci, as those could be highly variable.  Although, maybe that's 
+just too unwieldy.
+\end{itemize}
+Options seem to be:
+\begin{itemize}
+\item We make the prior of the nugget centered around $1/N$.  The upside 
+here is that the model retains the flexibility to have a diagonal element on the 
+parametric covariance matrix that's equal to (or, at least, not necessarily greater 
+than) the true sample variance.  The downside is that maybe we don't want it to have 
+that flexibility.  This option would look like:
+\begin{equation}
+\Omega_{i,j} = \gamma + 
+			\e{\bar{f}(1-\bar{f})} 
+			\left( 
+			\sum\limits_{K}
+				\left(w^{(k)}_{i}w^{(k)}_{j}\left( F^{(k)}_{i,j} + 
+				\mu^{(k)} \right)\right) + 
+			\delta_{i=j} \left(\eta_i(\frac{1}{N_{i}})\right)
+			\right) 
+\end{equation}
+\item We just add a hard $1/N$ to the diagonal element.
+This option would look like:
+\begin{equation}
+\Omega_{i,j} = \gamma + 
+			\e{\bar{f}(1-\bar{f})}
+			\left( 
+			\sum\limits_{K}
+				\left(w^{(k)}_{i}w^{(k)}_{j}\left( F^{(k)}_{i,j} + 
+				\mu^{(k)} \right)\right) + 
+			\delta_{i=j} \left(\eta_i + \frac{1}{N_{i}}\right)
+			\right)
+\end{equation}
+\end{itemize}
+\end{itemize}
+Do you have any thoughts or opinions about these options?  
+And also, am I missing something here?  I don't think the 
+$\e{\bar{f}(1-\bar{f})}$ should be square-rooted, but maybe I'm wrong?
+}
+\newpage
+\subsection*{shared mean business}
+
+Our thoughts proceed as follows:\\
 say $X_i$ is the allele frequency at a given locus in population $i$,\\
 and $\epsilon$ is the ancestral frequency at that locus,\\
 and $\Delta X_i$ is the deviation in population $i$ from $\epsilon$ at that locus:\\
@@ -107,9 +184,9 @@ So in Eqn. \eqref{eq:total_cov}, the $\delta$ term is describing this $\var{\eps
 If this math works, then it also means that we don't have to mean-center the loci;
 we can just model covariance in sample frequencies, 
 and add a single parameter to describe the increased covariance between samples across loci 
-due to the ancestral mean they share at each locus.}
+due to the ancestral mean they share at each locus.
 
-
+\end{document}
 
 
 
@@ -127,4 +204,3 @@ X_i \sim \text{MVN}	\left(	 \mu = \beta Y_i + \sum_K w^{(k)}_i \beta_{(k)}Y_i , 
 
 
 
-\end{document}

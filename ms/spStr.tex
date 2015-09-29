@@ -1,0 +1,138 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[authoryear]{natbib}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bigints}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage{longtable}
+\usepackage{geometry}
+
+
+\bibliographystyle{plainnat}
+
+\setlength{\parskip}{\baselineskip}
+\setlength{\parindent}{0pt}
+
+\newcommand{\e}[1]{{\mathbb E}\left[ #1 \right]}
+\newcommand{\given}{\mid}
+\newcommand{\secref}[1]{``\nameref{#1}''}
+
+
+\newcommand{\gb}[1]{{\it\color{magenta}{(#1)}}}
+\newcommand{\plr}[1]{{\it\color{purple}{(#1)}}}
+\newcommand{\gc}[1]{{\it\color{blue}{(#1)}}}
+
+\geometry{a4paper}
+
+\title{Inferring Continuous and Discrete Population Genetic Structure Across Space and Time}
+\date{\vspace{-5ex}}
+\author{
+Gideon S. Bradburd$^{1,a}$, 
+Peter L. Ralph$^{2,b}$, 
+Graham M. Coop$^{3,c}$}
+
+\begin{document}
+
+\maketitle
+
+\textsuperscript{1}
+Museum of Vertebrate Zoology, 
+Department of Environmental Science, Policy, and Management, 
+University of California, Berkeley, CA 94720
+
+\textsuperscript{2}
+Department of Molecular and Computational Biology, 
+University of Southern California, Los Angeles, CA 90089
+
+\textsuperscript{3}
+Center for Population Biology,
+ Department of Evolution and Ecology, 
+ University of California, Davis, CA 95616
+
+\textsuperscript{a}bradburd@berkeley.edu; 
+\textsuperscript{b}pralph@usc.edu;
+\textsuperscript{c}gmcoop@ucdavis.edu\\\\\
+
+\newpage
+ 
+
+\begin{abstract}
+One of the classic problems in population genetics is the characterization 
+of discrete population structure when the genotyped samples also show 
+continuous patterns of genetic differentiation.
+Especially when sampling is discontinuous, 
+clustering or assignment methods may incorrectly ascribe differentiation 
+due to continuous processes (e.g., drift across space or time) 
+to discrete processes, such as geographic, reproductive, or behavioral barriers 
+between populations.
+This is partly a result of the difficulty of sampling uniformly and continuously 
+across the spatiotemporal range of a population or species, 
+but more, it reflects a shortcoming of current methods for inferring and 
+visualizing population structure from genetic data in the face of data 
+that are characterized by both continuous and discrete population structure.
+Here, we present a novel statistical framework for the simultaneous inference 
+of continuous and discrete patterns of population structure.
+The method estimates ancestry proportions for each 
+sample from a set of discrete population clusters, 
+and, within each cluster, estimates a rate at which relatedness decays with 
+spatial and/or temporal distance.
+This model explicitly addresses the ``clines vs. clusters" problem in 
+quantifying population structure by jointly accommodating both 
+continuous and discrete patterns of differentiation. 
+The model also naturally captures population replacement, 
+a phenomenon for which there is substantial evidence in humans 
+from archaeological evidence and ancient DNA. 
+We demonstrate the utility of this approach using a combination of 
+ancient and modern human individuals sampled throughout Europe, 
+and find evidence for aliens.
+\end{abstract}
+
+%evolutionary history of the genotyped samples has also been shaped by geographically continuous processes, 
+%such as migration.
+
+
+\newpage
+
+\section*{Introduction}
+
+\section*{Methods}
+
+\section*{Results}
+
+\subsection*{Simulations}
+
+\subsection*{Empirical Applications}
+
+\section*{Discussion}
+
+\section*{Acknowledgements}
+
+This work was supported in part by 
+the National Science Foundation under award number NSF \#1262645 (DBI) to PR and GC, 
+the National Institute of General Medical Sciences of the National Institutes of Health under award numbers NIH RO1GM83098 and RO1GM107374 to GC,
+and the National Science Foundation under award numbers NSF \# 1148897 and \# 1402725 to GB.
+
+
+\newpage
+
+%\bibliography{../spacemix.refs}
+
+\newpage
+
+\pagenumbering{gobble}
+\section*{Supplementary Materials}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{table}{0}
+\renewcommand{\theequation}{S\arabic{table}}
+\setcounter{equation}{0}
+
+\end{document}

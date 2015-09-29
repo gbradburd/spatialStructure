@@ -1,4 +1,4 @@
-load("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/metadata/Poplar_freqs.Robj")
+load("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/metadata/Poplar_freqs.Robj")
 
 pop.metadata <- pop.metadata[-1,]
 ind.freqs <- poplar.freqs
@@ -7,9 +7,11 @@ drainage.freqs <- matrix(NA,nrow=length(drainages),ncol=ncol(poplar.freqs))
 drainage.long <- numeric(length(drainages))
 drainage.lat <- numeric(length(drainages))
 drainage.sp <- numeric(length(drainages))
+drainage.sample.sizes <- numeric(length(drainages))
 
 for(i in 1:length(drainages)){
 	ind.drainage.indices <- which(pop.metadata$Drainage.Location.name==drainages[i])
+	drainage.sample.sizes[i] <- length(ind.drainage.indices)
 	drainage.freqs[i,] <- colSums(ind.freqs[ind.drainage.indices,,drop=FALSE],na.rm=TRUE)/length(ind.drainage.indices)
 	drainage.long[i] <- mean(as.numeric(pop.metadata$Longitude[ind.drainage.indices]))
 	drainage.lat[i] <- mean(as.numeric(pop.metadata$Latitude[ind.drainage.indices]))
@@ -45,12 +47,26 @@ poplar.data <- list("geo.coords" = drainage.coords,
 					"sample.cov" = drainage.cov,
 					"n.loci" = ncol(poplar.freqs))
 
+test.data <- list("drainage.coords" = drainage.coords,
+					"drainage.cov" =  drainage.cov,
+					"drainage.freqs" = drainage.freqs,
+					"drainage.sample.sizes" = drainage.sample.sizes,
+					"drainage.sp" = drainage.sp)
+save(test.data,file="~/Dropbox/InspectorSpaceTime/spatialStructure/sandbox/sampling.effect/poplar.data.Robj")
+
 poplar.drainage.freq.data <- list("drainage.cov" = drainage.cov,
 								  "geo.coords" = drainage.coords,
 								  "drainage.freqs" = drainage.freqs,
 								  "n.loci" = ncol(drainage.freqs))
-save(poplar.drainage.freq.data,file="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/poplar.drainage.freq.data.Robj")
 
+mean.tri.freqs <- colMeans(drainage.freqs[which(drainage.sp=="Populus trichocarpa"),])
+trichocarpa.data <- list("geo.coords" = drainage.coords[which(drainage.sp=="Populus trichocarpa"),],
+							"sample.cov" = cov(t(drainage.freqs[which(drainage.sp=="Populus trichocarpa"),]),use="pairwise.complete.obs"),
+							"n.loci" = ncol(poplar.freqs),
+							"sample.sizes" = drainage.sample.sizes[which(drainage.sp=="Populus trichocarpa")],
+							"binom.var" = mean(mean.tri.freqs*(1-mean.tri.freqs)))
+save(poplar.drainage.freq.data,file="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/poplar.drainage.freq.data.Robj")
+save(trichocarpa.data,file="~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/trichocarpa_dataset.Robj")
 save(poplar.data,file="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/poplar.spStr.dataset.Robj")
 
 if(FALSE){
