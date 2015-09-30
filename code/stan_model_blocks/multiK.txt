@@ -1,0 +1,36 @@
+data {
+	int<lower=1> K;		  		// number of clusters
+	int<lower=2> N; 	  		// number of samples
+	int<lower=N+1> L;	    	// number of loci
+	matrix[N,N] obsSigma; 		// observed covar
+	vector[K] DirichAlpha; 		// dirichlet prior parameters on admixture proportions
+	vector[N] sampleSize;		// number of chromosomes genotyped for each sample
+	real<lower=0> binVar;		// (mean.f * (1-mean.f)) averaged over all loci
+}
+parameters {
+	real<lower=0> mu[K];				// shared drift effect in cluster k
+	real<lower=0> gamma;				// global covariance due to shared ancestral mean between all samles
+  	real<lower=0> nugget[N]; 			// sample-specific variance (allele sampling error + sample-specific drift)
+	simplex[K]    w[N];    				// every sample (N in total) has a K simplex (i.e. K clusters) 
+}
+transformed parameters {
+		  matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
+			for (i in 1:N){
+				for (j in 1:N){
+					Sigma[i, j] <- gamma;
+					for(k in 1:K){
+						Sigma[i, j] <- Sigma[i, j]  +  binVar * ( w[i,k] * w[j,k] * ( mu[k]));
+					}
+					if(i==j){
+						Sigma[i, i]<- Sigma[i, i] + binVar * (nugget[i] + 1/sampleSize[i]);
+					}
+				}
+			}
+		}
+model {
+	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
+	mu ~ exponential(1);									// prior on cluster shared drift
+	gamma ~ exponential(1);									// prior on global shared drift
+	for(i in 1:N) w[i] ~ dirichlet(DirichAlpha);			// prior on admixture proportions
+	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function	
+}
