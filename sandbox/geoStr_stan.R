@@ -297,13 +297,13 @@ geoStructure <- function(data.block,n.chains,n.iter,file.name){
 }
 
 
-load("~/Desktop/test/trichocarpa_dataset.Robj")
-data.block <- list("K" = 1,
+load("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/Poplar/trichocarpa_dataset.Robj")
+data.block <- list("K" = 2,
 					"N" = nrow(trichocarpa.data$geo.coords),
 					"L" = trichocarpa.data$n.loci,
 					"obsSigma" = trichocarpa.data$sample.cov,
 					"geoDist" = fields::rdist(trichocarpa.data$geo.coords),
-					"timeDist" = FALSE,
+					"timeDist" = TRUE,
 					"DirichAlpha" = rep(0.1,2),
 					"sampleSize" = trichocarpa.data$sample.sizes,
 					"binVar" = trichocarpa.data$binom.var)
