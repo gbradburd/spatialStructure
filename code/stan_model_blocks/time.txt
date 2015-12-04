@@ -5,7 +5,6 @@ data {
 	matrix[N,N] obsSigma; 		// observed covar
 	matrix[N, N] timeDist; 		// matrix of pairwise temporal distance 
 	vector[N] sampleSize;		// number of chromosomes genotyped for each sample
-	real<lower=0> binVar;		// (mean.f * (1-mean.f)) averaged over all loci
 }
 parameters {
 	real<lower=0> alpha0;			// sill of the parametric covariance in cluster k
@@ -14,6 +13,7 @@ parameters {
 	real<lower=0, upper=2>  alpha2;	// exponential slope parameter in the parametric covariance in cluster k
 	real<lower=0> gamma;			// global covariance due to shared ancestral mean between all samles
   	real<lower=0> nugget[N]; 		// sample-specific variance (allele sampling error + sample-specific drift)
+ 	real<lower=0, upper=0.25> binVar;	// (mean.f * (1-mean.f)) averaged over all loci
 }
 transformed parameters {
 		  matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
@@ -31,6 +31,7 @@ model {
 	alphaT ~ exponential(1);								// prior on alphaT
 	alpha2 ~ exponential(1);								// prior on alpha2
 	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
+	4 * binVar ~ beta(5,1);									// prior on binomial sampling variance
 	gamma ~ exponential(1);									// prior on global shared drift
 	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function	
 }

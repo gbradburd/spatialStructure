@@ -4,3 +4,4 @@
 *.aux
 .DS_Store
 .Rapp*
+build.geoStr.pkg.R

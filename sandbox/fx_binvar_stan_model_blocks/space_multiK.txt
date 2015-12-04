@@ -6,6 +6,7 @@ data {
 	matrix[N, N] geoDist; 		// matrix of pairwise geographic distance 
 	vector[K] DirichAlpha; 		// dirichlet prior parameters on admixture proportions
 	vector[N] sampleSize;		// number of chromosomes genotyped for each sample
+	real<lower=0> binVar;		// (mean.f * (1-mean.f)) averaged over all loci
 }
 parameters {
 	real<lower=0> alpha0[K];			// sill of the parametric covariance in cluster k
@@ -14,8 +15,7 @@ parameters {
 	real<lower=0> mu[K];				// shared drift effect in cluster k
 	real<lower=0> gamma;				// global covariance due to shared ancestral mean between all samles
   	real<lower=0> nugget[N]; 			// sample-specific variance (allele sampling error + sample-specific drift)
-	simplex[K]    w[N];    				// every sample (N in total) has a K simplex (i.e. K clusters)
- 	real<lower=0, upper=0.25> binVar;	// (mean.f * (1-mean.f)) averaged over all loci
+	simplex[K]    w[N];    				// every sample (N in total) has a K simplex (i.e. K clusters) 
 }
 transformed parameters {
 		  matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
@@ -36,7 +36,6 @@ model {
 	alphaD ~ exponential(1);								// prior on alphaD
 	alpha2 ~ exponential(1);								// prior on alpha2
 	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
-	4 * binVar ~ beta(5,1);									// prior on binomial sampling variance
 	mu ~ exponential(1);									// prior on cluster shared drift
 	gamma ~ exponential(1);									// prior on global shared drift
 	for(i in 1:N) w[i] ~ dirichlet(DirichAlpha);			// prior on admixture proportions
