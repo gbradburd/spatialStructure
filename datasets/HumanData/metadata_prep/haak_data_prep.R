@@ -1,4 +1,6 @@
-big.table <- read.table("~/Desktop/Haak_POPRES_freqs.frq.strat.gz",header=TRUE,stringsAsFactors=FALSE)
+setwd("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep")
+# Read in the big data table to get the indices of chromosome start and end point
+big.table <- read.table("~/Desktop/Haak_POPRES_freqs.frq.strat.gz",header=TRUE,stringsAsFactors=FALSE) #on ibis shared/data/Haak2015PublicData
 n.lines.total <- nrow(big.table)
 chr.breaks <- matrix(0,nrow=22,ncol=2)
 chr.breaks[,1] <- unlist(lapply(1:max(unique(big.table$CHR)),match,table=big.table$CHR))
@@ -6,6 +8,9 @@ chr.breaks[,2] <- cumsum(c(chr.breaks[2:22,1],n.lines.total+1) - chr.breaks[,1])
 write.table(chr.breaks,file="haak_chr_breaks.txt",row.names=FALSE,col.names=FALSE)
 rm(big.table) ; gc()
 
+
+# Go through each chromosome, pull out the SNPs, and randomly 
+#	choose whether to count the major or minor allele
 chr.breaks <- read.table("haak_chr_breaks.txt",header=FALSE,stringsAsFactors=FALSE)
 
 random.switcharoo <- function(x){
@@ -22,6 +27,7 @@ get.snp.data <- function(chr.data,snp.name){
 	random.switcharoo(chr.data$MAF[which(!is.na(match(chr.data$SNP,snp.names[j])))])
 }
 
+set.seed(789)
 for(i in 1:nrow(chr.breaks)){
 	chr.data <- read.table("~/Desktop/Haak_POPRES_freqs.frq.strat.gz",
 							col.names=c("CHR","SNP","CLST","A1","A2","MAF","MAC","NCHROBS"),
@@ -33,67 +39,23 @@ for(i in 1:nrow(chr.breaks)){
 	row.names(chr.data.snps) <- pops
 		for(j in 1:length(snp.names)){
 			chr.data.snps[,j] <- get.snp.data(chr.data,snp.name[j])
-			if(j %% 100){
+			if(j %% 100 == 0){
 				cat(j,"\t")
 			}
 		}
 	save(chr.data.snps,file=paste("haak_snp_chr_",i,".Robj",sep=""))
 }
-# for(i in 1:nrow(chr.breaks)){
-	# chr.data <- read.table("~/Desktop/Haak_POPRES_freqs.frq.strat.gz",
-							# col.names=c("CHR","SNP","CLST","A1","A2","MAF","MAC","NCHROBS"),
-							# nrows=chr.breaks[i,2]-chr.breaks[i,1]+1,skip=chr.breaks[i,1],stringsAsFactors=FALSE)
-	# cat(unique(chr.data$CHR),"\n")
-# }
-file.list <- list.files(pattern="haak_snp_chr")
-chr.cov.list <- list(length(file.list))
-for(i in 1:length(file.list)){
-	load(file.list[i])
-	chr.cov.list[[i]] <- list("cov" = cov(t(chr.data.snps)), 
-								"n.loci" = ncol(chr.data.snps))
-	cat(i,"\t")
-}
 
-total.loci <- sum(unlist(lapply(chr.cov.list,"[[","n.loci")))
-loci.proportions <- lapply(1:length(chr.cov.list),function(i){chr.cov.list[[i]]$n.loci/total.loci})
-weighted.cov.list <- lapply(1:length(chr.cov.list),function(i){loci.proportions[[i]] * chr.cov.list[[i]]$cov})
-total.cov <- Reduce("+",weighted.cov.list)
-sample.cov <- total.cov
-to.drop <- c(grep("other",row.names(sample.cov)),grep("Europe",row.names(sample.cov)))
-sample.cov <- sample.cov[-to.drop,-to.drop]
-save(sample.cov,file="human_sample_covariance.Robj")
-
-
-
-pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/haak_pop_names.txt",what="character")
-mc.mat <- diag(nrow(total.cov)) - 1/nrow(total.cov)
-eig.covmat <- eigen(mc.mat %*% total.cov %*% t(mc.mat))
-par(mfrow=c(1,2))
-plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n')
-	text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
-plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n',xlim=c(-0.02,0.05),ylim=c(-0.1,0.1))
-	text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
-plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n',xlim=c(0.01,0.05),ylim=c(-0.1,0.05))
-	text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
-
-
-
-
-
-plot(eig.covmat$vectors[,2],eig.covmat$vectors[,3],type='n',xlim=c(-0.07,0.05),ylim=c(-0.02,0.0001))
-	text(eig.covmat$vectors[,2],eig.covmat$vectors[,3],labels=pops,cex=0.5)
-
-
-#metadata
-pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/haak_pop_names.txt",what="character")
-haak.metadata <- read.csv("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/Haak_table.csv",header=TRUE,skip=1,stringsAsFactors=FALSE)
-laz.metadata <- read.csv("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/Lazaridis_table_poplatlong.csv",header=TRUE,stringsAsFactors=FALSE)
-popres.metadata <- read.table("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/popres_geo_data.txt",header=TRUE,stringsAsFactors=FALSE)
+#Format Metadata
+pops <- scan("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/haak_pop_names.txt",what="character")
+haak.metadata <- read.csv("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/Haak_table.csv",header=TRUE,skip=1,stringsAsFactors=FALSE)
+laz.metadata <- read.csv("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/Lazaridis_table_poplatlong.csv",header=TRUE,stringsAsFactors=FALSE)
+popres.metadata <- read.table("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/popres_geo_data.txt",header=TRUE,stringsAsFactors=FALSE)
 	popres.metadata$COUNTRY_SELF[2] <- "Swiss-French"
 	popres.metadata$COUNTRY_SELF[4] <- "Czech-Republic"
 	popres.metadata$COUNTRY_SELF[5] <- "Swiss-German"
 	popres.metadata$COUNTRY_SELF[15] <- "United-Kingdom"
-popres.sample.sizes <- read.table("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/popres.samplesizes.txt",header=TRUE,stringsAsFactors=FALSE)
+popres.sample.sizes <- read.table("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/popres.samplesizes.txt",header=TRUE,stringsAsFactors=FALSE)
 	names(popres.sample.sizes) <- c("pop","sample.size")
 sample.metadata <- as.data.frame(matrix(cbind(pops,0,0,0,0,0),nrow=length(pops),ncol=6),stringsAsFactors=FALSE)
 	colnames(sample.metadata) <- c("Population","test.pop","lon","lat","time","sample.size")
@@ -148,7 +110,7 @@ for(i in 1:length(samp.in.haak)){
 	sample.metadata$lon[samp.in.haak[i]] <- haak.samp.data.i$loc[1]
 	sample.metadata$lat[samp.in.haak[i]] <- haak.samp.data.i$loc[2]
 	sample.metadata$time[samp.in.haak[i]] <- -haak.samp.data.i$time
-	sample.metadata$sample.size[samp.in.haak[i]] <- length(haak.samp)
+	sample.metadata$sample.size[samp.in.haak[i]] <- length(haak.samp) * 2
 }
 
 popres.in.sample.matches <- match(sample.metadata$Population,popres.metadata$COUNTRY_SELF)
@@ -158,10 +120,60 @@ sample.in.popres.matches <- sample.in.popres.matches[which(!is.na(sample.in.popr
 sample.metadata$test.pop[sample.in.popres.matches] <- popres.metadata$COUNTRY_SELF[popres.in.sample.matches]
 sample.metadata$lon[sample.in.popres.matches] <- popres.metadata$long[popres.in.sample.matches]
 sample.metadata$lat[sample.in.popres.matches] <- popres.metadata$lat[popres.in.sample.matches]
-sample.metadata[which(sample.metadata$sample.size==0),]$sample.size <- popres.sample.sizes[match(sample.metadata[which(sample.metadata$sample.size==0),]$Population, popres.sample.sizes[,1]),2]
-to.drop <- c(grep("other",sample.metadata$Population),grep("Europe",sample.metadata$Population))
-sample.metadata <- sample.metadata[-to.drop,]
-write.table(sample.metadata[,c(1,3,4,5,6)],file="~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/human_sample_metadata.txt")
+sample.metadata[which(sample.metadata$sample.size==0),]$sample.size <- 2 * popres.sample.sizes[match(sample.metadata[which(sample.metadata$sample.size==0),]$Population, popres.sample.sizes[,1]),2]
+# to.drop <- c(grep("other",sample.metadata$Population),grep("Europe",sample.metadata$Population))
+# sample.metadata <- sample.metadata[-to.drop,]
+write.table(sample.metadata[,c(1,3,4,5,6)],file="~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/human_sample_metadata.txt")
+
+
+# Now loop through each chromosome and calculate some
+#	statistics for each one.
+generate.haak.dataset <- function(drop.pops,metadata,file.name,return=TRUE){
+	metadata <- read.table(metadata)
+	geo.coords <- cbind(metadata$lon[-drop.pops],metadata$lat[-drop.pops])
+	pop.names <- metadata$Population[-drop.pops]
+	time.coords <- metadata$time[-drop.pops]
+	sample.size <- metadata$sample.size[-drop.pops]
+	file.list <- list.files(pattern="haak_snp_chr")
+	chr.cov.list <- vector("list",length(file.list))
+	for(i in 1:length(file.list)){
+		load(file.list[i])
+		chr.cov.list[[i]] <- list("cov" = cov(t(chr.data.snps[-drop.pops,])), 
+									"n.loci" = ncol(chr.data.snps[-drop.pops,]),
+									"bin.var" = mean(colMeans(chr.data.snps[-drop.pops,])) * 
+													(1-mean(colMeans(chr.data.snps[-drop.pops,]))))
+	cat(i,"\t")
+	}
+	n.loci = sum(unlist(lapply(chr.cov.list,"[[","n.loci")))
+	loci.proportions <- lapply(1:length(chr.cov.list),function(i){chr.cov.list[[i]]$n.loci/n.loci})
+	weighted.cov.list <- lapply(1:length(chr.cov.list),function(i){loci.proportions[[i]] * chr.cov.list[[i]]$cov})
+	weighted.bin.var.list <- lapply(1:length(chr.cov.list),function(i){loci.proportions[[i]] * chr.cov.list[[i]]$bin.var})
+	sample.cov <- Reduce("+",weighted.cov.list)
+	bin.var <- Reduce("+",weighted.bin.var.list)
+	haak.dataset <- list("n.loci" = n.loci,
+						"sample.cov" = sample.cov,
+						"bin.var" = bin.var,
+						"geo.coords" = geo.coords,
+						"pop.names" = pop.names,
+						"time.coords" = time.coords, 
+						"sample.size" = sample.size)
+	save(haak.dataset,file=file.name)
+	if(!return){
+		haak.dataset <- invisible("saved")
+	}	
+	return(haak.dataset)
+}
+
+total.dataset <- generate.haak.dataset(drop.pops=c(4,32,35), #"other"s and "europe"
+										metadata = "~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/human_sample_metadata.txt",
+										file.name="haak.dataset.Robj",
+										return=TRUE)
+mod.dataset <- generate.haak.dataset(drop.pops=c(4,32,35,93:110), #"other"s, "europe", and all ancient samples
+										metadata = "~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/human_sample_metadata.txt",
+										file.name="mod.haak.dataset.Robj",
+										return=TRUE)
+
+
 
 
 # lapply(haak.samp.variance,check.unique)
@@ -203,3 +215,27 @@ write.table(sample.metadata[,c(1,3,4,5,6)],file="~/Desktop/Dropbox/InspectorSpac
 
 
 
+
+
+
+
+
+# # 
+
+# pops <- scan("~/Desktop/Dropbox/InspectorSpaceTime/spatialStructure/datasets/HumanData/metadata_prep/haak_pop_names.txt",what="character")
+# mc.mat <- diag(nrow(total.cov)) - 1/nrow(total.cov)
+# eig.covmat <- eigen(mc.mat %*% total.cov %*% t(mc.mat))
+# par(mfrow=c(1,2))
+# plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n')
+	# text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
+# plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n',xlim=c(-0.02,0.05),ylim=c(-0.1,0.1))
+	# text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
+# plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],type='n',xlim=c(0.01,0.05),ylim=c(-0.1,0.05))
+	# text(eig.covmat$vectors[,1],eig.covmat$vectors[,2],labels=pops,cex=0.5)
+
+
+
+
+
+# plot(eig.covmat$vectors[,2],eig.covmat$vectors[,3],type='n',xlim=c(-0.07,0.05),ylim=c(-0.02,0.0001))
+	# text(eig.covmat$vectors[,2],eig.covmat$vectors[,3],labels=pops,cex=0.5)
