@@ -191,6 +191,11 @@ get.gamma <- function(model.fit,chain.no){
 	return(gamma)
 }
 
+get.binVar <- function(model.fit,chain.no){
+	binVar <- extract(model.fit,pars="binVar",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
+	return(binVar)
+}
+
 get.alpha.params <- function(model.fit,chain.no,cluster,n.clusters){
 	alpha.pars <- model.fit@model_pars[grepl("alpha",model.fit@model_pars)]
 	if(n.clusters > 1){
@@ -345,13 +350,16 @@ get.geoStructure.results <- function(model.fit,chain.no,data.block){
 				 "admix.proportions" = get.admix.props(model.fit,chain.no,data.block$N,data.block$K),
 				 "nuggets" = get.nuggets(model.fit,chain.no,data.block$N),
 				 "cluster.params" = get.cluster.params.list(model.fit,data.block,chain.no),
-				 "gamma" = get.gamma(model.fit,chain.no)	,
+				 "gamma" = get.gamma(model.fit,chain.no),
+				 "binVar" = get.binVar(model.fit,chain.no),
 				 "par.cov" = get.par.cov(model.fit,chain.no,data.block$N))
 	best <- get.best.iter(model.fit,chain.no)
-	point <- list("admix.proportions" = index.best(post$admix.proportions,best),
+	point <- list("posterior" = index.best(post$posterior,best),
+				"admix.proportions" = index.best(post$admix.proportions,best),
 				 "nuggets" = index.best(post$nuggets,best),
 				 "cluster.params" = index.best.cluster.params.list(post$cluster.params,best),
 				 "gamma" = index.best(post$gamma,best),
+				 "binVar" = index.best(post$binVar,best),
 				 "par.cov" = index.best(post$par.cov,best))
 	geoStructure.results <- list("post" = post,"point" = point)
 	return(geoStructure.results)
@@ -359,10 +367,16 @@ get.geoStructure.results <- function(model.fit,chain.no,data.block){
 
 plot.cluster.covariances <- function(data.block,geoStr.results,time,cluster.colors){
 	ind.mat <- upper.tri(data.block$geoDist,diag=TRUE)
-	y.range <- range(data.block$obsSigma,
-						unlist(lapply(seq_along(1:data.block$K),
-										function(i){geoStr.results$point$cluster.params[[i]]$cluster.cov + 
-													geoStr.results$point$cluster.params[[i]]$mu})))
+	if(data.block$K < 2){
+		y.range <- range(data.block$obsSigma,
+							unlist(lapply(seq_along(1:data.block$K),
+											function(i){geoStr.results$point$cluster.params[[i]]$cluster.cov})))
+	} else {
+		y.range <- range(data.block$obsSigma,
+							unlist(lapply(seq_along(1:data.block$K),
+											function(i){geoStr.results$point$cluster.params[[i]]$cluster.cov + 
+														geoStr.results$point$cluster.params[[i]]$mu})))
+	}
 	n.col <- ifelse(time,2,1)
 	par(mfrow=c(1,n.col))
 	plot(data.block$geoDist[ind.mat],data.block$obsSigma[ind.mat],
@@ -372,7 +386,9 @@ plot.cluster.covariances <- function(data.block,geoStr.results,time,cluster.colo
 	for(i in 1:data.block$K){
 		points(data.block$geoDist[ind.mat],
 				geoStr.results$point$cluster.params[[i]]$cluster.cov[ind.mat] + 
-				geoStr.results$point$cluster.params[[i]]$mu,
+				ifelse(data.block$K > 1,
+						geoStr.results$point$cluster.params[[i]]$mu,
+						0),
 				col=cluster.colors[i],pch=20,cex=0.6)
 	}
 	legend(x="topright",lwd=2,lty=1,col=c("black",cluster.colors[1:data.block$K]),
@@ -381,11 +397,13 @@ plot.cluster.covariances <- function(data.block,geoStr.results,time,cluster.colo
 		plot(data.block$timeDist[ind.mat],data.block$obsSigma[ind.mat],
 			ylab="sample covariance",xlab="temporal distance",
 			ylim=y.range + diff(range(y.range))/10 * c(-1,1))
-		abline(h=geoStr.results$point$mu,col="gray",lty=2)
+		abline(h=geoStr.results$point$gamma,col="gray",lty=2)
 		for(i in 1:data.block$K){
 			points(data.block$timeDist[ind.mat],
 				geoStr.results$point$cluster.params[[i]]$cluster.cov[ind.mat] + 
-				geoStr.results$point$cluster.params[[i]]$mu,
+				ifelse(data.block$K > 1,
+						geoStr.results$point$cluster.params[[i]]$mu,
+						0),
 					col=cluster.colors[i],pch=20,cex=0.7)
 		}
 	}
@@ -506,6 +524,9 @@ make.structure.plot <- function(data.block,geoStr.results,mar=c(2,2,2,2),sample.
 	if(is.null(cluster.colors)){
 		cluster.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray")
 	}
+	if(data.block$K==1){
+		geoStr.results$point$admix.proportions <- matrix(geoStr.results$point$admix.proportions,nrow=data.block$N,ncol=1)
+	}
 	use.colors <- cluster.colors[1:data.block$K][cluster.order]
 	plot(0,xlim=c(0,data.block$N),ylim=c(0,1),type='n',ylab="admixture",xlab="",xaxt='n')
 	plotting.admix.props <- apply(cbind(0,geoStr.results$point$admix.proportions[,cluster.order]),1,cumsum)
@@ -523,6 +544,9 @@ make.admix.pie.plot <- function(data.block,geoStr.results,cluster.colors,cluster
 	require(caroline)
 	sample.names <- paste0("sample_",1:data.block$N)
 	color.tab <- nv(c(cluster.colors[1:data.block$K]),cluster.names)
+	if(data.block$K==1){
+		geoStr.results$point$admix.proportions <- matrix(geoStr.results$point$admix.proportions,nrow=data.block$N,ncol=1)
+	}
 	pie.list <- lapply(1:data.block$N,function(i){nv(geoStr.results$point$admix.proportions[i,],cluster.names)})
 	names(pie.list) <- sample.names
 	if(add){
@@ -660,11 +684,14 @@ make.3D.pie.plot <- function(data.block,radii=1,cluster.colors,admix.props=NULL,
 }
 
 
-make.all.the.plots <- function(dir,output.dir,burnin=0){
+make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 	setwd(dir)
 	model.fit.file <- list.files(pattern="model.fit")
 	data.block.file <- list.files(pattern="data.block")
 	geoStr.results <- get.geoStructure.results(model.fit.file,chain.no=1,data.block.file)
+	if(save.out){
+		save(geoStr.results,file="geoStr.results.Robj")
+	}
 	load(data.block.file)
 	K <- data.block$K
 	time <- data.block$time
@@ -694,4 +721,16 @@ make.all.the.plots <- function(dir,output.dir,burnin=0){
 	pdf(file=paste(output.dir,"/","structure.plot.",K,".pdf",sep=""),width=10,height=5,pointsize=18)
 		make.structure.plot(data.block,geoStr.results,mar=c(2,2,2,2),sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL,cluster.colors=cluster.colors)
 	dev.off()
+}
+
+random.switcharoo <- function(x){
+	x <- ifelse(rep(runif(1) < 0.5,length(x)),
+					x,
+					1-x)
+	return(x)
+}
+
+switcharoo.data <- function(frequencies){
+	frequencies <- apply(frequencies,2,random.switcharoo)
+	return(frequencies)
 }

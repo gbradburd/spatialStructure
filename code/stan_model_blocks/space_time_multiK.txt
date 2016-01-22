@@ -14,7 +14,7 @@ parameters {
 	real<lower=0> alphaT[K];			// effect of temporal distance in the parametric covariance in cluster k
 	real<lower=0, upper=2>  alpha2[K];	// exponential slope parameter in the parametric covariance in cluster k
 	real<lower=0> mu[K];				// shared drift effect in cluster k
-	real<lower=0> gamma;				// global covariance due to shared ancestral mean between all samles
+	real<lower=0> gamma;				// global covariance due to shared ancestral mean between all samples
   	real<lower=0> nugget[N]; 			// sample-specific variance (allele sampling error + sample-specific drift)
 	simplex[K]    w[N];    				// every sample (N in total) has a K simplex (i.e. K clusters)
  	real<lower=0, upper=0.25> binVar;	// (mean.f * (1-mean.f)) averaged over all loci
