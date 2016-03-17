@@ -116,21 +116,21 @@ validate.data.block <- function(data.block){
 make.stan.code.block <- function(space,time,n.clusters){
 	stan.code.block.name <- "stan.block"
 	if(n.clusters == 1){
-		stan.code.block.name<- paste("oneK.",stan.code.block.name,sep="")
+		stan.code.block.name<- paste0("oneK.",stan.code.block.name)
 	}
 	if(n.clusters > 1){
-		stan.code.block.name<- paste("multiK.",stan.code.block.name,sep="")	
+		stan.code.block.name<- paste0("multiK.",stan.code.block.name)
 	}
 	if(time){
-		stan.code.block.name <- paste("time.",stan.code.block.name,sep="")
+		stan.code.block.name <- paste0("time.",stan.code.block.name)
 	}
 	if(space){
-		stan.code.block.name <- paste("space.",stan.code.block.name,sep="")
+		stan.code.block.name <- paste0("space.",stan.code.block.name)
 	}
 	return(get(stan.code.block.name))
 }
 
-geoStructure <- function(data.block,n.chains,n.iter,prefix){
+geoStructure <- function(data.block,n.chains,n.iter,prefix,...){
 	#validate on data block
 	data.block <- validate.data.block(data.block)
 		save(data.block,file=paste(prefix,"data.block.Robj",sep="_"))
@@ -144,7 +144,28 @@ geoStructure <- function(data.block,n.chains,n.iter,prefix){
 	model.fit <- stan(model_code = stan.block,
 						data = data.block,
 						iter = n.iter,
-						chains = n.chains)
+						chains = n.chains,
+						...)
+	#save fit obj
+	save(model.fit,file=paste(prefix,"model.fit.Robj",sep="_"))
+	#return fit obj
+	return(model.fit)
+}
+
+geoStructure.ML <- function(data.block,prefix,...){
+	#validate on data block
+	data.block <- validate.data.block(data.block)
+		save(data.block,file=paste(prefix,"data.block.Robj",sep="_"))
+	#validate on model specification
+	#make.stan.code.block
+	stan.block <- make.stan.code.block(data.block$space,data.block$time,data.block$K)
+		#write stan block to file
+	#run model
+	#put stan in tryCatch, email me
+	require(rstan)
+	model.fit <- optimizing(object = stan_model(model_code= stan.block),
+							data = data.block,
+							...)
 	#save fit obj
 	save(model.fit,file=paste(prefix,"model.fit.Robj",sep="_"))
 	#return fit obj
@@ -203,7 +224,7 @@ get.alpha.params <- function(model.fit,chain.no,cluster,n.clusters){
 							lapply(1:length(alpha.pars),
 									function(i){
 										extract(model.fit,
-												pars=paste(alpha.pars[i],"[",cluster,"]",sep=""),
+												pars=paste0(alpha.pars[i],"[",cluster,"]"),
 												inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
 									}),alpha.pars)
 	} else {
@@ -220,7 +241,7 @@ get.alpha.params <- function(model.fit,chain.no,cluster,n.clusters){
 
 get.cluster.mu <- function(model.fit,chain.no,cluster){
 	mu <- extract(model.fit,
-					pars=paste("mu","[",cluster,"]",sep=""),
+					pars=paste0("mu","[",cluster,"]"),
 					inc_warmup=TRUE,permute=FALSE)[,chain.no,]
 	return(mu)
 }
@@ -342,10 +363,7 @@ index.best.cluster.params.list <- function(cluster.params.list,best){
 	return(best.cluster.params.list)
 }
 
-get.geoStructure.results <- function(model.fit,chain.no,data.block){
-	require(rstan)
-	load(model.fit)
-	load(data.block)
+get.geoStructure.Bayes.results <- function(model.fit,chain.no,data.block){
 	post <- list("posterior" = get_logposterior(model.fit)[[chain.no]],
 				 "admix.proportions" = get.admix.props(model.fit,chain.no,data.block$N,data.block$K),
 				 "nuggets" = get.nuggets(model.fit,chain.no,data.block$N),
@@ -362,6 +380,112 @@ get.geoStructure.results <- function(model.fit,chain.no,data.block){
 				 "binVar" = index.best(post$binVar,best),
 				 "par.cov" = index.best(post$par.cov,best))
 	geoStructure.results <- list("post" = post,"point" = point)
+	return(geoStructure.results)
+}
+
+get.ML.par.cov <- function(model.fit,data.block){
+	N <- data.block$N
+	par.cov <- matrix(NA,nrow=N,ncol=N)
+	for(i in 1:N){
+		for(j in 1:N){
+			my.par <- sprintf("Sigma[%s,%s]",i,j)
+			par.cov[i,j] <- model.fit$par[my.par]
+		}
+	}
+	return(par.cov)
+}
+
+get.ML.nuggets <- function(model.fit,data.block){
+	N <- data.block$N
+	nuggets <- unlist(lapply(1:N,
+						function(i){
+							model.fit$par[paste0("nugget[",i,"]")]
+						}))
+	return(nuggets)
+}
+
+get.ML.admix.props <- function(model.fit,data.block){
+	N <- data.block$N
+	K <- data.block$K
+	admix.props <- matrix(1,nrow=N,ncol=K)
+	if(any(grepl("w",names(model.fit$par)))){
+		for(k in 1:K){
+			admix.props[,k] <- unlist(lapply(1:N,function(i){model.fit$par[paste0("w[",i,",",k,"]")]}))
+		}
+	}
+	return(admix.props)
+}
+
+get.ML.alpha.params <- function(model.fit,cluster,n.clusters){
+	alpha.pars <- unique(gsub("\\[.+\\]","",
+							names(model.fit$par)[
+								grepl("alpha",names(model.fit$par))
+							]))
+	if(n.clusters > 1){
+		alpha.params <- setNames(
+							lapply(1:length(alpha.pars),
+									function(i){
+										model.fit$par[paste0(alpha.pars[i],"[",cluster,"]")]
+									}),alpha.pars)
+	} else {
+		alpha.params <- setNames(
+							lapply(1:length(alpha.pars),
+									function(i){
+										model.fit$par[alpha.pars[i]]
+									}),alpha.pars)		
+	}
+	return(alpha.params)
+}
+
+get.ML.cluster.mu <- function(model.fit,cluster){
+	mu <- model.fit$par[paste0("mu","[",cluster,"]")]
+	return(mu)
+}
+
+get.ML.cluster.params <- function(model.fit,data.block,cluster,n.clusters){
+	cluster.params <- list()
+	if(data.block$space | data.block$time){
+		cluster.params <- get.ML.alpha.params(model.fit,cluster,n.clusters)
+	}
+	if(n.clusters > 1){
+		cluster.params <- c(cluster.params,
+							list("mu" = get.ML.cluster.mu(model.fit,cluster)))
+	}
+	cluster.cov <- get.cluster.cov(cluster.params,data.block)
+	cluster.params <- c(cluster.params,"cluster.cov"=cluster.cov)
+	return(cluster.params)
+}
+
+get.ML.cluster.params.list <- function(model.fit,data.block){
+	cluster.params <- setNames(
+						lapply(1:data.block$K,
+									function(i){
+										get.ML.cluster.params(model.fit,data.block,i,data.block$K)
+									}),
+						paste("Cluster",1:data.block$K,sep="_"))
+	return(cluster.params)
+}
+
+get.geoStructure.ML.results <- function(model.fit,data.block){
+	point <- list("admix.proportions" = get.ML.admix.props(model.fit,data.block),
+				  "nuggets" = get.ML.nuggets(model.fit,data.block),
+				  "cluster.params" = get.ML.cluster.params.list(model.fit,data.block),
+				  "gamma" = model.fit$par["gamma"],
+				  "binVar" = model.fit$par["binVar"],
+				  "par.cov" = get.ML.par.cov(model.fit,data.block))
+	geoStructure.results <- list("post"=NULL,"point"=point)
+	return(geoStructure.results)
+}
+
+get.geoStructure.results <- function(model.fit,data.block,chain.no=NULL){
+	require(rstan)
+	load(model.fit)
+	load(data.block)
+	if(class(model.fit)=="stanfit"){
+		geoStructure.results <- get.geoStructure.Bayes.results(model.fit,chain.no,data.block)
+	} else {
+		geoStructure.results  <- get.geoStructure.ML.results(model.fit,data.block)
+	}
 	return(geoStructure.results)
 }
 
@@ -475,7 +599,7 @@ plot.admix.props <- function(data.block,geoStr.results,cluster.colors){
 	par(mfrow=c(1,n.clusters),mar=c(2,2,2,2))
 		for(i in 1:n.clusters){
 			matplot(geoStr.results$post$admix.proportions[,,i],type='l',ylim=c(0,1),
-					main=paste("Cluster ",i,sep=""),ylab="admixture proportion",col=cluster.colors[i])
+					main=paste0("Cluster ",i),ylab="admixture proportion",col=cluster.colors[i])
 		}
 	return(invisible(0))
 }
@@ -675,8 +799,8 @@ make.3D.pie.plot <- function(data.block,radii=1,cluster.colors,admix.props=NULL,
 	if(is.null(admix.props)){
 		plot.sample.ellipses2(data.block,radii,alpha=0.5,fineness=100,thickness=1,col=1)
 	} else {
-		sample.names <- unlist(lapply(1:data.block$N,function(i){paste("sample_",i,sep="")}))
-		cluster.names <- unlist(lapply(1:data.block$K,function(i){paste("Cluster_",i,sep="")}))
+		sample.names <- unlist(lapply(1:data.block$N,function(i){paste0("sample_",i)}))
+		cluster.names <- unlist(lapply(1:data.block$K,function(i){paste0("Cluster_",i)}))
 		color.tab <- nv(c(cluster.colors[1:data.block$K]),cluster.names)
 		pie.list <- lapply(1:data.block$N,function(i){nv(admix.props[i,],cluster.names)})
 		pies3d.2(x=pie.list,n.clusters=data.block$K,cluster.colors=cluster.colors,data.block=data.block,radii=radii,edges=100)
@@ -685,6 +809,7 @@ make.3D.pie.plot <- function(data.block,radii=1,cluster.colors,admix.props=NULL,
 
 
 make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
+#	recover()
 	setwd(dir)
 	model.fit.file <- list.files(pattern="model.fit")
 	data.block.file <- list.files(pattern="data.block")
@@ -697,30 +822,32 @@ make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 	time <- data.block$time
 	cluster.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray")
 	cluster.names <- paste0("Cluster_",1:K)
-	pdf(file=paste(output.dir,"/","model.fit.",K,".pdf",sep=""),width=(8+time*4),height=4,pointsize=14)
+	pdf(file=paste0(output.dir,"/","model.fit.",K,".pdf"),width=(8+time*4),height=4,pointsize=14)
 		plot.model.fit(data.block,geoStr.results,time)
 	dev.off()
-	pdf(file=paste(output.dir,"/","cluster.cov.curves.",K,".pdf",sep=""),width=(5+time*5),height=5,pointsize=18)
+	pdf(file=paste0(output.dir,"/","cluster.cov.curves.",K,".pdf"),width=(5+time*5),height=5,pointsize=18)
 		plot.cluster.covariances(data.block,geoStr.results,time,cluster.colors)
 	dev.off()
-	pdf(file=paste(output.dir,"/","lnl.and.prob.",K,".pdf",sep=""),width=6,height=5,pointsize=18)
-		plot.lnl(geoStr.results,burnin)
-	dev.off()
-	pdf(file=paste(output.dir,"/","cluster.cov.params.",K,".pdf",sep=""),width=12,height=4,pointsize=18)
-		plot.cluster.cov.params(data.block,geoStr.results,time,burnin,cluster.colors)
-	dev.off()
-	pdf(file=paste(output.dir,"/","admix.props.",K,".pdf",sep=""),width=(4*data.block$K),height=4,pointsize=18)
-		plot.admix.props(data.block,geoStr.results,cluster.colors)
-	dev.off()
-	pdf(file=paste(output.dir,"/","nuggets.",K,".pdf",sep=""),width=6,height=4,pointsize=18)
-		plot.nuggets(geoStr.results,burnin)
-	dev.off()
-	pdf(file=paste(output.dir,"/","pie.chart.map.",K,".pdf",sep=""),width=6,height=6,pointsize=18)	
+	pdf(file=paste0(output.dir,"/","pie.chart.map.",K,".pdf"),width=6,height=6,pointsize=18)	
 		make.admix.pie.plot(data.block,geoStr.results,cluster.colors,cluster.names,radii=2.6,add=FALSE,title=NULL,xlim=NULL,ylim=NULL)
 	dev.off()
-	pdf(file=paste(output.dir,"/","structure.plot.",K,".pdf",sep=""),width=10,height=5,pointsize=18)
+	pdf(file=paste0(output.dir,"/","structure.plot.",K,".pdf"),width=10,height=5,pointsize=18)
 		make.structure.plot(data.block,geoStr.results,mar=c(2,2,2,2),sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL,cluster.colors=cluster.colors)
 	dev.off()
+	if(class(model.fit)=="stanfit"){
+		pdf(file=paste0(output.dir,"/","lnl.and.prob.",K,".pdf"),width=6,height=5,pointsize=18)
+			plot.lnl(geoStr.results,burnin)
+		dev.off()
+		pdf(file=paste0(output.dir,"/","cluster.cov.params.",K,".pdf"),width=12,height=4,pointsize=18)
+			plot.cluster.cov.params(data.block,geoStr.results,time,burnin,cluster.colors)
+		dev.off()
+		pdf(file=paste0(output.dir,"/","admix.props.",K,".pdf"),width=(4*data.block$K),height=4,pointsize=18)
+			plot.admix.props(data.block,geoStr.results,cluster.colors)
+		dev.off()
+		pdf(file=paste0(output.dir,"/","nuggets.",K,".pdf"),width=6,height=4,pointsize=18)
+			plot.nuggets(geoStr.results,burnin)
+		dev.off()
+	}
 }
 
 random.switcharoo <- function(x){
