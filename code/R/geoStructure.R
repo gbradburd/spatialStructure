@@ -180,7 +180,7 @@ get.best.iter <- function(model.fit,chain.no){
 
 get.admix.props <- function(model.fit,chain.no,N,n.clusters){
 	# recover()
-	admix.props <- array(1,dim=c(model.fit@stan_args[[chain.no]]$iter,N,n.clusters))
+	admix.props <- array(1,dim=c(length(get_logposterior(model.fit)[[chain.no]]),N,n.clusters))
 	if(any(grepl("w",model.fit@model_pars))){
 		for(k in 1:n.clusters){
 			admix.props[,,k] <- extract(model.fit,
@@ -192,7 +192,7 @@ get.admix.props <- function(model.fit,chain.no,N,n.clusters){
 }
 
 get.par.cov <- function(model.fit,chain.no,N){
-	par.cov <- array(NA,dim=c(model.fit@stan_args[[chain.no]]$iter,N,N))
+	par.cov <- array(NA,dim=c(length(get_logposterior(model.fit)[[chain.no]]),N,N))
 	for(i in 1:N){
 		for(j in 1:N){
 			my.par <- sprintf("Sigma[%s,%s]",i,j)
@@ -269,7 +269,7 @@ get.cov.function <- function(data.block){
 		}
 		if(!data.block$space & !data.block$time){
 			cov.func <- function(cluster.params,data.block){
-				return(0)
+				return(matrix(0,nrow=data.block$K,ncol=data.block$K))
 			}
 		}
 	} else {
@@ -304,16 +304,18 @@ get.cov.function <- function(data.block){
 	return(cov.func)
 }
 
-get.cluster.cov <- function(cluster.params,data.block){
+get.cluster.cov <- function(cluster.params,data.block,n.iter){
 	cov.function <- get.cov.function(data.block)
-	cluster.cov <- lapply(1:length(cluster.params[[1]]),
+	cluster.cov <- lapply(1:n.iter,
 							function(i){
-								cov.function(cluster.params=lapply(cluster.params,"[[",i),data.block)
+								cov.function(cluster.params=
+												lapply(cluster.params,"[[",i),
+												data.block)
 							})
 	return(cluster.cov)
 }
 
-get.cluster.params <- function(model.fit,data.block,chain.no,cluster,n.clusters){
+get.cluster.params <- function(model.fit,data.block,chain.no,cluster,n.clusters,n.iter){
 	cluster.params <- list()
 	if(data.block$space | data.block$time){
 		cluster.params <- get.alpha.params(model.fit,chain.no,cluster,n.clusters)
@@ -322,16 +324,16 @@ get.cluster.params <- function(model.fit,data.block,chain.no,cluster,n.clusters)
 		cluster.params <- c(cluster.params,
 							list("mu" = get.cluster.mu(model.fit,chain.no,cluster)))
 	}
-	cluster.cov <- get.cluster.cov(cluster.params,data.block)
+	cluster.cov <- get.cluster.cov(cluster.params,data.block,n.iter)
 	cluster.params <- c(cluster.params,list("cluster.cov"=cluster.cov))
 	return(cluster.params)
 }
 
-get.cluster.params.list <- function(model.fit,data.block,chain.no){
+get.cluster.params.list <- function(model.fit,data.block,chain.no,n.iter){
 	cluster.params <- setNames(
 						lapply(1:data.block$K,
 									function(i){
-										get.cluster.params(model.fit,data.block,chain.no,i,data.block$K)
+										get.cluster.params(model.fit,data.block,chain.no,i,data.block$K,n.iter)
 									}),
 						paste("Cluster",1:data.block$K,sep="_"))
 	return(cluster.params)
@@ -363,11 +365,17 @@ index.best.cluster.params.list <- function(cluster.params.list,best){
 	return(best.cluster.params.list)
 }
 
+get.n.iter <- function(model.fit,chain.no){
+	n.iter <- length(get_logposterior(model.fit)[[chain.no]])
+	return(n.iter)
+}
+
 get.geoStructure.Bayes.results <- function(model.fit,chain.no,data.block){
+	n.iter <- get.n.iter(model.fit,chain.no)
 	post <- list("posterior" = get_logposterior(model.fit)[[chain.no]],
 				 "admix.proportions" = get.admix.props(model.fit,chain.no,data.block$N,data.block$K),
 				 "nuggets" = get.nuggets(model.fit,chain.no,data.block$N),
-				 "cluster.params" = get.cluster.params.list(model.fit,data.block,chain.no),
+				 "cluster.params" = get.cluster.params.list(model.fit,data.block,chain.no,n.iter),
 				 "gamma" = get.gamma(model.fit,chain.no),
 				 "binVar" = get.binVar(model.fit,chain.no),
 				 "par.cov" = get.par.cov(model.fit,chain.no,data.block$N))
@@ -489,7 +497,7 @@ get.geoStructure.results <- function(model.fit,data.block,chain.no=NULL){
 	return(geoStructure.results)
 }
 
-plot.cluster.covariances <- function(data.block,geoStr.results,time,cluster.colors){
+plot.cluster.covariances <- function(data.block,geoStr.results,time,space,cluster.colors){
 	ind.mat <- upper.tri(data.block$geoDist,diag=TRUE)
 	if(data.block$K < 2){
 		y.range <- range(data.block$obsSigma,
@@ -508,12 +516,16 @@ plot.cluster.covariances <- function(data.block,geoStr.results,time,cluster.colo
 			ylim=y.range + diff(range(y.range))/10 * c(-1,1))
 	abline(h=geoStr.results$point$mu,col="gray",lty=2)
 	for(i in 1:data.block$K){
-		points(data.block$geoDist[ind.mat],
-				geoStr.results$point$cluster.params[[i]]$cluster.cov[ind.mat] + 
-				ifelse(data.block$K > 1,
-						geoStr.results$point$cluster.params[[i]]$mu,
-						0),
-				col=cluster.colors[i],pch=20,cex=0.6)
+		if(space | time){
+			points(data.block$geoDist[ind.mat],
+					geoStr.results$point$cluster.params[[i]]$cluster.cov[ind.mat] + 
+					ifelse(data.block$K > 1,
+							geoStr.results$point$cluster.params[[i]]$mu,
+							0),
+					col=cluster.colors[i],pch=20,cex=0.6)
+		} else {
+			abline(h=geoStr.results$point$cluster.params[[i]]$mu,col=cluster.colors[i])
+		}
 	}
 	legend(x="topright",lwd=2,lty=1,col=c("black",cluster.colors[1:data.block$K]),
 			legend=c("Observed Cov",paste0("Cluster_",1:data.block$K)),cex=0.7)
@@ -562,10 +574,17 @@ plot.lnl <- function(geoStr.results,burnin=0){
 	return(invisible(0))
 }
 
-get.ylim <- function(cluster.params,param,n.iter,burnin=0){
-	y.lim <- range(unlist(lapply(
-					lapply(cluster.params,"[[",param),
-				"[",(burnin+1):n.iter)))
+get.ylim <- function(cluster.params,n.clusters,param,n.iter,burnin=0){
+	y.lim <- range(unlist(
+				lapply(
+					lapply(1:n.clusters,
+						function(i){
+							cluster.params[[i]][[param]]
+						}),
+					function(x){
+						range(x[(burnin+1):n.iter])
+					})))
+	y.lim <- y.lim + c(-0.15*diff(y.lim),0.15*diff(y.lim))
 	return(y.lim)
 }
 
@@ -575,21 +594,23 @@ plot.cluster.param <- function(cluster.param,n.iter,clst.col,burnin=0){
 }
 
 plot.cluster.cov.params <- function(data.block,geoStr.results,time,burnin,cluster.colors){
-#	recover()
+	#recover()
 	n.col <- ifelse(time,5,4)
 	n.clusters <- data.block$K
 	n.iter <- length(geoStr.results$post$posterior)
 	params <- names(geoStr.results$post$cluster.params$Cluster_1)[-which(names(geoStr.results$post$cluster.params$Cluster_1)=="cluster.cov")]
-	param.ranges <- lapply(params,function(x){get.ylim(geoStr.results$post$cluster.params,x,burnin)})
-	par(mfrow=c(1,n.col),mar=c(1,2,2,1))
-		for(i in 1:length(params)){
-			plot(0,type='n',main=params[i],
-				xlab="MCMC iterations",ylab="parameter value",
-				xlim=c(1,n.iter-burnin),
-				ylim=param.ranges[[i]])
-			lapply(1:n.clusters,function(j){plot.cluster.param(geoStr.results$post$cluster.params[[j]][[params[i]]],n.iter,cluster.colors[j],burnin)})
-		}
+	param.ranges <- lapply(params,function(x){get.ylim(geoStr.results$post$cluster.params,n.clusters,x,n.iter,burnin)})
+	if(length(params) > 0){
+		par(mfrow=c(1,n.col),mar=c(1,2,2,1))
+			for(i in 1:length(params)){
+				plot(0,type='n',main=params[i],
+					xlab="MCMC iterations",ylab="parameter value",
+					xlim=c(1,n.iter-burnin),
+					ylim=param.ranges[[i]])
+				lapply(1:n.clusters,function(j){plot.cluster.param(geoStr.results$post$cluster.params[[j]][[params[i]]],n.iter,cluster.colors[j],burnin)})
+			}
 		legend(x="topright",col= cluster.colors[1:n.clusters],lty=1,legend=paste0("Cluster_",1:n.clusters))
+	}
 	return(invisible(0))
 }
 
@@ -820,13 +841,14 @@ make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 	load(data.block.file)
 	K <- data.block$K
 	time <- data.block$time
+	space <- data.block$space
 	cluster.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray")
 	cluster.names <- paste0("Cluster_",1:K)
 	pdf(file=paste0(output.dir,"/","model.fit.",K,".pdf"),width=(8+time*4),height=4,pointsize=14)
 		plot.model.fit(data.block,geoStr.results,time)
 	dev.off()
 	pdf(file=paste0(output.dir,"/","cluster.cov.curves.",K,".pdf"),width=(5+time*5),height=5,pointsize=18)
-		plot.cluster.covariances(data.block,geoStr.results,time,cluster.colors)
+		plot.cluster.covariances(data.block,geoStr.results,time,space,cluster.colors)
 	dev.off()
 	pdf(file=paste0(output.dir,"/","pie.chart.map.",K,".pdf"),width=6,height=6,pointsize=18)	
 		make.admix.pie.plot(data.block,geoStr.results,cluster.colors,cluster.names,radii=2.6,add=FALSE,title=NULL,xlim=NULL,ylim=NULL)
@@ -834,6 +856,7 @@ make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 	pdf(file=paste0(output.dir,"/","structure.plot.",K,".pdf"),width=10,height=5,pointsize=18)
 		make.structure.plot(data.block,geoStr.results,mar=c(2,2,2,2),sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL,cluster.colors=cluster.colors)
 	dev.off()
+	load(model.fit.file)
 	if(class(model.fit)=="stanfit"){
 		pdf(file=paste0(output.dir,"/","lnl.and.prob.",K,".pdf"),width=6,height=5,pointsize=18)
 			plot.lnl(geoStr.results,burnin)
