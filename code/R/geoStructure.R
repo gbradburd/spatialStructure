@@ -861,7 +861,7 @@ make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 		pdf(file=paste0(output.dir,"/","lnl.and.prob.",K,".pdf"),width=6,height=5,pointsize=18)
 			plot.lnl(geoStr.results,burnin)
 		dev.off()
-		pdf(file=paste0(output.dir,"/","cluster.cov.params.",K,".pdf"),width=12,height=4,pointsize=18)
+		pdf(file=paste0(output.dir,"/","cluster.cov.params.",K,".pdf"),width=4+space*8,height=4,pointsize=18)
 			plot.cluster.cov.params(data.block,geoStr.results,time,burnin,cluster.colors)
 		dev.off()
 		pdf(file=paste0(output.dir,"/","admix.props.",K,".pdf"),width=(4*data.block$K),height=4,pointsize=18)
@@ -884,3 +884,4 @@ switcharoo.data <- function(frequencies){
 	frequencies <- apply(frequencies,2,random.switcharoo)
 	return(frequencies)
 }
+
