@@ -11,6 +11,7 @@
 \usepackage{bigints}
 \usepackage{array}
 \usepackage{geometry}
+%\usepackage{breqn}
 
 \hypersetup{
     colorlinks,
@@ -24,9 +25,11 @@
 
 \newcommand{\e}[1]{{\mathbb E}\left[ #1 \right]}
 \newcommand{\var}[1]{{\mathbb V \textnormal{ar}}\left[ #1 \right]}
+%\newcommand{\det}[1]{{ | #1 |}
 \newcommand{\gb}[1]{{\color{blue}{(#1)}}}
 \newcommand{\plr}[1]{{\it\color{RedViolet}{(#1)}}}
 \newcommand{\gc}[1]{{\it\color{ForestGreen}{(#1)}}}
+\DeclareMathOperator*{\V}{Var}
 
 \geometry{a4paper}
 
@@ -186,8 +189,110 @@ we can just model covariance in sample frequencies,
 and add a single parameter to describe the increased covariance between samples across loci 
 due to the ancestral mean they share at each locus.
 
-\end{document}
+\section{WAIC}
+\begin{align}
+WAIC =& -2 \widehat{elpd_{waic}}\\
+\widehat{elpd_{waic}} =& \widehat{lpd} - \hat{p}_{waic}\\
+\widehat{lpd} =& \sum\limits_N log\left(\frac{1}{S}\sum\limits_S p(y_i | \theta^s)	\right)\\
+\hat{p}_{waic} =& \sum\limits_N Var_S\left( log \left( p(y_i | \theta^s) \right)	\right)\\
+WAIC =& -2 \left( \sum\limits_N \left[ log\left(\frac{1}{S}\sum\limits_S p(y_i | \theta^s)	\right) \right]-
+	\sum\limits_N \left[ Var_S\left( log \left( p(y_i | \theta^s) \right)	\right) \right]	\right)
+\end{align}
 
+
+And now, plugging in our likelihood function,
+
+\begin{align}
+p(y_i | \theta^s) =& \frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
+					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\\
+%%%%%%%%%%%%%%%%%%
+WAIC =& -2 \left( \sum\limits_N \left[ log\left(\frac{1}{S}\sum\limits_S 
+				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
+						{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}
+			\right)  \right ]\right.\\ \notag
+	&\hspace{0.4in}-\left.\sum\limits_N \left[ Var_S\left(
+			log \left( 
+				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
+						{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}
+			 \right)	\right) \right] \right)\\
+%%%%%%%%%%%%%%%%%%
+WAIC =& -2 \left(  \sum\limits_N \left[ 
+			log\left(	\frac{|X|^{\frac{n-p-1}{2}}}
+						{S 2^\frac{np}{2} \Gamma_p\left(\frac{n}{2}\right)}
+			\sum\limits_S 
+				\frac{e^{\frac{-tr(V_S^{-1}X)}{2}}}
+						{|V_S|^{\frac{n}{2}}}
+			\right)  \right] \right.\\ \notag
+	&\hspace{0.4in}-\left.\sum\limits_N \left[
+		Var_S \left( 
+			log \left(	|X|^{\frac{n-p-1}{2}}	\right) + 
+			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right) \right.\right.\right.\\ \notag
+				&\hspace{0.4in}-\left.\left.\left.
+			log \left(	2^\frac{np}{2}	\right) -
+			log \left(	|V_S|^{\frac{n}{2}}	\right) -
+			log \left(	\Gamma_p\left(\frac{n}{2}\right)	 \right)
+		\vphantom{
+			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right)
+		}
+		\right)
+		 \right]
+		\vphantom{
+			\sum\limits_N log\left(\frac{1}{S}\sum\limits_S 
+				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
+					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\right)
+		}
+\right) \\
+%%%%%%%%%%%%%%%%%%
+WAIC =& -2 \left(  \sum\limits_N \left[ 
+			log\left(	\frac{|X|^{\frac{n-p-1}{2}}}
+						{S 2^\frac{np}{2} \Gamma_p\left(\frac{n}{2}\right)}
+			\right) +
+			log\left(\sum\limits_S 
+				\frac{e^{\frac{-tr(V_S^{-1}X)}{2}}}
+						{|V_S|^{\frac{n}{2}}}
+			\right)  \right] \right.\\ \notag
+	&\hspace{0.4in}-\left.\sum\limits_N \left[
+		Var_S \left( 
+			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right) -
+			log \left(	|V_S|^{\frac{n}{2}}	\right)
+		\vphantom{
+			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right)
+		}
+		\right)
+		 \right]
+		\vphantom{
+			\sum\limits_N log\left(\frac{1}{S}\sum\limits_S 
+				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
+					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\right)
+		}
+\right) \\
+%%%%%%%%%%%%%%%%%%
+WAIC =& -2 \left( 
+	N \times log\left(	\frac{|X|^{\frac{n-p-1}{2}}}
+						{S 2^\frac{np}{2} \Gamma_p\left(\frac{n}{2}\right)}
+			\right) + 
+	\sum\limits_N \left[ 
+			log\left(\sum\limits_S 
+				\frac{e^{\frac{-tr(V_S^{-1}X)}{2}}}
+						{|V_S|^{\frac{n}{2}}}
+			\right)  \right] \right.\\ \notag
+	&\hspace{0.4in}-\left.\sum\limits_N \left[
+		Var_S \left( 
+			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right) -
+			log \left(	|V_S|^{\frac{n}{2}}	\right)
+		\vphantom{
+			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right)
+		}
+		\right)
+		 \right]
+		\vphantom{
+			\sum\limits_N log\left(\frac{1}{S}\sum\limits_S 
+				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
+					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\right)
+		}
+\right) \\
+\end{align}
+\end{document}
 
 
 \section*{spatialStructure + BayEnv?}
