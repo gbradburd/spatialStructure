@@ -885,3 +885,84 @@ switcharoo.data <- function(frequencies){
 	return(frequencies)
 }
 
+post.process.par.cov <- function(geoStr.results,samples){
+	pp.cov.list <- lapply(samples,
+							function(i){
+								list("inv" = chol2inv(chol(geoStr.results$post$par.cov[i,,])),
+									 "log.det" = determinant(geoStr.results$post$par.cov[i,,])$modulus[[1]])
+							})
+	return(pp.cov.list)
+}
+
+calculate.likelihood <- function(obsSigma,inv.par.cov,log.det,n.loci){
+	#recover()
+	lnL <- -0.5 * (sum( inv.par.cov * obsSigma) + n.loci * log.det)
+	return(lnL)
+}
+
+determine.log.shift <- function(chunk.lnls){
+	if(diff(range(unlist(chunk.lnls))) > 700){
+		message("the difference between the min and max lnLs may be inducing underflow")
+	}
+	return(max(unlist(chunk.lnls)))
+}
+
+shift.chunk.lnls <- function(chunk.lnls,A,n.iter){
+	shift.chunk.lnls <- log(sum(exp(chunk.lnls-A))) + A - log(n.iter)
+	return(shift.chunk.lnls)
+}
+
+calc.lnl.x.MCMC <- function(cov.chunk,pp.par.cov){
+	#recover()
+	lnl.x.mcmc <- lapply(pp.par.cov,
+						function(x){
+							calculate.likelihood(cov.chunk,x$inv,x$log.det,n.loci=1)
+					})
+	return(unlist(lnl.x.mcmc))
+}
+
+chunk.freq.data <- function(freqs){
+	n.loci <- ncol(freqs)
+	chunks <- lapply(1:n.loci,
+					  function(i){
+					  	freqs[,i,drop=FALSE] %*% t(freqs[,i,drop=FALSE])
+					  })
+	return(chunks)
+}
+
+calculate.lpd <- function(chunk.lnls,n.iter){
+	#recover()
+	#subtract max lnL from log likelihood to avoid overflow
+		A <- determine.log.shift(chunk.lnls)
+		chunk.lnls.shifted <- lapply(chunk.lnls,function(x){shift.chunk.lnls(x,A,n.iter)})
+	lpd <- sum(unlist(chunk.lnls.shifted))
+	return(lpd)
+}
+
+calculate.pwaic <- function(chunk.lnls){
+	pwaic <- lapply(chunk.lnls,var)
+	return(sum(unlist(pwaic)))
+}
+
+calculate.waic <- function(freqs,geoStr.results,samples=NULL){
+	cat("breaking data into locus-by-locus covariances...\n\n")
+	chunks <- chunk.freq.data(freqs)
+	if(is.null(samples)){
+		samples <- 1:length(geoStr.results$post$posterior)
+	}
+	n.iter <- length(samples)
+	#invert the posterior distn of parametric cov matrices
+	cat("inverting posterior distribution of parametric covariance matrices...\n\n")
+		pp.par.cov <- post.process.par.cov(geoStr.results,samples)
+	#calc likelioods of nth data chunk across all sampled MCMC iterations
+	cat("calculating likelihood of each site across posterior distribution of parameters...\n\n")
+		chunk.lnls <- lapply(chunks,function(x){calc.lnl.x.MCMC(x,pp.par.cov=pp.par.cov)})
+	#calculate log pointwise predictive density
+	cat("calculating wAIC score...\n\n\n")
+		lpd <- calculate.lpd(chunk.lnls,n.iter)
+	#calculate effective number of parameters
+	pwaic <- calculate.pwaic(chunk.lnls)
+	elpd <- lpd - pwaic
+	waic <- -2 * elpd
+	return(waic)
+}
