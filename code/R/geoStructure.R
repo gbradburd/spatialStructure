@@ -212,6 +212,11 @@ get.gamma <- function(model.fit,chain.no){
 	return(gamma)
 }
 
+get.beta <- function(model.fit,chain.no){
+	beta <- extract(model.fit,pars="beta",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
+	return(beta)
+}
+
 get.binVar <- function(model.fit,chain.no){
 	binVar <- extract(model.fit,pars="binVar",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
 	return(binVar)
@@ -376,6 +381,7 @@ get.geoStructure.Bayes.results <- function(model.fit,chain.no,data.block){
 				 "admix.proportions" = get.admix.props(model.fit,chain.no,data.block$N,data.block$K),
 				 "nuggets" = get.nuggets(model.fit,chain.no,data.block$N),
 				 "cluster.params" = get.cluster.params.list(model.fit,data.block,chain.no,n.iter),
+				 "beta" = get.beta(model.fit,chain.no),
 				 "gamma" = get.gamma(model.fit,chain.no),
 				 "binVar" = get.binVar(model.fit,chain.no),
 				 "par.cov" = get.par.cov(model.fit,chain.no,data.block$N))
@@ -384,6 +390,7 @@ get.geoStructure.Bayes.results <- function(model.fit,chain.no,data.block){
 				"admix.proportions" = index.best(post$admix.proportions,best),
 				 "nuggets" = index.best(post$nuggets,best),
 				 "cluster.params" = index.best.cluster.params.list(post$cluster.params,best),
+				 "beta" = index.best(post$beta,best),
 				 "gamma" = index.best(post$gamma,best),
 				 "binVar" = index.best(post$binVar,best),
 				 "par.cov" = index.best(post$par.cov,best))
@@ -478,6 +485,7 @@ get.geoStructure.ML.results <- function(model.fit,data.block){
 	point <- list("admix.proportions" = get.ML.admix.props(model.fit,data.block),
 				  "nuggets" = get.ML.nuggets(model.fit,data.block),
 				  "cluster.params" = get.ML.cluster.params.list(model.fit,data.block),
+				  "beta" = model.fit$par["beta"],
 				  "gamma" = model.fit$par["gamma"],
 				  "binVar" = model.fit$par["binVar"],
 				  "par.cov" = get.ML.par.cov(model.fit,data.block))
@@ -548,21 +556,25 @@ plot.cluster.covariances <- function(data.block,geoStr.results,time,space,cluste
 
 plot.model.fit <- function(data.block,geoStr.results,time){
 	n.col <- ifelse(time,3,2)
+	cov.range <- range(c(data.block$obsSigma,geoStr.results$point$par.cov))
 	par(mfrow=c(1,n.col),mar=c(4.5,4.5,1,1))
 		plot(data.block$geoDist,data.block$obsSigma,
 			xlab="geographic distance",
-			ylab="covariance")
+			ylab="covariance",ylim=cov.range)
 		points(data.block$geoDist,geoStr.results$point$par.cov,pch=20,col="red",cex=0.8)
 		legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"),cex=0.7)
 		if(time){
 			plot(data.block$timeDist,data.block$obsSigma,
 				xlab="temporal distance",
-				ylab="covariance")
+				ylab="covariance",
+				ylim=cov.range)
 			points(data.block$timeDist,geoStr.results$point$par.cov,pch=20,col="red")
 		}
 		plot(data.block$obsSigma,geoStr.results$point$par.cov,
 				xlab="sample covariance",
-				ylab ="parametric admixed covariance")
+				ylab ="parametric admixed covariance",
+				xlim=cov.range,
+				ylim=cov.range)
 			abline(0,1,col="red")
 	return(invisible(0))
 }
@@ -614,12 +626,28 @@ plot.cluster.cov.params <- function(data.block,geoStr.results,time,burnin,cluste
 	return(invisible(0))
 }
 
-plot.admix.props <- function(data.block,geoStr.results,cluster.colors){
+plot.variance.params <- function(data.block,geoStr.results,burnin){
+	par(mfrow=c(1,3))
+	n.iter <- length(geoStr.results$post$posterior)
+	plot(geoStr.results$post$beta[(burnin+1):n.iter],
+			xlab="MCMC iterations",ylab="value of beta",
+			xlim=c(1,n.iter-burnin))
+	plot(geoStr.results$post$gamma[(burnin+1):n.iter],
+			xlab="MCMC iterations",ylab="value of gamma",
+			xlim=c(1,n.iter-burnin))
+	plot(geoStr.results$post$binVar[(burnin+1):n.iter],
+			xlab="MCMC iterations",ylab="value of binVar",
+			xlim=c(1,n.iter-burnin))
+	return(invisible(0))
+}
+
+plot.admix.props <- function(data.block,geoStr.results,cluster.colors,burnin){
 #	recover()
 	n.clusters <- data.block$K
+	n.iter <- length(geoStr.results$post$posterior)
 	par(mfrow=c(1,n.clusters),mar=c(2,2,2,2))
 		for(i in 1:n.clusters){
-			matplot(geoStr.results$post$admix.proportions[,,i],type='l',ylim=c(0,1),
+			matplot(geoStr.results$post$admix.proportions[(burnin+1):n.iter,,i],type='l',ylim=c(0,1),
 					main=paste0("Cluster ",i),ylab="admixture proportion",col=cluster.colors[i])
 		}
 	return(invisible(0))
@@ -865,10 +893,13 @@ make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 			plot.cluster.cov.params(data.block,geoStr.results,time,burnin,cluster.colors)
 		dev.off()
 		pdf(file=paste0(output.dir,"/","admix.props.",K,".pdf"),width=(4*data.block$K),height=4,pointsize=18)
-			plot.admix.props(data.block,geoStr.results,cluster.colors)
+			plot.admix.props(data.block,geoStr.results,cluster.colors,burnin)
 		dev.off()
 		pdf(file=paste0(output.dir,"/","nuggets.",K,".pdf"),width=6,height=4,pointsize=18)
 			plot.nuggets(geoStr.results,burnin)
+		dev.off()
+		pdf(file=paste0(output.dir,"/","var.params.",K,".pdf"),width=9,height=4,pointsize=18)
+			plot.variance.params(data.block,geoStr.results,burnin)
 		dev.off()
 	}
 }

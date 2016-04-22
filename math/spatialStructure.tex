@@ -171,18 +171,26 @@ $\e{\bar{f}(1-\bar{f})}$ should be square-rooted, but maybe I'm wrong?
 \subsection*{shared mean business}
 
 Our thoughts proceed as follows:\\
-say $X_i$ is the allele frequency at a given locus in population $i$,\\
+say $f_i$ is the allele frequency at a given locus in population $i$,\\
 and $\epsilon$ is the ancestral frequency at that locus,\\
-and $\Delta X_i$ is the deviation in population $i$ from $\epsilon$ at that locus:\\
+and $X_i$ is the deviation in population $i$ from $\epsilon$ at that locus (i.e., $\epsilon + X_i = f_i$):\\
 \begin{align}
-\text{Cov}(f_i,f_j) &= \e{X_iX_j} - \e{X_i}\e{X_j}	\notag\\
-			&= \e{(\Delta X_i + \epsilon) (\Delta X_j +
-                          \epsilon)} - \e{ \Delta X_i+ \epsilon}\e{\Delta X_j+ \epsilon} \notag\\
-			&= \e{(\Delta X_i \Delta X_j + \Delta X_i\epsilon + \Delta X_j\epsilon + \epsilon^2)} -(\e{\Delta X_i}+ \e{\epsilon})(\e{\Delta X_j}+ \e{\epsilon}) \notag\\
-			&= \e{\Delta X_i \Delta X_j}  + \e{\epsilon^2} - \e{\epsilon}^2 \notag\\
-			&= \e{\Delta X_i \Delta X_j}  + \var{\epsilon}
+\text{Cov}(f_i,f_j) =& \e{f_if_j} - \e{f_i}\e{f_j}	\notag\\
+			=& \e{( X_i + \epsilon) ( X_j +
+                         		 \epsilon)} - \e{  X_i+ \epsilon}\e{ X_j+ \epsilon} \notag\\
+			=& \e{( X_i  X_j +  X_i\epsilon +  X_j\epsilon + \epsilon^2)} -(\e{ X_i}+ \e{\epsilon})(\e{ X_j}+ \e{\epsilon}) \notag\\
+			=& \e{( X_i  X_j +  X_i\epsilon +  X_j\epsilon + \epsilon^2)} -
+				(\e{ X_i}\e{ X_j}+ \e{\epsilon}\e{ X_i}+ \e{\epsilon}\e{ X_j} + \e{\epsilon}^2) \notag\\
+			=& \e{X_i  X_j} - \e{ X_i}\e{ X_j} \\ \notag 
+			     &+ \e{X_i\epsilon} - \e{\epsilon}\e{ X_i} \\ \notag 
+			     &+\e{X_j\epsilon} - \e{\epsilon}\e{ X_j} \\ \notag 
+			     &+\e{\epsilon^2} - \e{\epsilon}^2  \notag\\
+			&= \text{Cov}({ X_i,X_j})  + \text{Cov}(X_i,\epsilon) + 
+				\text{Cov}(X_j,\epsilon) + \var{\epsilon} \notag\\
+			&= \text{Cov}({ X_i,X_j}) + \var{\epsilon}
 \end{align}
 \\
+
 So in Eqn. \eqref{eq:total_cov}, the $\delta$ term is describing this $\var{\epsilon}$.
 If this math works, then it also means that we don't have to mean-center the loci;
 we can just model covariance in sample frequencies, 

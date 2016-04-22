@@ -12,33 +12,35 @@ parameters {
 	real<lower=0> alphaD[K];			// effect of geographic distance in the parametric covariance in cluster k
 	real<lower=0, upper=2>  alpha2[K];	// exponential slope parameter in the parametric covariance in cluster k
 	real<lower=0> mu[K];				// shared drift effect in cluster k
-	real<lower=0> gamma;				// global covariance due to shared ancestral mean between all samles
   	real<lower=0> nugget[N]; 			// sample-specific variance (allele sampling error + sample-specific drift)
 	simplex[K]    w[N];    				// every sample (N in total) has a K simplex (i.e. K clusters)
- 	real<lower=0, upper=0.25> binVar;	// (mean.f * (1-mean.f)) averaged over all loci
+	real<lower=0,upper=1> beta;			// shape parameter of beta distribution of ancestral allele frequencies (epsilon ~ Beta(alpha=beta))
 }
 transformed parameters {
-		  matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
-			for (i in 1:N){
-				for (j in 1:N){
-					Sigma[i, j] <- gamma;
-					for(k in 1:K){
-						Sigma[i, j] <- Sigma[i, j]  +  binVar * ( w[i,k] * w[j,k] * ( alpha0[k] * exp(-(alphaD[k]* geoDist[i, j])^alpha2[k] ) + mu[k]));
-					}
-					if(i==j){
-						Sigma[i, i]<- Sigma[i, i] + binVar * (nugget[i] + 1/sampleSize[i]);
-					}
-				}
+	real<lower=0> gamma;				// global covariance due to shared ancestral mean between all samples
+ 	real<lower=0, upper=0.25> binVar;	// (mean.f * (1-mean.f)) averaged over all loci
+	matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
+	gamma <- 1/(8 * beta + 4);
+ 	binVar <- 0.25 - gamma;
+	for (i in 1:N){
+		for (j in 1:N){
+			Sigma[i, j] <- gamma;
+			for(k in 1:K){
+				Sigma[i, j] <- Sigma[i, j]  +  binVar * ( w[i,k] * w[j,k] * ( alpha0[k] * exp(-(alphaD[k]* geoDist[i, j])^alpha2[k] ) + mu[k]));
+			}
+			if(i==j){
+				Sigma[i, i]<- Sigma[i, i] + binVar * (nugget[i] + 1/sampleSize[i]);
 			}
 		}
+	}
+}
 model {
 	alpha0 ~ exponential(1);								// prior on alpha0
 	alphaD ~ exponential(1);								// prior on alphaD
 	alpha2 ~ exponential(1);								// prior on alpha2
 	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
-	4 * binVar ~ beta(5,1);									// prior on binomial sampling variance
 	mu ~ exponential(1);									// prior on cluster shared drift
-	gamma ~ exponential(1);									// prior on global shared drift
+	beta ~ beta(1,5);										// prior on shape parameter of symmetric beta
 	for(i in 1:N) w[i] ~ dirichlet(DirichAlpha);			// prior on admixture proportions
 	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function	
 }

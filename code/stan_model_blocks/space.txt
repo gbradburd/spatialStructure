@@ -10,27 +10,29 @@ parameters {
 	real<lower=0> alpha0;			// sill of the parametric covariance in cluster k
 	real<lower=0> alphaD;			// effect of geographic distance in the parametric covariance in cluster k
 	real<lower=0, upper=2>  alpha2;	// exponential slope parameter in the parametric covariance in cluster k
-	real<lower=0> gamma;			// global covariance due to shared ancestral mean between all samles
   	real<lower=0> nugget[N]; 		// sample-specific variance (allele sampling error + sample-specific drift)
- 	real<lower=0, upper=0.25> binVar;	// (mean.f * (1-mean.f)) averaged over all loci
+	real<lower=0,upper=1> beta;		// shape parameter of beta distribution of ancestral allele frequencies (epsilon ~ Beta(alpha=beta))
 }
 transformed parameters {
-		  matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
-			for (i in 1:N){
-				for (j in 1:N){
-						Sigma[i, j] <- gamma  +  binVar * ( alpha0 * exp(-(alphaD* geoDist[i, j])^alpha2 ));
-					if(i==j){
-						Sigma[i, i]<- Sigma[i, i] + binVar * (nugget[i] + 1/sampleSize[i]);
-					}
-				}
-			}
+	real gamma;				// global covariance due to shared ancestral mean between all samples
+	real binVar;			// (mean.f * (1-mean.f)) averaged over all loci
+	matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
+	gamma <- 1/(8 * beta + 4);
+ 	binVar <- 0.25 - gamma;
+	for (i in 1:N){
+		for (j in 1:N){
+				Sigma[i, j] <- gamma  +  binVar * ( alpha0 * exp(-(alphaD* geoDist[i, j])^alpha2 ));
 		}
+	}
+	for (i in 1:N){
+		Sigma[i, i] <- Sigma[i, i] + binVar * (nugget[i] + 1/sampleSize[i]);
+	}
+}
 model {
 	alpha0 ~ exponential(1);								// prior on alpha0
 	alphaD ~ exponential(1);								// prior on alphaD
 	alpha2 ~ exponential(1);								// prior on alpha2
 	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
-	4 * binVar ~ beta(5,1);									// prior on binomial sampling variance
-	gamma ~ exponential(1);									// prior on global shared drift
-	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function	
+	beta ~ beta(1,5);										// prior on shape parameter of symmetric beta
+	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function
 }
