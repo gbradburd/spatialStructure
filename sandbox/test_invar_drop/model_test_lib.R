@@ -11,7 +11,7 @@ sim.spStr.dataset <- function(k,n.loci){
 	epsilon <- rbeta(n.loci,beta,beta)
 	nuggets <- rexp(k,1)
 	coords <- cbind(runif(k),runif(k))
-	geoDist <- fields::rdist(coords)
+	geoDist <- as.matrix(dist(coords))
 	a0 <- rexp(1)
 	aD <- rexp(1)
 	a2 <- runif(1,0.0001,2)
@@ -86,11 +86,10 @@ pdf(file=paste0(dir,"/all_plots.pdf",collapse=""),width=11,height=5)
 	    plot(data.block$geoDist, data.block$obsSigma, xlab = "geographic distance", 
 	        ylab = "covariance", ylim = cov.range, type = "n")
 	    lapply(seq((burnin + 1), 500, length.out = min(100, 500 - 
-	        (burnin + 1))), function(i) {
-	        points(data.block$geoDist[index.mat], par.cov[i, 
-	            , ][index.mat], pch = 20, col = adjustcolor("red", 
-	            0.1))
-	    		})
+                (burnin + 1))), function(i) {
+                points( data.block$geoDist[index.mat], par.cov[i, , ][index.mat], 
+                       pch = 20, col = adjustcolor("red",0.1) )
+            })
 	    points(data.block$geoDist[index.mat], data.block$obsSigma[index.mat], 
 	        xlab = "geographic distance", ylab = "covariance", ylim = cov.range, 
 	        pch = 19)
@@ -106,6 +105,7 @@ pdf(file=paste0(dir,"/all_plots.pdf",collapse=""),width=11,height=5)
 	        					pch = 20, col = adjustcolor("black", 0.1))
 		    		})
 		abline(0,1,col="red")
+        mtext("nuggets",side=3,padj=2)
 	plot(zeta[x],
 			ylim=range(c(zeta[x],spStr.dataset$sim.pars$zeta)))
 		abline(h=spStr.dataset$sim.pars$zeta,col="red")

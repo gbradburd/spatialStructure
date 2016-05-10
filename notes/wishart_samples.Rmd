@@ -1,0 +1,264 @@
+
+```{r setup, include=FALSE}
+fig.dim <- 4
+knitr::opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
+require(rstan)
+# Render this with 
+# templater::render_template("wishart_samples.Rmd")
+```
+
+# Using the Wishart
+
+Our model is that the *expected* covariance has a certain parametric form,
+which is a function of distance,
+and the *observed* covariance matrix has a Wishart distribution 
+with mean equal to a certain $\Omega$ (times the number of loci),
+and that the observed covariance matrix, $\Sigma$, has
+$$
+    L \Sigma \sim \text{Wishart}(L,\Omega),
+$$
+where $L$ is the number of loci.
+
+## The Wishart
+Recall that the Wishart is the distribution of $L \Sigma = X^T X$, where $X$ is a $L \times n$ matrix of Gaussians,
+whose rows are independent $N(0,\Omega)$.
+
+- The mean of the Wishart is $L \Omega$, 
+- **the mode is $(L-n-1)\Omega$,**
+- and the variance of $\Sigma_{ij}$ is $(\Omega_{ij}^2 + \Omega_{ii}\Omega_{jj})/L$.
+
+### The mean
+The assumption that rows are independent is not required to have $\E[ X^T X ] = L \Omega$,
+only that $\E[X_{i\ell}X_{j\ell}]=\Omega_{ij}$:
+$$
+\begin{aligned}
+    \E[ (X^T X)_{ij} ] 
+    &= 
+    \EE{ \sum_{\ell=1}^L X_{i\ell} X_{j\ell} } \\
+    &= 
+    \sum_{\ell=1}^L \E[ X_{i\ell} X_{j\ell} ] \\
+    &=
+    L \Omega_{ij} .
+\end{aligned}
+$$
+
+### The variance
+Nonindependence, however, affects the variance:
+$$
+\begin{aligned}
+    \var[ (X^T X)_{ij} ] 
+    &= 
+    \E\left[ \left( \sum_{\ell=1}^L X_{i\ell} X_{j\ell} \right)^2 \right] - L ^2 \Omega_{ij}^2 \\
+    &= 
+    \E\left[ \sum_{k,\ell=1}^L X_{ik} X_{jk} X_{i\ell} X_{j\ell} \right]- L^2 \Omega_{ij}^2 \\
+\end{aligned}
+$$
+If the $X$s are Gaussian, then since for Gaussian $A$, $B$, $C$, $D$, $\E[ABCD]=\E[AB]\E[CD]+\E[AC][\E[BD]+\E[AD]\E[BC]$,
+this is equal to
+$$
+\begin{aligned}
+    &= 
+    \sum_{k,\ell=1}^L 
+        % \E[ X_{ik} X_{jk} ] \E[ X_{i\ell} X_{j\ell} ]  + % cancels with \Omega_{ij}^2
+        \E[ X_{ik} X_{j\ell} ] \E[ X_{i\ell} X_{jk} ]
+        + \E[ X_{ik} X_{i\ell} ] \E[ X_{j\ell} X_{jk} ]  \\
+    &= L ( \Omega_{ij}^2 + \Omega_{ii}\Omega_{jj} ) 
+    + \sum_{k \neq \ell} 
+        \E[ X_{ik} X_{j\ell} ] \E[ X_{i\ell} X_{jk} ]
+        + \E[ X_{ik} X_{i\ell} ] \E[ X_{j\ell} X_{jk} ] .
+\end{aligned}
+$$
+This will in general increase the variance.
+
+Suppose that it was true that the variance was inflated by a constant amount: 
+$$
+    \var[ (X^T X)_{ij} ] = (L+C) ( \Omega_{ij}^2 + \Omega_{ii}\Omega_{jj} )
+$$
+To approximate this by a Wishart($M$,$V$),
+we want $MV=L\Sigma$ and $MV^2=(L+C)\Sigma^2$,
+which is solved by $V=\Sigma L/M$ and $L^2/M=(L+C)$, i.e.
+$$
+    L \Sigma \sim \text{Wishart}\left( \frac{L^2}{L+C}, \frac{L+C}{L} \Sigma  \right) .
+$$
+
+
+## Allele frequencies
+
+The distribution we're actually modeling is: 
+pick "ancestral" allele frequencies $\mu$;
+pick allele frequencies $F=\mu+X$ by truncating a sample from $N(\mu,V)$,
+doing independent Binomial sampling $B$ from these with sample sizes $n$,
+and letting $\Sigma$ be the covariance matrix of the sample allele frequencies $P$.
+
+What is the expected covariance matrix for this sampling scheme? 
+Since
+$$
+\begin{aligned}
+    \cov[F_i,F_j] 
+    &= 
+    \E[\cov[F_i,F_j|\mu] + \cov[ \E[F_i|\mu], \E[F_j|\mu] ] \\
+    &=
+    V_{ij} + \var[\mu],
+\end{aligned}
+$$
+we at least know that
+$$
+\begin{aligned}
+    \cov[P_i,P_j] 
+    &= 
+    \E[ \cov[P_i,P_j|F] ] + \cov[ \E[P_i|F], \E[P_j|F] ] \\
+    &= 
+    \delta_{ij} \frac{1}{n_i} \E[F_i (1-F_i)] + \cov[F_i,F_j] ,
+\end{aligned}
+$$
+and if we ignore truncation, this is
+$$
+\begin{aligned}
+    &= 
+    \delta_{ij} \frac{1}{n_i} \left( \E[\mu(1-\mu)] - V_{ii} \right) + \var[\mu] + V_{ij}  .
+\end{aligned}
+$$
+This suggests the parametric form
+$$
+\Omega_{ij} = \delta_{ij} \eta_i + \gamma + V_{ij} .
+$$
+
+
+# Simulation
+
+## Pure Wishart
+
+Let's take
+$$
+    \Omega_{ij} = \alpha_0 \exp\left( - \alpha_D d_{ij} \right).
+$$
+We'll fix the sample locations, and hence $d$, 
+as well as $\alpha_0$ and $\alpha_D$, once and for all.
+```{r sample_locs, cache=TRUE}
+set.seed(42)
+ninds <- 100
+xy <- cbind(x=runif(ninds), y=runif(ninds))
+dmat <- as.matrix( dist(xy) )
+a0 <- 0.5
+aD <- 1
+Omega <- a0 * exp( - aD * dmat )
+```
+
+First, let's see what a few individual Wishart samples look like.
+Note the global correlation: the entire cloud of samples tends to be above or below the mean at the same time.
+```{r some_wisharts}
+ut <- upper.tri(dmat,diag=TRUE)
+L <- 1e2
+layout(t(1:2))
+for (k in 1:6) {
+    obsSigma <- rWishart( n=1, df=L, Sigma=Omega )[,,] / L
+    plot( dmat[ut], obsSigma[ut], pch=20, col='red' )
+    points( dmat[ut], Omega[ut], pch=20 )
+}
+```
+
+Here's distributions of many Wisharts:
+```{r sample_wishart, cache=TRUE, depends="sample_locs"}
+dummy.mat <- matrix(0,nrow=ninds,ncol=ninds)
+diag.inds <- which( row(dummy.mat)==col(dummy.mat) )
+utri <- which( upper.tri(dummy.mat, diag=FALSE) )
+for (L in c(1e2, 1e3, 1e4)) {
+    wishart.samples <- rWishart( n=1000, df=L, Sigma=Omega ) / L
+    dim(wishart.samples) <- c( ninds^2, 1000 )
+    layout(t(1:2))
+    hist( wishart.samples[diag.inds,], col=adjustcolor("red",0.75), xlim=range(wishart.samples), freq=FALSE, xlab='Wishart', main=sprintf("L = %d", L) )
+        hist( wishart.samples[utri,], col=adjustcolor("blue",0.75), add=TRUE, freq=FALSE )
+        legend("topleft",fill=c("red","blue"),legend=c("diagonals","offdiagonals"))
+    matplot( as.vector(dmat), wishart.samples[,1:20], pch=20, col=adjustcolor("black",0.1), ylab='wishart' )
+    points( as.vector(dmat), as.vector(Omega), col='red', pch=20 )
+}
+```
+Plots of individual matrix elements don't show anything significantly different.
+<!--
+Here's plots of individual matrix elements, with the distribution of diagonal elements for comparison:
+#```{r wishart_entries, fig.width=4*fig.dim, fig.height=4*fig.dim}
+layout(matrix(1:16,nrow=4))
+for (kk in 1:16) { 
+    k <- sample.int(ninds^2,1)
+    hist( wishart.samples[diag.inds,], col=adjustcolor("grey",0.5), breaks=40, xlim=c(0,1), freq=FALSE, main='' )
+    hist( wishart.samples[k,], col=adjustcolor('red',0.75), breaks=40, freq=FALSE, add=TRUE )
+    abline(v=Omega[k]*(c(1,L)), lwd=3) 
+}
+#```
+-->
+
+
+### Stan
+
+Let's see what the posterior distribution looks like in this simple case.
+```{r wishart_stan, cache=TRUE}
+wishart.stan <- "
+data {
+	int<lower=2> N; 	  		// number of samples
+	int<lower=N+1> L;	    	// number of loci
+	matrix[N,N] obsSigma; 		// observed covar
+	matrix[N,N]  geoDist; 		// matrix of pairwise geographic distance
+}
+parameters {
+	real<lower=0> alpha0;				// sill of the parametric covariance in cluster k
+	real<lower=0> alphaD;				// effect of geographic distance in the parametric covariance in cluster k
+}
+transformed parameters {
+	matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
+	for (i in 1:N){
+		for (j in i:N){
+				Sigma[i, j] <- alpha0 * exp(-(alphaD * geoDist[i, j]) );
+				Sigma[j, i] <- Sigma[i, j];
+		}
+    }
+}
+model {
+	alpha0 ~ exponential(1);								// prior on alpha0
+	alphaD ~ exponential(1);								// prior on alphaD
+	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function
+}
+"
+set.seed(23)
+L <- 1e3
+obsSigma <- rWishart( n=1, df=L, Sigma=Omega )[,,] / L
+data.block <- list( "N" = ninds,
+                    "L" = L,
+                    "obsSigma" = obsSigma,
+                    "geoDist" = dmat )
+n.iter <- 1e4
+fit <- stan( model_code = wishart.stan, data = data.block, iter=n.iter, chains = 1, thin=n.iter/500)
+```
+In the result, $\alpha_0$ and $\alpha_D$ are strongly negatively correlated:
+```{r stan_posterior_alphas, fig.height=2*fig.dim}
+traceplot( fit, pars=c(names(fit)[1:9],"lp__") )
+pairs( fit, pars=c(names(fit)[1:9],"lp__") )
+```
+
+Let's compare the posterior samples to the expected value and the sample we fed in.
+First, here's the posterior mean Sigma, the transform of the posterior mean $\alpha_0$ and $\alpha_D$, the "true" value, and the "observed" $\Sigma$;
+shown first in absolute scale, then as difference to $\Omega$.
+```{r stan_posterior_mean}
+ut <- upper.tri(dmat,diag=TRUE)
+alpha.pm <- get_posterior_mean( fit, pars=c("alpha0","alphaD") )
+post.Sigma <- matrix( get_posterior_mean( fit, pars=grep("Sigma",names(fit), value=TRUE) ), nrow=ninds )
+post.Omega <- alpha.pm["alpha0",1] * exp( - alpha.pm["alphaD",1] * dmat )
+matplot( dmat[ut], cbind( post.Sigma[ut], post.Omega[ut], Omega[ut], obsSigma[ut] ), pch=1:4, ylab="covariance", xlab='geog dist' )
+legend("topright", pch=1:4, col=1:5, legend=c("posterior mean Sigma", "posterior mean alpha", "true Omega", "observed Sigma"))
+matplot( dmat[ut], cbind( post.Sigma[ut]-Omega[ut], post.Omega[ut]-Omega[ut], 0, obsSigma[ut]-Omega[ut], (1-(ninds+1)/L)*post.Omega[ut]-Omega[ut] ), pch=1:5, ylab="difference from Omega", xlab='geog dist' )
+legend("topright", pch=1:5, col=1:5, legend=c("posterior mean Sigma", "posterior mean alpha", "true Omega", "observed Sigma", "posterior mode alpha"))
+```
+The posterior is shifted up, distinctly, from the true value because the "observed" $\Sigma$ happened to be.
+The discrepancy is not explained by the difference between the mean and mode of the Wishart; 
+the posterior mode is actually closer to the truth at near the diagonal, but then moves further away.
+
+Now, here's the posterior distribution of Wishart samples (in grey),
+along with the "observed" sigma (red) and the "true" mean (black):
+```{r stan_posterior_cov}
+samp.wishart <- (1/L) * apply( as.matrix(fit)[,3:(ninds^2+2)], 1, function (O) { rWishart(1, df=data.block$L, Sigma=matrix(O,nrow=ninds)) } )
+col.inds <- do.call(rbind,strsplit(gsub("[][]","",gsub("Sigma","",names(fit)[3:(ninds^2+2)])),","))
+do.these <- which( col.inds[,1] <= col.inds[,2] )
+matplot( dmat[col.inds[do.these,]], samp.wishart[do.these,], pch=20, col='grey', xlab='geog dist' )
+points( dmat[ut], obsSigma[ut], pch=20, col=adjustcolor('red',0.5) )
+points( dmat[ut], Omega[ut], pch=20 )
+legend("topright",pch=20,col=c('grey','red','black'),legend=c("posterior","observed","true mean"))
+```
