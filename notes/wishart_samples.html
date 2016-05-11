@@ -147,31 +147,45 @@ img {
 </div>
 <div id="allele-frequencies" class="section level2">
 <h2>Allele frequencies</h2>
-<p>The distribution we're actually modeling is: pick &quot;ancestral&quot; allele frequencies <span class="math inline">\(\mu\)</span>; pick allele frequencies <span class="math inline">\(F=\mu+X\)</span> by truncating a sample from <span class="math inline">\(N(\mu,V)\)</span>, doing independent Binomial sampling <span class="math inline">\(B\)</span> from these with sample sizes <span class="math inline">\(n\)</span>, and letting <span class="math inline">\(\Sigma\)</span> be the covariance matrix of the sample allele frequencies <span class="math inline">\(P\)</span>.</p>
-<p>What is the expected covariance matrix for this sampling scheme? Since <span class="math display">\[
-\begin{aligned}
-    \cov[F_i,F_j] 
-    &amp;= 
-    \E[\cov[F_i,F_j|\mu] + \cov[ \E[F_i|\mu], \E[F_j|\mu] ] \\
-    &amp;=
-    V_{ij} + \var[\mu],
-\end{aligned}
-\]</span> we at least know that <span class="math display">\[
+<p>The distribution we're actually modeling is: pick &quot;ancestral&quot; allele frequencies <span class="math inline">\(\mu\)</span>; pick allele frequencies <span class="math inline">\(F=\mu+X\)</span> by truncating a sample from <span class="math inline">\(N(\mu,\mu(1-\mu)V)\)</span>, doing independent Binomial sampling <span class="math inline">\(B\)</span> from these with sample sizes <span class="math inline">\(n\)</span>, and letting <span class="math inline">\(\Sigma\)</span> be the covariance matrix of the sample allele frequencies <span class="math inline">\(P\)</span>.</p>
+<p>What is the expected covariance matrix for this sampling scheme? We at least know that <span class="math display">\[
 \begin{aligned}
     \cov[P_i,P_j] 
     &amp;= 
     \E[ \cov[P_i,P_j|F] ] + \cov[ \E[P_i|F], \E[P_j|F] ] \\
     &amp;= 
-    \delta_{ij} \frac{1}{n_i} \E[F_i (1-F_i)] + \cov[F_i,F_j] ,
+    \delta_{ij} \frac{1}{n_i} \E[F_i (1-F_i)] + \cov[F_i,F_j] .
 \end{aligned}
-\]</span> and if we ignore truncation, this is <span class="math display">\[
+\]</span> If we ignore truncation, <span class="math display">\[
 \begin{aligned}
+    \cov[F_i,F_j] 
     &amp;= 
-    \delta_{ij} \frac{1}{n_i} \left( \E[\mu(1-\mu)] - V_{ii} \right) + \var[\mu] + V_{ij}  .
+    \E[\cov[F_i,F_j|\mu]] + \cov[ \E[F_i|\mu], \E[F_j|\mu] ] \\
+    &amp;=
+    \E[\mu(1-\mu)] V_{ij} + \var[\mu] \\
+    % &amp;=
+    % \E[\mu](1-\E[\mu]) V_{ij} + (1-V_{ij})\var[\mu] ,
+\end{aligned}
+\]</span> and also <span class="math display">\[
+\begin{aligned}
+    \E[ F_i (1-F_i) ]
+    &amp;= 
+    \E[ F_i ] - \E[ F_i ]^2 - \var[ F_i ] \\
+    &amp;=
+    \E[ \mu ] ( 1- \E[\mu] ) - ( \E[\mu(1-\mu)] V_{ii} + \var[\mu] ) \\
+    &amp;=
+    \E[ \mu (1-\mu) ] (1-V_{ii})
+\end{aligned}
+\]</span> and so finally <span class="math display">\[
+\begin{aligned}
+    \cov[P_i,P_j] 
+    &amp;= 
+    \delta_{ij} \frac{1}{n_i} \E[ \mu (1-\mu) ] (1-V_{ii})
+        + \var[\mu] + \E[\mu(1-\mu)] V_{ij}  
 \end{aligned}
 \]</span> This suggests the parametric form <span class="math display">\[
-\Omega_{ij} = \delta_{ij} \eta_i + \gamma + V_{ij} .
-\]</span></p>
+\Omega_{ij} = \zeta \left( \delta_{ij} \eta_i + V_{ij} \right) + \gamma .
+\]</span> Note that <span class="math inline">\(\zeta\)</span> is confounded with <span class="math inline">\(\eta\)</span> and <span class="math inline">\(V\)</span>, so it should probably be left out.</p>
 </div>
 </div>
 <div id="simulation" class="section level1">

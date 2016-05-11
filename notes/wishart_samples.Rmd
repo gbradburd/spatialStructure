@@ -86,42 +86,59 @@ $$
 
 The distribution we're actually modeling is: 
 pick "ancestral" allele frequencies $\mu$;
-pick allele frequencies $F=\mu+X$ by truncating a sample from $N(\mu,V)$,
+pick allele frequencies $F=\mu+X$ by truncating a sample from $N(\mu,\mu(1-\mu)V)$,
 doing independent Binomial sampling $B$ from these with sample sizes $n$,
 and letting $\Sigma$ be the covariance matrix of the sample allele frequencies $P$.
 
 What is the expected covariance matrix for this sampling scheme? 
-Since
-$$
-\begin{aligned}
-    \cov[F_i,F_j] 
-    &= 
-    \E[\cov[F_i,F_j|\mu] + \cov[ \E[F_i|\mu], \E[F_j|\mu] ] \\
-    &=
-    V_{ij} + \var[\mu],
-\end{aligned}
-$$
-we at least know that
+We at least know that
 $$
 \begin{aligned}
     \cov[P_i,P_j] 
     &= 
     \E[ \cov[P_i,P_j|F] ] + \cov[ \E[P_i|F], \E[P_j|F] ] \\
     &= 
-    \delta_{ij} \frac{1}{n_i} \E[F_i (1-F_i)] + \cov[F_i,F_j] ,
+    \delta_{ij} \frac{1}{n_i} \E[F_i (1-F_i)] + \cov[F_i,F_j] .
 \end{aligned}
 $$
-and if we ignore truncation, this is
+If we ignore truncation, 
 $$
 \begin{aligned}
+    \cov[F_i,F_j] 
     &= 
-    \delta_{ij} \frac{1}{n_i} \left( \E[\mu(1-\mu)] - V_{ii} \right) + \var[\mu] + V_{ij}  .
+    \E[\cov[F_i,F_j|\mu]] + \cov[ \E[F_i|\mu], \E[F_j|\mu] ] \\
+    &=
+    \E[\mu(1-\mu)] V_{ij} + \var[\mu] \\
+    % &=
+    % \E[\mu](1-\E[\mu]) V_{ij} + (1-V_{ij})\var[\mu] ,
+\end{aligned}
+$$
+and also
+$$
+\begin{aligned}
+    \E[ F_i (1-F_i) ]
+    &= 
+    \E[ F_i ] - \E[ F_i ]^2 - \var[ F_i ] \\
+    &=
+    \E[ \mu ] ( 1- \E[\mu] ) - ( \E[\mu(1-\mu)] V_{ii} + \var[\mu] ) \\
+    &=
+    \E[ \mu (1-\mu) ] (1-V_{ii})
+\end{aligned}
+$$
+and so finally
+$$
+\begin{aligned}
+    \cov[P_i,P_j] 
+    &= 
+    \delta_{ij} \frac{1}{n_i} \E[ \mu (1-\mu) ] (1-V_{ii})
+        + \var[\mu] + \E[\mu(1-\mu)] V_{ij}  
 \end{aligned}
 $$
 This suggests the parametric form
 $$
-\Omega_{ij} = \delta_{ij} \eta_i + \gamma + V_{ij} .
+\Omega_{ij} = \zeta \left( \delta_{ij} \eta_i + V_{ij} \right) + \gamma .
 $$
+Note that $\zeta$ is confounded with $\eta$ and $V$, so it should probably be left out.
 
 
 # Simulation
@@ -229,7 +246,7 @@ n.iter <- 1e4
 fit <- stan( model_code = wishart.stan, data = data.block, iter=n.iter, chains = 1, thin=n.iter/500)
 ```
 In the result, $\alpha_0$ and $\alpha_D$ are strongly negatively correlated:
-```{r stan_posterior_alphas, fig.height=2*fig.dim}
+```{r stan_posterior_alphas, fig.height=2*fig.dim, cache=TRUE}
 traceplot( fit, pars=c(names(fit)[1:9],"lp__") )
 pairs( fit, pars=c(names(fit)[1:9],"lp__") )
 ```
@@ -237,7 +254,7 @@ pairs( fit, pars=c(names(fit)[1:9],"lp__") )
 Let's compare the posterior samples to the expected value and the sample we fed in.
 First, here's the posterior mean Sigma, the transform of the posterior mean $\alpha_0$ and $\alpha_D$, the "true" value, and the "observed" $\Sigma$;
 shown first in absolute scale, then as difference to $\Omega$.
-```{r stan_posterior_mean}
+```{r stan_posterior_mean, cache=TRUE}
 ut <- upper.tri(dmat,diag=TRUE)
 alpha.pm <- get_posterior_mean( fit, pars=c("alpha0","alphaD") )
 post.Sigma <- matrix( get_posterior_mean( fit, pars=grep("Sigma",names(fit), value=TRUE) ), nrow=ninds )
@@ -253,7 +270,7 @@ the posterior mode is actually closer to the truth at near the diagonal, but the
 
 Now, here's the posterior distribution of Wishart samples (in grey),
 along with the "observed" sigma (red) and the "true" mean (black):
-```{r stan_posterior_cov}
+```{r stan_posterior_cov, cache=TRUE}
 samp.wishart <- (1/L) * apply( as.matrix(fit)[,3:(ninds^2+2)], 1, function (O) { rWishart(1, df=data.block$L, Sigma=matrix(O,nrow=ninds)) } )
 col.inds <- do.call(rbind,strsplit(gsub("[][]","",gsub("Sigma","",names(fit)[3:(ninds^2+2)])),","))
 do.these <- which( col.inds[,1] <= col.inds[,2] )
