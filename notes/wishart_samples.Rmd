@@ -101,7 +101,8 @@ $$
     \delta_{ij} \frac{1}{n_i} \E[F_i (1-F_i)] + \cov[F_i,F_j] .
 \end{aligned}
 $$
-If we ignore truncation, 
+If $\E[F_i|\mu] = \mu$ and $\cov[F_i,F_j|\mu] = \mu(1-\mu)V_{ij}$, 
+as would be the case if we ignored truncation, then
 $$
 \begin{aligned}
     \cov[F_i,F_j] 
