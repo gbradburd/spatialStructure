@@ -29,9 +29,6 @@ validate.list <- function(data.block){
 	if(!"sampleSize" %in% names(data.block)){
 		stop("\nUser must specify a \"sampleSize\"\n\n")
 	}
-	# if(!"binVar" %in% names(data.block)){
-		# stop("\nUser must specify a \"binVar\"\n\n")
-	# }
 	return(invisible("list elements validated"))	
 }
 
@@ -212,14 +209,9 @@ get.gamma <- function(model.fit,chain.no){
 	return(gamma)
 }
 
-get.beta <- function(model.fit,chain.no){
-	beta <- extract(model.fit,pars="beta",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
-	return(beta)
-}
-
-get.binVar <- function(model.fit,chain.no){
-	binVar <- extract(model.fit,pars="binVar",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
-	return(binVar)
+get.zeta <- function(model.fit,chain.no){
+	zeta <- extract(model.fit,pars="zeta",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
+	return(zeta)
 }
 
 get.alpha.params <- function(model.fit,chain.no,cluster,n.clusters){
@@ -381,18 +373,16 @@ get.geoStructure.Bayes.results <- function(model.fit,chain.no,data.block){
 				 "admix.proportions" = get.admix.props(model.fit,chain.no,data.block$N,data.block$K),
 				 "nuggets" = get.nuggets(model.fit,chain.no,data.block$N),
 				 "cluster.params" = get.cluster.params.list(model.fit,data.block,chain.no,n.iter),
-				 "beta" = get.beta(model.fit,chain.no),
 				 "gamma" = get.gamma(model.fit,chain.no),
-				 "binVar" = get.binVar(model.fit,chain.no),
+				 "zeta" = get.zeta(model.fit,chain.no),
 				 "par.cov" = get.par.cov(model.fit,chain.no,data.block$N))
 	best <- get.best.iter(model.fit,chain.no)
 	point <- list("posterior" = index.best(post$posterior,best),
 				"admix.proportions" = index.best(post$admix.proportions,best),
 				 "nuggets" = index.best(post$nuggets,best),
 				 "cluster.params" = index.best.cluster.params.list(post$cluster.params,best),
-				 "beta" = index.best(post$beta,best),
 				 "gamma" = index.best(post$gamma,best),
-				 "binVar" = index.best(post$binVar,best),
+				 "zeta" = index.best(post$zeta,best),
 				 "par.cov" = index.best(post$par.cov,best))
 	geoStructure.results <- list("post" = post,"point" = point)
 	return(geoStructure.results)
@@ -485,9 +475,8 @@ get.geoStructure.ML.results <- function(model.fit,data.block){
 	point <- list("admix.proportions" = get.ML.admix.props(model.fit,data.block),
 				  "nuggets" = get.ML.nuggets(model.fit,data.block),
 				  "cluster.params" = get.ML.cluster.params.list(model.fit,data.block),
-				  "beta" = model.fit$par["beta"],
 				  "gamma" = model.fit$par["gamma"],
-				  "binVar" = model.fit$par["binVar"],
+				  "zeta" = model.fit$par["zeta"],
 				  "par.cov" = get.ML.par.cov(model.fit,data.block))
 	geoStructure.results <- list("post"=NULL,"point"=point)
 	return(geoStructure.results)
@@ -554,14 +543,23 @@ plot.cluster.covariances <- function(data.block,geoStr.results,time,space,cluste
 	return(invisible("plotted"))
 }
 
-plot.model.fit <- function(data.block,geoStr.results,time){
+plot.model.fit <- function(data.block,geoStr.results,time,burnin){
 	n.col <- ifelse(time,3,2)
-	cov.range <- range(c(data.block$obsSigma,geoStr.results$point$par.cov))
+	n.iter <- dim(geoStr.results$post$par.cov)[1]
+	index.mat <- upper.tri(data.block$obsSigma,diag=TRUE)
+	cov.range <- range(c(data.block$obsSigma,geoStr.results$post$par.cov[(burnin+1):n.iter,,]))
 	par(mfrow=c(1,n.col),mar=c(4.5,4.5,1,1))
 		plot(data.block$geoDist,data.block$obsSigma,
 			xlab="geographic distance",
-			ylab="covariance",ylim=cov.range)
-		points(data.block$geoDist,geoStr.results$point$par.cov,pch=20,col="red",cex=0.8)
+			ylab="covariance",ylim=cov.range,type='n')
+		lapply(seq((burnin+1),500,length.out=min(100,500-(burnin+1))),
+				function(i){
+					points(data.block$geoDist[index.mat],
+							geoStr.results$post$par.cov[i,,][index.mat],
+							pch=	20,col=adjustcolor("red",0.1))})
+		points(data.block$geoDist[index.mat],data.block$obsSigma[index.mat],
+			xlab="geographic distance",
+			ylab="covariance",ylim=cov.range,pch=19)
 		legend(x="topright",pch=c(1,20),col=c(1,2),legend=c("sample covariance","parametric estimate"),cex=0.7)
 		if(time){
 			plot(data.block$timeDist,data.block$obsSigma,
@@ -574,7 +572,12 @@ plot.model.fit <- function(data.block,geoStr.results,time){
 				xlab="sample covariance",
 				ylab ="parametric admixed covariance",
 				xlim=cov.range,
-				ylim=cov.range)
+				ylim=cov.range,type='n')
+			lapply(seq((burnin+1),500,length.out=min(100,500-(burnin+1))),
+				function(i){
+					points(data.block$obsSigma[index.mat],
+							geoStr.results$post$par.cov[i,,][index.mat],
+							pch=	20,col=adjustcolor(1,0.1))})
 			abline(0,1,col="red")
 	return(invisible(0))
 }
@@ -627,16 +630,13 @@ plot.cluster.cov.params <- function(data.block,geoStr.results,time,burnin,cluste
 }
 
 plot.variance.params <- function(data.block,geoStr.results,burnin){
-	par(mfrow=c(1,3))
+	par(mfrow=c(1,2))
 	n.iter <- length(geoStr.results$post$posterior)
-	plot(geoStr.results$post$beta[(burnin+1):n.iter],
-			xlab="MCMC iterations",ylab="value of beta",
-			xlim=c(1,n.iter-burnin))
 	plot(geoStr.results$post$gamma[(burnin+1):n.iter],
 			xlab="MCMC iterations",ylab="value of gamma",
 			xlim=c(1,n.iter-burnin))
-	plot(geoStr.results$post$binVar[(burnin+1):n.iter],
-			xlab="MCMC iterations",ylab="value of binVar",
+	plot(geoStr.results$post$zeta[(burnin+1):n.iter],
+			xlab="MCMC iterations",ylab="value of zeta",
 			xlim=c(1,n.iter-burnin))
 	return(invisible(0))
 }
@@ -873,7 +873,7 @@ make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 	cluster.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray")
 	cluster.names <- paste0("Cluster_",1:K)
 	pdf(file=paste0(output.dir,"/","model.fit.",K,".pdf"),width=(8+time*4),height=4,pointsize=14)
-		plot.model.fit(data.block,geoStr.results,time)
+		plot.model.fit(data.block,geoStr.results,time,burnin)
 	dev.off()
 	pdf(file=paste0(output.dir,"/","cluster.cov.curves.",K,".pdf"),width=(5+time*5),height=5,pointsize=18)
 		plot.cluster.covariances(data.block,geoStr.results,time,space,cluster.colors)
@@ -898,7 +898,7 @@ make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 		pdf(file=paste0(output.dir,"/","nuggets.",K,".pdf"),width=6,height=4,pointsize=18)
 			plot.nuggets(geoStr.results,burnin)
 		dev.off()
-		pdf(file=paste0(output.dir,"/","var.params.",K,".pdf"),width=9,height=4,pointsize=18)
+		pdf(file=paste0(output.dir,"/","var.params.",K,".pdf"),width=7,height=4,pointsize=18)
 			plot.variance.params(data.block,geoStr.results,burnin)
 		dev.off()
 	}

@@ -2,37 +2,35 @@ data {
 	int<lower=1> K;		  		// number of clusters
 	int<lower=2> N; 	  		// number of samples
 	int<lower=N+1> L;	    	// number of loci
-	matrix[N,N] obsSigma; 		// observed covar
-	matrix[N, N] geoDist; 		// matrix of pairwise geographic distance 
+	cov_matrix[N-1] obsSigma; 	// observed projected covariance
+	matrix[N, N] geoDist; 		// matrix of pairwise geographic distance
+	matrix[N, N-1] projMat;		// projection matrix
 	vector[N] sampleSize;		// number of chromosomes genotyped for each sample
 }
 parameters {
-	real<lower=0> alpha0;			// sill of the parametric covariance in cluster k
-	real<lower=0> alphaD;			// effect of geographic distance in the parametric covariance in cluster k
-	real<lower=0, upper=2>  alpha2;	// exponential slope parameter in the parametric covariance in cluster k
-  	real<lower=0> nugget[N]; 		// sample-specific variance (allele sampling error + sample-specific drift)
-	real<lower=0,upper=1> beta;		// shape parameter of beta distribution of ancestral allele frequencies (epsilon ~ Beta(alpha=beta))
+	real<lower=0> alpha0;				// sill of the parametric covariance in cluster k
+	real<lower=0> alphaD;				// effect of geographic distance in the parametric covariance in cluster k
+	real<lower=0, upper=2>  alpha2;		// exponential slope parameter in the parametric covariance in cluster k
+  	real<lower=0> nugget[N]; 			// sample-specific variance (allele sampling error + sample-specific drift)
 }
 transformed parameters {
-	real gamma;				// global covariance due to shared ancestral mean between all samples
-	real binVar;			// (mean.f * (1-mean.f)) averaged over all loci
-	matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
-	gamma <- 1/(8 * beta + 4);
- 	binVar <- 0.25 - gamma;
-	for (i in 1:N){
-		for (j in 1:N){
-				Sigma[i, j] <- gamma  +  binVar * ( alpha0 * exp(-(alphaD* geoDist[i, j])^alpha2 ));
+	matrix[N-1, N-1]  projSigma;	// the mean-centered and projected covariance matrix (dim = N-1 x N-1)
+	cov_matrix[N] Sigma;			// this specifies the parametric, admixed covariance matrix
+	for (i in 1:(N-1)){
+		for (j in (i+1):N){
+				Sigma[i, j] <- alpha0 * exp(-(alphaD * geoDist[i, j])^alpha2 );
+				Sigma[j, i] <- Sigma[i, j];
 		}
 	}
 	for (i in 1:N){
-		Sigma[i, i] <- Sigma[i, i] + binVar * (nugget[i] + 1/sampleSize[i]);
+		Sigma[i, i] <- alpha0 + (1-alpha0) * (nugget[i] + 1/sampleSize[i]);
 	}
+	projSigma <- (projMat)' * Sigma * projMat;
 }
 model {
 	alpha0 ~ exponential(1);								// prior on alpha0
 	alphaD ~ exponential(1);								// prior on alphaD
 	alpha2 ~ exponential(1);								// prior on alpha2
 	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
-	beta ~ beta(1,5);										// prior on shape parameter of symmetric beta
-	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function
+	obsSigma ~ wishart(L,projSigma);						// likelihood function
 }

@@ -5,3 +5,5 @@
 .DS_Store
 .Rapp*
 build.geoStr.pkg.R
+sandbox/extensive_tests/*
+sandbox/old_sims/*
