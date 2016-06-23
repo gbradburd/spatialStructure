@@ -7,3 +7,5 @@
 build.geoStr.pkg.R
 sandbox/extensive_tests/*
 sandbox/old_sims/*
+datasets/HumanData/analyses/old/*
+datasets/Poplar/trichocarpa/old/*
