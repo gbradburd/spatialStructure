@@ -197,6 +197,23 @@ we can just model covariance in sample frequencies,
 and add a single parameter to describe the increased covariance between samples across loci 
 due to the ancestral mean they share at each locus.
 
+\newpage
+\section*{Binomial variance and ancestral allele frequencies}
+\begin{align}
+\epsilon &\sim \text{Beta}(\alpha=\beta)\\\notag
+\text{Var}(X) &= \e{X^2} - \e{X}^2\\\notag
+\e{X^2} &= \text{Var}(X) + \e{X}^2\\\notag
+\e{(\epsilon)*(1-\epsilon)} &= \e{\epsilon - \epsilon^2}\\\notag
+&= \e{\epsilon} - \e{\epsilon^2}\\\notag
+&= 0.5 -  (\text{Var}(\epsilon) + \e{\epsilon}^2)\\\notag
+&= 0.5 -  (\text{Var}(\epsilon) + 0.25)\\\notag
+&= 0.25 -  \text{Var}(\epsilon)\\\notag
+\end{align}
+
+
+\newpage
+
+
 \section{WAIC}
 \begin{align}
 WAIC =& -2 \widehat{elpd_{waic}}\\
