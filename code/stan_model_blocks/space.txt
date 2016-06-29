@@ -15,7 +15,7 @@ parameters {
 }
 transformed parameters {
 	matrix[N-1, N-1]  projSigma;	// the mean-centered and projected covariance matrix (dim = N-1 x N-1)
-	cov_matrix[N] Sigma;			// this specifies the parametric, admixed covariance matrix
+	matrix[N,N] Sigma;				// this specifies the parametric, admixed covariance matrix
 	for (i in 1:(N-1)){
 		for (j in (i+1):N){
 				Sigma[i, j] <- alpha0 * exp(-(alphaD * geoDist[i, j])^alpha2 );

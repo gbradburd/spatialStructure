@@ -2,28 +2,28 @@ data {
 	int<lower=1> K;		  		// number of clusters
 	int<lower=2> N; 	  		// number of samples
 	int<lower=N+1> L;	    	// number of loci
-	matrix[N,N] obsSigma; 		// observed covar
+	cov_matrix[N-1] obsSigma; 	// observed projected covariance
+	matrix[N, N-1] projMat;		// projection matrix
 	vector[N] sampleSize;		// number of chromosomes genotyped for each sample
 }
 parameters {
-	real<lower=0> gamma;				// global covariance due to shared ancestral mean between all samles
-  	real<lower=0> nugget[N]; 			// sample-specific variance (allele sampling error + sample-specific drift)
- 	real<lower=0, upper=0.25> binVar;	// (mean.f * (1-mean.f)) averaged over all loci
+  	real<lower=0> nugget[N]; 	// sample-specific variance (allele sampling error + sample-specific drift)
 }
 transformed parameters {
-		  matrix[N,N] Sigma;		// this specifies the parametric, admixed covariance matrix
-			for (i in 1:N){
-				for (j in 1:N){
-						Sigma[i, j] <- gamma;
-					if(i==j){
-						Sigma[i, i]<- Sigma[i, i] + binVar * (nugget[i] + 1/sampleSize[i]);
-					}
-				}
-			}
+	matrix[N-1, N-1]  projSigma;	// the mean-centered and projected covariance matrix (dim = N-1 x N-1)
+	cov_matrix[N] Sigma;			// this specifies the parametric, admixed covariance matrix
+	for(i in 1:(N-1)){
+		for(j in (i+1):N){
+			Sigma[i,j] <- 0;
+			Sigma[j,i] <- 0;
 		}
+	}
+	for (i in 1:N){
+		Sigma[i, i] <- nugget[i] + 1/sampleSize[i];
+	}
+	projSigma <- (projMat)' * Sigma * projMat;
+}
 model {
 	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
-	gamma ~ exponential(1);									// prior on global shared drift
-	4 * binVar ~ beta(5,1);									// prior on binomial sampling variance
-	(L*obsSigma) ~ wishart(L,Sigma);						// likelihood function	
+	(L*obsSigma) ~ wishart(L,projSigma);					// likelihood function	
 }
