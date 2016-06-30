@@ -1,9 +1,6 @@
-validate.list <- function(data.block){
-	if(!"space" %in% names(data.block)){
-		stop("\nUser must specify a \"space\" option\n\n")
-	}
-	if(!"time" %in% names(data.block)){
-		stop("\nUser must specify a \"time\" option\n\n")
+validate.data.list <- function(data.block){
+	if(!"spatial" %in% names(data.block)){
+		stop("\nUser must specify a \"spatial\" option\n\n")
 	}
 	if(!"N" %in% names(data.block)){
 		stop("\nUser must specify a \"N\"\n\n")
@@ -17,14 +14,11 @@ validate.list <- function(data.block){
 	if(!"obsSigma" %in% names(data.block)){
 		stop("\nUser must specify a \"obsSigma\"\n\n")
 	}
+	if(!"projMat" %in% names(data.block)){
+		stop("\nUser must specify a \"projMat\"\n\n")
+	}
 	if(!"geoDist" %in% names(data.block)){
 		stop("\nUser must specify a \"geoDist\"\n\n")
-	}
-	if(!"timeDist" %in% names(data.block)){
-		stop("\nUser must specify a \"timeDist\"\n\n")
-	}
-	if(!"DirichAlpha" %in% names(data.block)){
-		stop("\nUser must specify a \"DirichAlpha\"\n\n")
 	}
 	if(!"sampleSize" %in% names(data.block)){
 		stop("\nUser must specify a \"sampleSize\"\n\n")
@@ -34,13 +28,10 @@ validate.list <- function(data.block){
 
 validate.n.samples <- function(data.block){
 	n.samples <- data.block$N
-	n.samples <- c(data.block$N,nrow(data.block$obsSigma))
+	n.samples <- c(data.block$N,nrow(data.block$obsSigma)+1)
 	n.samples <- c(n.samples,length(data.block$sampleSize))
 	if(!is.null(data.block$geoDist)){
 		n.samples <- c(n.samples,nrow(data.block$geoDist))
-	}
-	if(!is.null(data.block$timeDist)){
-		n.samples <- c(n.samples,nrow(data.block$timeDist))
 	}
 	if(length(unique(n.samples)) > 1){
 		stop("\nthe number of samples is not consistent 
@@ -50,30 +41,15 @@ validate.n.samples <- function(data.block){
 }
 
 validate.model <- function(data.block){
-	if(data.block$space){
+	if(data.block$spatial){
 		if(is.null(data.block$geoDist)){
 			stop("\nyou have specified a spatial model,
 				  but you have not specified a matrix 
 				  of pairwise geographic distances")
 		}
 	}
-	if(data.block$time){
-		if(is.null(data.block$timeDist)){
-			stop("\nyou have specified a spatial model,
-				  but you have not specified a matrix 
-				  of pairwise geographic distances")
-		}
-	}
-	n.clusters <- data.block$K
-	if(n.clusters > 1){
-		if(n.clusters != length(data.block$DirichAlpha)){
-			stop("\nthe vector of Dirichlet concentration prior parameters must 
-					have a length equal to the number of specified clusters\n\n")
-		}
-	}
 	return(invisible("model validated"))
 }
-
 
 make.data.block.S3 <- function(data.block){
 	data.block <- data.block
@@ -87,30 +63,24 @@ print.data.block <- function(data.block){
 
 validate.data.block <- function(data.block){
 	message("\nchecking data.block\n")
-	tmp <- validate.list(data.block)
-	tmp <- validate.n.samples(data.block)
-	message(sprintf("reading %s samples",data.block$N))
-	message(sprintf("reading %s loci",data.block$L))
+		validate.data.list(data.block)
+		validate.n.samples(data.block)
+	message(sprintf("\treading %s samples",data.block$N))
+	message(sprintf("\treading %s loci",data.block$L))
 	message("\nchecking specified model\n")
-	tmp <- validate.model(data.block)
-	message(sprintf("reading %s cluster(s)",data.block$K))
-	if(data.block$space & !data.block$time){
-		message(sprintf("user has specified a spatial model"))
+		validate.model(data.block)
+	message(sprintf("\treading %s cluster(s)",data.block$K))
+	if(data.block$spatial){
+		message(sprintf("\nuser has specified a spatial model\n"))
 	}
-	if(!data.block$space & data.block$time){
-		message(sprintf("user has specified a temporal model"))
-	}
-	if(data.block$space & data.block$time){
-		message(sprintf("user has specified a spatiotemporal model"))
-	}
-	if(!data.block$space & !data.block$time){
-		message(sprintf("user has specified a purely discrete model"))
+	if(!data.block$spatial){
+		message(sprintf("\nuser has specified a purely discrete model\n"))
 	}
 	data.block <- make.data.block.S3(data.block)
 	return(data.block)
 }
 
-make.stan.code.block <- function(space,time,n.clusters){
+make.stan.code.block <- function(spatial,n.clusters){
 	stan.code.block.name <- "stan.block"
 	if(n.clusters == 1){
 		stan.code.block.name<- paste0("oneK.",stan.code.block.name)
@@ -118,22 +88,110 @@ make.stan.code.block <- function(space,time,n.clusters){
 	if(n.clusters > 1){
 		stan.code.block.name<- paste0("multiK.",stan.code.block.name)
 	}
-	if(time){
-		stan.code.block.name <- paste0("time.",stan.code.block.name)
-	}
-	if(space){
+	if(spatial){
 		stan.code.block.name <- paste0("space.",stan.code.block.name)
 	}
 	return(get(stan.code.block.name))
 }
 
-geoStructure <- function(data.block,n.chains,n.iter,prefix,...){
-	#validate on data block
+get.projection.matrix <- function(mean.sample.sizes){
+	k <- length(mean.sample.sizes)
+	transformation.matrix <- get.transformation.matrix(mean.sample.sizes)
+	qr.transformation.matrix <- qr(t(transformation.matrix))
+	projection.matrix <- qr.Q(qr.transformation.matrix)[,1:qr.transformation.matrix$rank]
+	stopifnot(qr.transformation.matrix$rank == sum(abs(eigen(transformation.matrix)$values - 1) < 1e-2) )
+	return(projection.matrix)
+}
+
+get.transformation.matrix <- function(mean.sample.sizes){
+	k <- length(mean.sample.sizes)
+	transformation.matrix <- diag(k) - matrix(mean.sample.sizes/(sum(mean.sample.sizes)),nrow=k,ncol=k,byrow=TRUE)
+	return(transformation.matrix)
+}
+
+project.sample.covariance <- function(sample.covariance,mean.sample.sizes){
+	projection.matrix <- get.projection.matrix(mean.sample.sizes)
+	sample.covariance <- t(projection.matrix) %*% sample.covariance %*% projection.matrix
+	return(sample.covariance)
+}
+
+get.norm.factor <- function(freqs,n.loci){
+	pseudo.means <- colMeans(rbind(freqs,rep(0.5,n.loci)))
+	norm.factor <- sqrt(pseudo.means * (1-pseudo.means))
+	norm.factor <- matrix(norm.factor,nrow=nrow(freqs),ncol=n.loci,byrow=TRUE)
+	return(norm.factor)
+}
+
+get.mean.freqs <- function(freqs,n.loci){
+	mean.freqs <- matrix(colMeans(freqs),nrow=nrow(freqs),ncol=n.loci,byrow=TRUE)
+	return(mean.freqs)
+}
+
+make.freq.data.list.S3 <- function(freq.data){
+	freq.data <- freq.data
+	class(freq.data) <- "freq.data"
+	return(freq.data)
+}
+
+print.freq.data <- function(freq.data){
+	print(str(freq.data,max.level=1))
+}
+
+standardize.freqs <- function(freqs,sample.sizes){
+	invars <- apply(freqs,2,function(x){length(unique(x))==1})	
+	freqs <- freqs[,!invars]
+	n.loci <- ncol(freqs)
+	proj.mat <- get.projection.matrix(sample.sizes)	
+	norm.factor <- get.norm.factor(freqs,n.loci)
+	mean.freqs <- get.mean.freqs(freqs,n.loci)
+	mc.freqs <- freqs-mean.freqs
+	norm.freqs <- freqs/norm.factor
+	std.freqs <- (freqs-mean.freqs)/norm.factor
+	sample.cov <- cov(t(freqs),use="pairwise.complete.obs")
+	mc.cov <- cov(t(mc.freqs),use="pairwise.complete.obs")
+	norm.cov <- cov(t(norm.freqs),use="pairwise.complete.obs")
+	std.cov <- cov(t(std.freqs),use="pairwise.complete.obs")
+	proj.std.cov <- project.sample.covariance(std.cov,sample.sizes)
+	std.freq.list <- list("freqs" = freqs,
+						  "norm.freqs" = norm.freqs,
+						  "std.freqs" = std.freqs,
+						  "norm.factor" = norm.factor,
+						  "mean.freqs" = mean.freqs)
+	std.cov.list <- list("sample.cov" = sample.cov,
+					   	 "mc.cov" = mc.cov,
+					   	 "norm.cov" = norm.cov,
+					   	 "std.cov" = std.cov)
+	proj.cov.list <- list("proj.mat" = proj.mat,
+					   	 "proj.std.cov" = proj.std.cov)
+	freq.data.list <- list("n.loci" = n.loci,
+						   "std.freq.list" = std.freq.list,
+						   "std.cov.list" = std.cov.list,
+						   "proj.cov.list" = proj.cov.list)
+	return(freq.data.list)
+}
+
+make.data.block <- function(K,freqs,D,sample.sizes,prefix,spatial){
+	std.freq.list <- standardize.freqs(freqs,sample.sizes)
+	data.block <- list( "K" = K,
+						"N" = nrow(D),
+						"L" = std.freq.list$n.loci-1,
+						"obsSigma" = (std.freq.list$n.loci-1) * std.freq.list$proj.cov.list$proj.std.cov,
+						"geoDist" = D,
+						"projMat" = std.freq.list$proj.cov.list$proj.mat,
+						"sampleSize" = sample.sizes,
+						"spatial" = spatial)
+	save(std.freq.list,file=paste0(prefix,"_std.freq.list.Robj"))
 	data.block <- validate.data.block(data.block)
-		save(data.block,file=paste(prefix,"data.block.Robj",sep="_"))
-	#validate on model specification
+	return(data.block)
+}
+
+geoStructure <- function(spatial=TRUE,K,freqs,D,sample.sizes,prefix,n.chains=1,n.iter=1e4,...){
+	#validate data block
+	data.block <- make.data.block(K,freqs,D,sample.sizes,prefix,spatial)
+		save(data.block,file=paste0(prefix,"_data.block.Robj"))
+	#validate model specification
 	#make.stan.code.block
-	stan.block <- make.stan.code.block(data.block$space,data.block$time,data.block$K)
+	stan.block <- make.stan.code.block(spatial,K)
 		#write stan block to file
 	#run model
 	#put stan in tryCatch, email me
@@ -142,6 +200,7 @@ geoStructure <- function(data.block,n.chains,n.iter,prefix,...){
 						data = data.block,
 						iter = n.iter,
 						chains = n.chains,
+						thin = n.iter/500,
 						...)
 	#save fit obj
 	save(model.fit,file=paste(prefix,"model.fit.Robj",sep="_"))
@@ -149,30 +208,10 @@ geoStructure <- function(data.block,n.chains,n.iter,prefix,...){
 	return(model.fit)
 }
 
-geoStructure.ML <- function(data.block,prefix,...){
-	#validate on data block
-	data.block <- validate.data.block(data.block)
-		save(data.block,file=paste(prefix,"data.block.Robj",sep="_"))
-	#validate on model specification
-	#make.stan.code.block
-	stan.block <- make.stan.code.block(data.block$space,data.block$time,data.block$K)
-		#write stan block to file
-	#run model
-	#put stan in tryCatch, email me
-	require(rstan)
-	model.fit <- optimizing(object = stan_model(model_code= stan.block),
-							data = data.block,
-							...)
-	#save fit obj
-	save(model.fit,file=paste(prefix,"model.fit.Robj",sep="_"))
-	#return fit obj
-	return(model.fit)
-}
-
-get.best.iter <- function(model.fit,chain.no){
+get.MAP.iter <- function(model.fit,chain.no){
 	logpost <- get_logposterior(model.fit)
-	best.iter <- lapply(logpost,which.max)[[chain.no]]
-	return(best.iter)
+	MAP.iter <- lapply(logpost,which.max)[[chain.no]]
+	return(MAP.iter)
 }
 
 get.admix.props <- function(model.fit,chain.no,N,n.clusters){
@@ -204,16 +243,6 @@ get.nuggets <- function(model.fit,chain.no,N){
 	return(nuggets)
 }
 
-get.gamma <- function(model.fit,chain.no){
-	gamma <- extract(model.fit,pars="gamma",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
-	return(gamma)
-}
-
-get.zeta <- function(model.fit,chain.no){
-	zeta <- extract(model.fit,pars="zeta",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
-	return(zeta)
-}
-
 get.alpha.params <- function(model.fit,chain.no,cluster,n.clusters){
 	alpha.pars <- model.fit@model_pars[grepl("alpha",model.fit@model_pars)]
 	if(n.clusters > 1){
@@ -243,56 +272,42 @@ get.cluster.mu <- function(model.fit,chain.no,cluster){
 	return(mu)
 }
 
+get.cluster.DirichAlpha <- function(model.fit,chain.no,cluster){
+	DirichAlpha <- extract(model.fit,
+						   pars=paste0("DirichAlpha","[",cluster,"]"),
+						   inc_warmup=TRUE,permute=FALSE)[,chain.no,]
+	return(DirichAlpha)
+}
+
+get.cluster.dirichHP <- function(model.fit,chain.no,cluster){
+	dirichHP <- extract(model.fit,
+						 pars=paste0("dirichHP","[",cluster,"]"),
+						 inc_warmup=TRUE,permute=FALSE)[,chain.no,]
+	return(dirichHP)
+}
+
 get.cov.function <- function(data.block){
 	if(data.block$K == 1){
-		if(data.block$space & !data.block$time){
+		if(data.block$spatial){
 			cov.func <- function(cluster.params,data.block){
 				return(exp(log(cluster.params$alpha0) + 
-						-(data.block$geoDist*cluster.params$alphaD)^cluster.params$alpha2))
+						-(cluster.params$alphaD*data.block$geoDist)^cluster.params$alpha2))
 			}
 		}
-		if(!data.block$space & data.block$time){
-			cov.func <- function(cluster.params,data.block){
-				return(exp(log(cluster.params$alpha0) + 
-						-(cluster.params$alphaT*data.block$timeDist)^cluster.params$alpha2))
-			}	
-		}
-		if(data.block$space & data.block$time){
-			cov.func <- function(cluster.params,data.block){
-				return(exp(log(cluster.params$alpha0) + 
-						-(data.block$geoDist*cluster.params$alphaD + 
-							cluster.params$alphaT*data.block$timeDist)^cluster.params$alpha2))
-			}	
-		}
-		if(!data.block$space & !data.block$time){
+		if(!data.block$spatial){
 			cov.func <- function(cluster.params,data.block){
 				return(matrix(0,nrow=data.block$K,ncol=data.block$K))
 			}
 		}
 	} else {
-		if(data.block$space & !data.block$time){
+		if(data.block$spatial){
 			cov.func <- function(cluster.params,data.block){
 				return(exp(log(cluster.params$alpha0) + 
-						-(data.block$geoDist*cluster.params$alphaD)^cluster.params$alpha2) + 
+						-(cluster.params$alphaD*data.block$geoDist)^cluster.params$alpha2) + 
 						cluster.params$mu)
 			}
 		}
-		if(!data.block$space & data.block$time){
-			cov.func <- function(cluster.params,data.block){
-				return(exp(log(cluster.params$alpha0) + 
-						-(cluster.params$alphaT*data.block$timeDist)^cluster.params$alpha2) + 
-						cluster.params$mu)
-			}	
-		}
-		if(data.block$space & data.block$time){
-			cov.func <- function(cluster.params,data.block){
-				return(exp(log(cluster.params$alpha0) + 
-						-(data.block$geoDist*cluster.params$alphaD + 
-							cluster.params$alphaT*data.block$timeDist)^cluster.params$alpha2) + 
-						cluster.params$mu)
-			}	
-		}
-		if(!data.block$space & !data.block$time){
+		if(!data.block$spatial){
 			cov.func <- function(cluster.params,data.block){
 				return(cluster.params$mu)
 			}
@@ -314,12 +329,14 @@ get.cluster.cov <- function(cluster.params,data.block,n.iter){
 
 get.cluster.params <- function(model.fit,data.block,chain.no,cluster,n.clusters,n.iter){
 	cluster.params <- list()
-	if(data.block$space | data.block$time){
+	if(data.block$spatial){
 		cluster.params <- get.alpha.params(model.fit,chain.no,cluster,n.clusters)
 	}
 	if(n.clusters > 1){
 		cluster.params <- c(cluster.params,
-							list("mu" = get.cluster.mu(model.fit,chain.no,cluster)))
+							list("mu" = get.cluster.mu(model.fit,chain.no,cluster)),
+							list("DirichAlpha" = get.cluster.DirichAlpha(model.fit,chain.no,cluster)),
+							list("dirichHP" = get.cluster.dirichHP(model.fit,chain.no,cluster)))
 	}
 	cluster.cov <- get.cluster.cov(cluster.params,data.block,n.iter)
 	cluster.params <- c(cluster.params,list("cluster.cov"=cluster.cov))
@@ -333,33 +350,47 @@ get.cluster.params.list <- function(model.fit,data.block,chain.no,n.iter){
 										get.cluster.params(model.fit,data.block,chain.no,i,data.block$K,n.iter)
 									}),
 						paste("Cluster",1:data.block$K,sep="_"))
+	cluster.params <- make.cluster.params.S3(cluster.params)
 	return(cluster.params)
 }
 
-index.best <- function(param,best){
+make.cluster.params.S3 <- function(cluster.params){
+	cluster.params <- cluster.params
+	class(cluster.params) <- "cluster.params"
+	return(cluster.params)
+}
+
+print.cluster.params <- function(cluster.params){
+	print(str(cluster.params,max.level=1))
+}
+
+index.MAP <- function(param,MAP.iter){
 	if(class(param) == "numeric"){
-		best.param <- param[best]
+		MAP.param <- param[MAP.iter]
 	}
 	if(class(param) == "list"){
-		best.param <- param[[best]]
+		MAP.param <- param[[MAP.iter]]
 	}
 	if(class(param) == "array"){
-		best.param <- param[best,,]
+		MAP.param <- param[MAP.iter,,]
 	}
 	if(class(param) == "matrix"){
-		best.param <- param[best,]
+		MAP.param <- param[MAP.iter,]
 	}
-	return(best.param)
+	if(class(param) == "cluster.params"){
+		MAP.param <- index.MAP.cluster.params.list(param,MAP.iter)
+	}
+	return(MAP.param)
 }
 
-index.best.cluster.params <- function(cluster.params,best){
-	best.cluster.params <- lapply(cluster.params,index.best,best)
-	return(best.cluster.params)
+index.MAP.cluster.params <- function(cluster.params,MAP.iter){
+	MAP.cluster.params <- lapply(cluster.params,index.MAP,MAP.iter)
+	return(MAP.cluster.params)
 }
 
-index.best.cluster.params.list <- function(cluster.params.list,best){
-	best.cluster.params.list <- lapply(cluster.params.list,index.best.cluster.params,best)
-	return(best.cluster.params.list)
+index.MAP.cluster.params.list <- function(cluster.params.list,MAP.iter){
+	MAP.cluster.params.list <- lapply(cluster.params.list,index.MAP.cluster.params,MAP.iter)
+	return(MAP.cluster.params.list)
 }
 
 get.n.iter <- function(model.fit,chain.no){
@@ -367,133 +398,47 @@ get.n.iter <- function(model.fit,chain.no){
 	return(n.iter)
 }
 
-get.geoStructure.Bayes.results <- function(model.fit,chain.no,data.block){
+make.geoStructure.results.S3 <- function(geoStructure.results){
+	geoStructure.results <- geoStructure.results
+	class(geoStructure.results) <- "geoStructure.results"
+	return(geoStructure.results)
+}
+
+print.geoStructure.results <- function(geoStructure.results){
+	print(str(geoStructure.results,max.level=1))
+}
+
+mc.par.cov.post <- function(sample.sizes,par.cov.post){
+	MC.mat <- get.transformation.matrix(sample.sizes)
+	mc.par.cov <- array(NA,dim=dim(par.cov.post))
+	for(i in 1:dim(par.cov.post)[1]){
+		mc.par.cov[i,,] <- MC.mat %*% par.cov.post[i,,] %*% t(MC.mat)
+	}
+	return(mc.par.cov)
+}
+
+get.geoStructure.results <- function(data.block,model.fit,chain.no){
 	n.iter <- get.n.iter(model.fit,chain.no)
 	post <- list("posterior" = get_logposterior(model.fit)[[chain.no]],
-				 "admix.proportions" = get.admix.props(model.fit,chain.no,data.block$N,data.block$K),
 				 "nuggets" = get.nuggets(model.fit,chain.no,data.block$N),
-				 "cluster.params" = get.cluster.params.list(model.fit,data.block,chain.no,n.iter),
-				 "gamma" = get.gamma(model.fit,chain.no),
-				 "zeta" = get.zeta(model.fit,chain.no),
 				 "par.cov" = get.par.cov(model.fit,chain.no,data.block$N))
-	best <- get.best.iter(model.fit,chain.no)
-	point <- list("posterior" = index.best(post$posterior,best),
-				"admix.proportions" = index.best(post$admix.proportions,best),
-				 "nuggets" = index.best(post$nuggets,best),
-				 "cluster.params" = index.best.cluster.params.list(post$cluster.params,best),
-				 "gamma" = index.best(post$gamma,best),
-				 "zeta" = index.best(post$zeta,best),
-				 "par.cov" = index.best(post$par.cov,best))
+	post[["mc.par.cov"]] <- mc.par.cov.post(data.block$sampleSize,post$par.cov)
+	if(data.block$spatial | data.block$K > 1){
+		post[["cluster.params"]] <- get.cluster.params.list(model.fit,data.block,chain.no,n.iter)
+	} else {
+		post[["mu"]] <- get.cluster.mu(model.fit,chain.no,1)
+	}
+	if(data.block$K > 1){
+		post[["admix.proportions"]] <- get.admix.props(model.fit,chain.no,data.block$N,data.block$K)
+	}
+	MAP.iter <- get.MAP.iter(model.fit,chain.no)
+	point <- lapply(post,function(X){index.MAP(X,MAP.iter)})
 	geoStructure.results <- list("post" = post,"point" = point)
+	geoStructure.results <- make.geoStructure.results.S3(geoStructure.results)
 	return(geoStructure.results)
 }
 
-get.ML.par.cov <- function(model.fit,data.block){
-	N <- data.block$N
-	par.cov <- matrix(NA,nrow=N,ncol=N)
-	for(i in 1:N){
-		for(j in 1:N){
-			my.par <- sprintf("Sigma[%s,%s]",i,j)
-			par.cov[i,j] <- model.fit$par[my.par]
-		}
-	}
-	return(par.cov)
-}
-
-get.ML.nuggets <- function(model.fit,data.block){
-	N <- data.block$N
-	nuggets <- unlist(lapply(1:N,
-						function(i){
-							model.fit$par[paste0("nugget[",i,"]")]
-						}))
-	return(nuggets)
-}
-
-get.ML.admix.props <- function(model.fit,data.block){
-	N <- data.block$N
-	K <- data.block$K
-	admix.props <- matrix(1,nrow=N,ncol=K)
-	if(any(grepl("w",names(model.fit$par)))){
-		for(k in 1:K){
-			admix.props[,k] <- unlist(lapply(1:N,function(i){model.fit$par[paste0("w[",i,",",k,"]")]}))
-		}
-	}
-	return(admix.props)
-}
-
-get.ML.alpha.params <- function(model.fit,cluster,n.clusters){
-	alpha.pars <- unique(gsub("\\[.+\\]","",
-							names(model.fit$par)[
-								grepl("alpha",names(model.fit$par))
-							]))
-	if(n.clusters > 1){
-		alpha.params <- setNames(
-							lapply(1:length(alpha.pars),
-									function(i){
-										model.fit$par[paste0(alpha.pars[i],"[",cluster,"]")]
-									}),alpha.pars)
-	} else {
-		alpha.params <- setNames(
-							lapply(1:length(alpha.pars),
-									function(i){
-										model.fit$par[alpha.pars[i]]
-									}),alpha.pars)		
-	}
-	return(alpha.params)
-}
-
-get.ML.cluster.mu <- function(model.fit,cluster){
-	mu <- model.fit$par[paste0("mu","[",cluster,"]")]
-	return(mu)
-}
-
-get.ML.cluster.params <- function(model.fit,data.block,cluster,n.clusters){
-	cluster.params <- list()
-	if(data.block$space | data.block$time){
-		cluster.params <- get.ML.alpha.params(model.fit,cluster,n.clusters)
-	}
-	if(n.clusters > 1){
-		cluster.params <- c(cluster.params,
-							list("mu" = get.ML.cluster.mu(model.fit,cluster)))
-	}
-	cluster.cov <- get.cluster.cov(cluster.params,data.block)
-	cluster.params <- c(cluster.params,"cluster.cov"=cluster.cov)
-	return(cluster.params)
-}
-
-get.ML.cluster.params.list <- function(model.fit,data.block){
-	cluster.params <- setNames(
-						lapply(1:data.block$K,
-									function(i){
-										get.ML.cluster.params(model.fit,data.block,i,data.block$K)
-									}),
-						paste("Cluster",1:data.block$K,sep="_"))
-	return(cluster.params)
-}
-
-get.geoStructure.ML.results <- function(model.fit,data.block){
-	point <- list("admix.proportions" = get.ML.admix.props(model.fit,data.block),
-				  "nuggets" = get.ML.nuggets(model.fit,data.block),
-				  "cluster.params" = get.ML.cluster.params.list(model.fit,data.block),
-				  "gamma" = model.fit$par["gamma"],
-				  "zeta" = model.fit$par["zeta"],
-				  "par.cov" = get.ML.par.cov(model.fit,data.block))
-	geoStructure.results <- list("post"=NULL,"point"=point)
-	return(geoStructure.results)
-}
-
-get.geoStructure.results <- function(model.fit,data.block,chain.no=NULL){
-	require(rstan)
-	load(model.fit)
-	load(data.block)
-	if(class(model.fit)=="stanfit"){
-		geoStructure.results <- get.geoStructure.Bayes.results(model.fit,chain.no,data.block)
-	} else {
-		geoStructure.results  <- get.geoStructure.ML.results(model.fit,data.block)
-	}
-	return(geoStructure.results)
-}
-
+if(FALSE){
 plot.cluster.covariances <- function(data.block,geoStr.results,time,space,cluster.colors){
 	ind.mat <- upper.tri(data.block$geoDist,diag=TRUE)
 	if(data.block$K < 2){
@@ -744,118 +689,6 @@ make.admix.pie.plot <- function(data.block,geoStr.results,cluster.colors,cluster
 	return(invisible(0))
 }
 
-make.spatiotemporal.sampling.box <- function(data.block,aspect.vec=NULL){
-	require(rgl)
-	require(maps)
-	world.map.lines <- map(database="world",plot=FALSE,xlim=range(data.block$geoCoords[,1]),ylim=c(range(data.block$geoCoords[,2])))
-	plotting.y.range <- range(world.map.lines$y[which(!is.na(world.map.lines$y))])
-	plotting.x.range <- range(world.map.lines$x[which(!is.na(world.map.lines$x))])
-	view.matrix1 <- matrix(c(0.6739255,-0.7387993,0.0004163443,0,
-								0.1659686,0.1519439,0.9743548632,0,
-								-0.7199159,-0.6565735,0.2250164002,0,
-								0,0,0,1),nrow=4,ncol=4,byrow=TRUE)
-	view.matrix2 <- matrix(c(0.999946296,-0.007756224,-0.006859419,0,
-								0.006820573,0.991850674,-0.127225429,0,
-								0.007790213,0.127171844,0.991850257,0,
-								0,0,0,1),nrow=4,ncol=4,byrow=TRUE)
-	windowRect <- c(100,100,900,900)
-	open3d(windowRect=windowRect,zoom=1.1,userMatrix=view.matrix1)
-	plot3d(x=data.block$geoCoords[,1],y=data.block$geoCoords[,2],
-			z=data.block$timeCoords,type='n',xlab="",ylab="",zlab="",axes=FALSE)
-		planes3d(0,0,-1,d=c(seq(min(data.block$timeCoords),max(data.block$timeCoords),length.out=5)),alpha=0.1,col="gray")
-			lines3d(world.map.lines$x,world.map.lines$y,z=min(data.block$timeCoords),col=1,add=TRUE)
-			lines3d(world.map.lines$x,world.map.lines$y,z=max(data.block$timeCoords),col=1,add=TRUE)
-		box3d(lwd=2)
-				mtext3d("x",text="Longitude",
-				pos=c(mean(plotting.x.range),
-						plotting.y.range[1]-diff(plotting.y.range)/7,
-						min(data.block$timeCoords)),cex=1.5)
-		mtext3d("y",text="Latitude",
-				pos=c(plotting.x.range[1]-diff(plotting.x.range)/7,
-						mean(plotting.y.range),
-						min(data.block$timeCoords)),cex=1.5)
-		mtext3d("z",text="Sampling year",
-				pos=c(plotting.x.range[1]-diff(plotting.y.range)/7,
-						plotting.y.range[2]+diff(plotting.y.range)/7,
-						mean(data.block$timeCoords)),cex=1.5)
-		axis3d("x++")
-		axis3d("y++")
-		axis3d("z+")
-		return(invisible("3D plotbox"))
-}
-
-plot.sample.ellipses2 <- function(data.block,radii,alpha=0.5,fineness=100,thickness=1,col=1){
-	save.shiny <- material3d("shininess")
-		material3d("shininess"=30)
-	cx <- 0.045 * par3d()$scale[1]
-	cy <- 0.019 * par3d()$scale[2]
-	angles <- seq(0,2*pi,length.out=fineness)
-	n.samples <- nrow(data.block$geoCoords)
-	if(length(radii) < n.samples){
-		radii <- rep(radii,n.samples)
-	}
-	if(length(col) < n.samples){
-		col <- rep(col,n.samples)
-	}
-    for (j in seq_along(1:n.samples)) {
-		xv <- cx * cos(angles)*radii[j]
-		yv <- cy * sin(angles)*radii[j]
-		cyl <- translate3d(extrude3d(xv,yv,thickness=100),
-							data.block$geoCoords[j,1],
-							data.block$geoCoords[j,2],
-							data.block$timeCoords[j])
-		shade3d(cyl,col=col[j])
-	}
-	material3d("shininess"=save.shiny)
-	return(invisible("done"))
-}
-
-pies3d.2 <- function (x, n.clusters, cluster.colors,data.block, radii, edges=100) {
-    	# recover()
-    if (length(radii) < length(x)){ 
-        radii <- rep(radii, length.out = length(x))
-	}
-	use.colors <- cluster.colors[1:n.clusters]
-	cx <- 0.045 * par3d()$scale[1]
-	cy <- 0.019 * par3d()$scale[2]
-    for (j in seq(along = x)) {
-        X <- x[[j]]
-		X <- c(0, cumsum(X)/sum(X))
-		dx <- diff(X)
-		nx <- length(dx)
-		twopi <- 2 * pi
-		t2xy <- function(t) {
-			t2p <- twopi * t
-			return(list(x = radii[j] * cx * cos(t2p), y = radii[j] * cy * sin(t2p)))
-		}
-		for (i in 1:nx) {
-			fineness <- max(2, floor(edges * dx[i]))
-			P <- t2xy(seq.int(X[i], X[i + 1], length.out = fineness))
-			if(fineness != 2){
-					xv = c(data.block$geoCoords[j,1] + P$x,data.block$geoCoords[j,1])
-					yv = c(data.block$geoCoords[j,2] + P$y,data.block$geoCoords[j,2])
-				slice <- translate3d(extrude3d(xv,yv,thickness=100),0,0,data.block$timeCoords[j])
-				shade3d(slice,col=use.colors[i])
-			}
-		}
-	}
-	return(invisible(0))
-}
-
-make.3D.pie.plot <- function(data.block,radii=1,cluster.colors,admix.props=NULL,aspect.vec=NULL){
-	require(caroline)
-	make.spatiotemporal.sampling.box(data.block,aspect.vec)
-	if(is.null(admix.props)){
-		plot.sample.ellipses2(data.block,radii,alpha=0.5,fineness=100,thickness=1,col=1)
-	} else {
-		sample.names <- unlist(lapply(1:data.block$N,function(i){paste0("sample_",i)}))
-		cluster.names <- unlist(lapply(1:data.block$K,function(i){paste0("Cluster_",i)}))
-		color.tab <- nv(c(cluster.colors[1:data.block$K]),cluster.names)
-		pie.list <- lapply(1:data.block$N,function(i){nv(admix.props[i,],cluster.names)})
-		pies3d.2(x=pie.list,n.clusters=data.block$K,cluster.colors=cluster.colors,data.block=data.block,radii=radii,edges=100)
-	}
-}
-
 
 make.all.the.plots <- function(dir,output.dir,burnin=0,save.out=TRUE){
 #	recover()
@@ -996,4 +829,5 @@ calculate.waic <- function(freqs,geoStr.results,samples=NULL){
 	elpd <- lpd - pwaic
 	waic <- -2 * elpd
 	return(waic)
+}
 }
