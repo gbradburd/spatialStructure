@@ -53,6 +53,7 @@
 
 \section{Data}
 At each variable, bi-allelic locus, we have picked an allele to count in each sample, and we also know the number of chromosomes genotyped in each sample.  We can then define the sample allele frequency at locus $\ell$ in sample $n$ as 
+the quotient of the allele counts ($C$) and the sample size ($S$):
 \begin{equation}
 \hat{F}_{\ell,n} = \frac{C_{\ell,n}}{S_{\ell,n}}
 \label{sample_freqs}
@@ -67,7 +68,7 @@ The standardization we use proceeds as follows:
 &\bar{F}_{\ell} = \frac{1}{N}\sum\limits_NF_{\ell,n} \\ \notag
 &\bar{F}^{*}_{\ell} = \frac{1}{N+1}\left( 0.5 + \sum\limits_N	F_{\ell,n} \right)   \\ \notag
 &X_{\ell,n} = \frac{\hat{F}_{\ell,n} - \bar{F}_{\ell}}{\sqrt{\bar{F}^{*}_{\ell} (1-\bar{F}^{*}_{\ell})}}
-\label{sample_freqs}
+\label{std_freqs}
 \end{align}
 
 We then can define the covariance of the standardized allele frequencies 
@@ -78,7 +79,7 @@ across all $L$ variable, and we model that covariance.
 \label{sample_std_cov}
 \end{equation}
 
-
+\newpage
 \section{Model}
 We define a parametric covariance, $\Omega$, which will serve as 
 the mean of the Wishart distribution from which we are treating 
@@ -108,7 +109,11 @@ differentiation within each cluster.
 \label{ad_cov_spMultiK}
 \end{equation}
 
-There are 4 models in this conceptual framework (3 others in addition to the one listed above:
+Above, $\delta_{i=j}$ is an indicator variable that has value 1 when $i=j$ and 0 otherwise.
+The variable $\eta_i$ is the nugget in the $i^{\text{th}}$ sample, and, as in Eqn. \refeq{sample_freqs}, 
+$S_i$ gives the number of genotyped chromosomes in the $i^{\text{th}}$ sample.
+
+There are 4 models in this conceptual framework (3 others in addition to the one listed above):
 \begin{enumerate}
 \item spatial model with multiple clusters
 	\begin{equation}
@@ -144,6 +149,7 @@ There are 4 models in this conceptual framework (3 others in addition to the one
 	\end{equation}
 \end{enumerate}
 
+\newpage
 \section{Likelihood}
 The sample covariance of the standardized allele frequencies has rank $N-1$, 
 so we compute the likelihood of an ($N-1$)-dimensional projection of the data.
