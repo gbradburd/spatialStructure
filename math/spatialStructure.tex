@@ -51,6 +51,125 @@
 
 \newpage
 
+\section{Data}
+At each variable, bi-allelic locus, we have picked an allele to count in each sample, and we also know the number of chromosomes genotyped in each sample.  We can then define the sample allele frequency at locus $\ell$ in sample $n$ as 
+\begin{equation}
+\hat{F}_{\ell,n} = \frac{C_{\ell,n}}{S_{\ell,n}}
+\label{sample_freqs}
+\end{equation}
+
+Our inference framework proceeds by modeling the covariance in allele frequencies 
+as a Wishart-distributed random variable, 
+but the sample allele frequencies are not multivariate normally distributed.
+so we standardize the allele frequencies.
+The standardization we use proceeds as follows:
+\begin{align}
+&\bar{F}_{\ell} = \frac{1}{N}\sum\limits_NF_{\ell,n} \\ \notag
+&\bar{F}^{*}_{\ell} = \frac{1}{N+1}\left( 0.5 + \sum\limits_N	F_{\ell,n} \right)   \\ \notag
+&X_{\ell,n} = \frac{\hat{F}_{\ell,n} - \bar{F}_{\ell}}{\sqrt{\bar{F}^{*}_{\ell} (1-\bar{F}^{*}_{\ell})}}
+\label{sample_freqs}
+\end{align}
+
+We then can define the covariance of the standardized allele frequencies 
+across all $L$ variable, and we model that covariance.
+
+\begin{equation}
+\widehat{\Omega} = \frac{1}{L} X^TX
+\label{sample_std_cov}
+\end{equation}
+
+
+\section{Model}
+We define a parametric covariance, $\Omega$, which will serve as 
+the mean of the Wishart distribution from which we are treating 
+the sample covariance of the standardized sample allele frequencies 
+as a draw.  This parametric covariance is a function both discrete population 
+structure (i.e., samples can draw ancestry from one or more discrete clusters) 
+as well as a continuous decay of covariance with distance within each cluster 
+(i.e., a pair of samples drawing all of their ancestry from a single cluster are expected 
+to have lower covariance with each other the farther apart they occur).
+
+We begin by defining the spatial covariance function in the $k^{\text{th}}$ cluster, $F^{(k)}$, 
+as a function of the geographic distance $D_{i,j}$ between a pair of samples, $i$ and $j$:
+\begin{equation}
+F^{(k)}_{i,j} = \alpha^{(k)}_0 \times \text{exp} \left(-\left( \alpha^{(k)}_D * D_{i,j}	\right)^{\alpha^{(k)}_2}	\right) + \mu^{(k)}
+\label{spatial_cov}
+\end{equation}
+
+We can then define the admixed covariance function between the same pair of samples, 
+which incorporates both the discrete, between-cluster structure, as well as the continuous 
+differentiation within each cluster.
+\begin{equation}
+\Omega_{i,j} = \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,j} \right) + 
+	\delta_{i=j} \left[
+		\left(1-\sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,i}\right)\right) \times 
+		\left( \eta_i + \frac{1}{S_i} \right)
+			\right]
+\label{ad_cov_spMultiK}
+\end{equation}
+
+There are 4 models in this conceptual framework (3 others in addition to the one listed above:
+\begin{enumerate}
+\item spatial model with multiple clusters
+	\begin{equation}
+	\Omega_{i,j} = \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,j} \right) + 
+		\delta_{i=j} \left[
+			\left(1-\sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,i}\right)\right) \times 
+			\left( \eta_i + \frac{1}{S_i} \right)
+				\right] \notag
+	\end{equation}
+\item nonspatial model with multiple clusters
+	\begin{equation}
+	\Omega_{i,j} = \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j \mu^{(k)} \right) + 
+		\delta_{i=j} \left[
+			\left(1-\sum\limits_K \left(	w^{(k)}_iw^{(k)}_j \mu^{(k)}\right)\right) \times 
+			\left( \eta_i + \frac{1}{S_i} \right)
+				\right] \notag
+	\end{equation}
+\item spatial model with a single cluster
+	\begin{equation}
+	\Omega_{i,j} = F_{i,j}  + 
+		\delta_{i=j} \left[
+			\left(1-F_{i,i}\right) \times 
+			\left( \eta_i + \frac{1}{S_i} \right)
+				\right] \notag
+	\end{equation}
+\item nonspatial model with a single cluster
+	\begin{equation}
+	\Omega_{i,j} = \mu + 
+		\delta_{i=j} \left[
+			\left(1-\mu \right) \times 
+			\left( \eta_i + \frac{1}{S_i} \right)
+				\right] \notag
+	\end{equation}
+\end{enumerate}
+
+\section{Likelihood}
+The sample covariance of the standardized allele frequencies has rank $N-1$, 
+so we compute the likelihood of an ($N-1$)-dimensional projection of the data.
+Following SpaceMix, we create a mean-centering matrix $T$, where 
+\begin{equation}
+T = \delta_{i,j} - \frac{1}{N}
+\label{mc_matrix}
+\end{equation}
+and we choose a projection matrix $\Psi$ by dropping the last column 
+of the orthogonal matrix in the QR decomposition of $T$.
+
+We then calculate the likelihood of the data as
+\begin{equation}
+P(\widehat{\Omega} \; | \; \Omega) = \mathcal{W}(L\Psi^T \Omega \Psi \; , \; L)
+\label{likelihood}
+\end{equation} 
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 \section{Model}
 Ok so we have $N$ individuals sampled throughout time and space, 
 and, for each individual, we have the genotype at each of $L$ loci.
