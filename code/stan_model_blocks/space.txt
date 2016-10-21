@@ -1,36 +1,46 @@
+functions {
+	matrix admixed_covariance(int N, real alpha0, real alphaD, real alpha2, matrix geoDist, vector nugget, vector sampleSize) {
+		matrix[N,N] Sigma;
+		matrix[N,N] Nug_mat;
+		Nug_mat <- diag_matrix(nugget);			
+		for (i in 1:(N-1)){
+			for (j in (i+1):N){
+				Sigma[i, j] <- alpha0 * exp( -(alphaD * geoDist[i, j])^alpha2 );
+				Sigma[j, i] <- Sigma[i, j];			
+			}
+		}
+		for(i in 1:N){
+			Sigma[i, i] <- alpha0 + (1 - alpha0) * (1/sampleSize[i]);
+		}
+		Sigma <- Sigma + Nug_mat;		
+		return Sigma;
+	}
+}
 data {
-	int<lower=1> K;		  		// number of clusters
-	int<lower=2> N; 	  		// number of samples
-	int<lower=N+1> L;	    	// number of loci
-	cov_matrix[N-1] obsSigma; 	// observed projected covariance
-	matrix[N, N] geoDist; 		// matrix of pairwise geographic distance
-	matrix[N, N-1] projMat;		// projection matrix
-	vector[N] sampleSize;		// number of chromosomes genotyped for each sample
+	int<lower=1> K;		  					// number of clusters
+	int<lower=2> N; 	  					// number of samples
+	int<lower=N+1> L;	    				// number of loci
+	cov_matrix[N-1] obsSigma; 				// observed projected covariance
+	matrix[N, N] geoDist; 					// matrix of pairwise geographic distance 
+	matrix[N, N-1] projMat;					// projection matrix
+	vector[N] sampleSize;					// number of genotyped chromosomes in each sample	
 }
 parameters {
-	real<lower=0> alpha0;				// sill of the parametric covariance in cluster k
-	real<lower=0> alphaD;				// effect of geographic distance in the parametric covariance in cluster k
-	real<lower=0, upper=2>  alpha2;		// exponential slope parameter in the parametric covariance in cluster k
-  	real<lower=0> nugget[N]; 			// sample-specific variance (allele sampling error + sample-specific drift)
+	real<lower=0> alpha0;					// sill of the parametric covariance in cluster k
+	real<lower=0> alphaD;					// effect of geographic distance in the parametric covariance in cluster k
+	real<lower=0, upper=2>  alpha2;			// exponential slope parameter in the parametric covariance in cluster k
+  	vector<lower=0>[N] nugget; 				// sample-specific variance (allele sampling error + sample-specific drift)
 }
 transformed parameters {
-	matrix[N-1, N-1]  projSigma;	// the mean-centered and projected covariance matrix (dim = N-1 x N-1)
-	matrix[N,N] Sigma;				// this specifies the parametric, admixed covariance matrix
-	for (i in 1:(N-1)){
-		for (j in (i+1):N){
-				Sigma[i, j] <- alpha0 * exp(-(alphaD * geoDist[i, j])^alpha2 );
-				Sigma[j, i] <- Sigma[i, j];
-		}
-	}
-	for (i in 1:N){
-		Sigma[i, i] <- alpha0 + (1-alpha0) * (nugget[i] + 1/sampleSize[i]);
-	}
-	projSigma <- (projMat)' * Sigma * projMat;
+	matrix[N-1, N-1]  projSigma;			// the mean-centered and projected covariance matrix (dim = N-1 x N-1)
+	cov_matrix[N] Sigma;					// this specifies the parametric, admixed covariance matrix
+	Sigma <- admixed_covariance(N, alpha0, alphaD, alpha2, geoDist, nugget, sampleSize);
+	projSigma <- quad_form(Sigma, projMat);
 }
 model {
-	alpha0 ~ exponential(1);								// prior on alpha0
-	alphaD ~ exponential(1);								// prior on alphaD
-	alpha2 ~ exponential(1);								// prior on alpha2
-	for(i in 1:N) nugget[i] ~ exponential(1);				// prior on nugget
-	obsSigma ~ wishart(L,projSigma);						// likelihood function
+	alpha0 ~ normal(0,0.3);					// prior on alpha0
+	alphaD ~ exponential(1);				// prior on alphaD
+	alpha2 ~ exponential(1);				// prior on alpha2
+	nugget ~ uniform(0,100);				// prior on nugget	
+	obsSigma ~ wishart(L,projSigma);		// likelihood function	
 }

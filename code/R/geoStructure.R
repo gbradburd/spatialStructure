@@ -105,8 +105,8 @@ get.projection.matrix <- function(mean.sample.sizes){
 
 get.transformation.matrix <- function(mean.sample.sizes){
 	k <- length(mean.sample.sizes)
-	transformation.matrix <- diag(k) - matrix(1/k,nrow=k,ncol=k,byrow=TRUE)
-#	transformation.matrix <- diag(k) - matrix(mean.sample.sizes/(sum(mean.sample.sizes)),nrow=k,ncol=k,byrow=TRUE)
+#	transformation.matrix <- diag(k) - matrix(1/k,nrow=k,ncol=k,byrow=TRUE)
+	transformation.matrix <- diag(k) - matrix(mean.sample.sizes/sum(mean.sample.sizes),nrow=k,ncol=k,byrow=TRUE)
 	return(transformation.matrix)
 }
 
@@ -116,15 +116,22 @@ project.sample.covariance <- function(sample.covariance,mean.sample.sizes){
 	return(sample.covariance)
 }
 
-get.norm.factor <- function(freqs,n.loci){
-	pseudo.means <- colMeans(rbind(freqs,rep(0.5,n.loci)))
+get.norm.factor <- function(freqs,n.loci,sample.sizes){	#
+	pseudo.freqs <- rbind(freqs,rep(0.5,n.loci))
+	pseudo.means <- apply(pseudo.freqs,2,function(x){sum((x * c(sample.sizes,1))/sum(c(sample.sizes,1)))})
+#	pseudo.means <- colMeans(rbind(freqs,rep(0.5,n.loci)),na.rm=TRUE)
 	norm.factor <- sqrt(pseudo.means * (1-pseudo.means))
 	norm.factor <- matrix(norm.factor,nrow=nrow(freqs),ncol=n.loci,byrow=TRUE)
 	return(norm.factor)
 }
 
-get.mean.freqs <- function(freqs,n.loci){
-	mean.freqs <- matrix(colMeans(freqs),nrow=nrow(freqs),ncol=n.loci,byrow=TRUE)
+get.mean.freqs <- function(freqs,n.loci,sample.sizes){	#
+	mean.freqs <- matrix(
+					apply(freqs,2,function(x){
+						sum((x * sample.sizes)/sum(sample.sizes))
+						}),
+						nrow=nrow(freqs),ncol=n.loci,byrow=TRUE)
+#	mean.freqs <- matrix(colMeans(freqs,na.rm=TRUE),nrow=nrow(freqs),ncol=n.loci,byrow=TRUE)
 	return(mean.freqs)
 }
 
@@ -139,12 +146,12 @@ print.freq.data <- function(freq.data){
 }
 
 standardize.freqs <- function(freqs,sample.sizes){
-	invars <- apply(freqs,2,function(x){length(unique(x))==1})	
+	invars <- apply(freqs,2,function(x){length(unique(x))==1})
 	freqs <- freqs[,!invars]
 	n.loci <- ncol(freqs)
 	proj.mat <- get.projection.matrix(sample.sizes)	
-	norm.factor <- get.norm.factor(freqs,n.loci)
-	mean.freqs <- get.mean.freqs(freqs,n.loci)
+	norm.factor <- get.norm.factor(freqs,n.loci,sample.sizes)	#,sample.sizes
+	mean.freqs <- get.mean.freqs(freqs,n.loci,sample.sizes)		#,sample.sizes
 	mc.freqs <- freqs-mean.freqs
 	norm.freqs <- freqs/norm.factor
 	std.freqs <- (freqs-mean.freqs)/norm.factor
@@ -186,7 +193,28 @@ make.data.block <- function(K,std.freq.list,D,coords,sample.sizes,prefix,spatial
 	return(data.block)
 }
 
+check.call <- function(args){
+	if(args[["spatial"]] != TRUE & args[["spatial"]] != FALSE){
+		stop("\nyou have specified an invalid value for the \"spatial\" argument \n")
+	}
+	if(length(args[["K"]]) > 1 | class(args[["K"]]) != "numeric"){
+		stop("\nyou have specified an invalid value for the \"K\" argument \n")
+	}
+	if(class(args[["freqs"]]) != "matrix" | any(args[["freqs"]] > 1) | any(args[["freqs"]] < 0)){	
+		stop("\nyou have specified an invalid value for the \"freqs\" argument \n")
+	}
+	if(class(args[["D"]]) != "matrix" | length(unique(dim(args[["D"]]))) > 1 | any(args[["D"]] < 0)){	
+		stop("\nyou have specified an invalid value for the \"D\" argument \n")
+	}
+	if(class(args[["sample.sizes"]]) != "numeric" | any(args[["sample.sizes"]] < 0)){
+		stop("\nyou have specified an invalid value for the \"sample.sizes\" argument \n")
+	}
+	return(invisible("args checked"))		
+}
+
 geoStructure <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.sizes,prefix,n.chains=1,n.iter=1e4,...){
+	call.check <- check.call(args <- as.list(environment()))
+#	recover()
 	#validate data block
 	std.freq.list <- standardize.freqs(freqs,sample.sizes)
 		save(std.freq.list,file=paste0(prefix,"_std.freq.list.Robj"))
@@ -311,8 +339,8 @@ get.cov.function <- function(data.block){
 	if(data.block$K == 1){
 		if(data.block$spatial){
 			cov.func <- function(cluster.params,data.block){
-				return(exp(log(cluster.params$alpha0) + 
-						-(cluster.params$alphaD*data.block$geoDist)^cluster.params$alpha2))
+				return(cluster.params$alpha0 * 
+						exp(-(cluster.params$alphaD*data.block$geoDist)^cluster.params$alpha2))
 			}
 		}
 		if(!data.block$spatial){
@@ -323,9 +351,9 @@ get.cov.function <- function(data.block){
 	} else {
 		if(data.block$spatial){
 			cov.func <- function(cluster.params,data.block){
-				return(exp(log(cluster.params$alpha0) + 
-						-(cluster.params$alphaD*data.block$geoDist)^cluster.params$alpha2) + 
-						cluster.params$mu)
+				return(cluster.params$alpha0 *  
+						(exp(-(cluster.params$alphaD*data.block$geoDist)^cluster.params$alpha2) + 
+							cluster.params$mu))
 			}
 		}
 		if(!data.block$spatial){
@@ -434,7 +462,7 @@ mc.par.cov.post <- function(sample.sizes,par.cov.post){
 	MC.mat <- get.transformation.matrix(sample.sizes)
 	mc.par.cov <- array(NA,dim=dim(par.cov.post))
 	for(i in 1:dim(par.cov.post)[1]){
-		mc.par.cov[i,,] <- MC.mat %*% par.cov.post[i,,] %*% t(MC.mat)
+		mc.par.cov[i,,] <- MC.mat %*% par.cov.post[i,,]	%*% t(MC.mat)
 	}
 	return(mc.par.cov)
 }
@@ -443,12 +471,11 @@ get.geoStructure.chain.results <- function(data.block,model.fit,chain.no){
 	n.iter <- get.n.iter(model.fit,chain.no)
 	post <- list("posterior" = get_logposterior(model.fit)[[chain.no]],
 				 "nuggets" = get.nuggets(model.fit,chain.no,data.block$N),
-				 "par.cov" = get.par.cov(model.fit,chain.no,data.block$N))
-	post[["mc.par.cov"]] <- mc.par.cov.post(data.block$sampleSize,post$par.cov)
+				 "par.cov" = get.par.cov(model.fit,chain.no,data.block$N),
+				 "proj.par.cov" = get.proj.par.cov(model.fit,chain.no,data.block$N))
+	post[["mc.par.cov"]] <-  mc.par.cov.post(data.block$sampleSize,post$par.cov)
 	if(data.block$spatial | data.block$K > 1){
 		post[["cluster.params"]] <- get.cluster.params.list(model.fit,data.block,chain.no,n.iter)
-	} else {
-		post[["mu"]] <- get.mu(model.fit,chain.no)
 	}
 	if(data.block$K > 1){
 		post[["admix.proportions"]] <- get.admix.props(model.fit,chain.no,data.block$N,data.block$K)
@@ -460,88 +487,7 @@ get.geoStructure.chain.results <- function(data.block,model.fit,chain.no){
 	return(geoStructure.results)
 }
 
-post.process.par.cov <- function(geoStr.results,samples){
-	pp.cov.list <- lapply(samples,
-							function(i){
-								list("inv" = chol2inv(chol(geoStr.results$post$par.cov[i,,])),
-									 "log.det" = determinant(geoStr.results$post$par.cov[i,,])$modulus[[1]])
-							})
-	return(pp.cov.list)
-}
-
-calculate.likelihood <- function(obsSigma,inv.par.cov,log.det,n.loci){
-	#recover()
-	lnL <- -0.5 * (sum( inv.par.cov * obsSigma) + n.loci * log.det)
-	return(lnL)
-}
-
-determine.log.shift <- function(chunk.lnls){
-	if(diff(range(unlist(chunk.lnls))) > 700){
-		message("the difference between the min and max lnLs may be inducing underflow")
-	}
-	return(max(unlist(chunk.lnls)))
-}
-
-shift.chunk.lnls <- function(chunk.lnls,A,n.iter){
-	shift.chunk.lnls <- log(sum(exp(chunk.lnls-A))) + A - log(n.iter)
-	return(shift.chunk.lnls)
-}
-
-calc.lnl.x.MCMC <- function(cov.chunk,pp.par.cov){
-	#recover()
-	lnl.x.mcmc <- lapply(pp.par.cov,
-						function(x){
-							calculate.likelihood(cov.chunk,x$inv,x$log.det,n.loci=1)
-					})
-	return(unlist(lnl.x.mcmc))
-}
-
-chunk.freq.data <- function(freqs){
-	n.loci <- ncol(freqs)
-	chunks <- lapply(1:n.loci,
-					  function(i){
-					  	freqs[,i,drop=FALSE] %*% t(freqs[,i,drop=FALSE])
-					  })
-	return(chunks)
-}
-
-calculate.lpd <- function(chunk.lnls,n.iter){
-	#recover()
-	#subtract max lnL from log likelihood to avoid overflow
-		A <- determine.log.shift(chunk.lnls)
-		chunk.lnls.shifted <- lapply(chunk.lnls,function(x){shift.chunk.lnls(x,A,n.iter)})
-	lpd <- sum(unlist(chunk.lnls.shifted))
-	return(lpd)
-}
-
-calculate.pwaic <- function(chunk.lnls){
-	pwaic <- lapply(chunk.lnls,var)
-	return(sum(unlist(pwaic)))
-}
-
-calculate.waic <- function(freqs,geoStr.results,samples=NULL){
-	cat("breaking data into locus-by-locus covariances...\n\n")
-	chunks <- chunk.freq.data(freqs)
-	if(is.null(samples)){
-		samples <- 1:length(geoStr.results$post$posterior)
-	}
-	n.iter <- length(samples)
-	#invert the posterior distn of parametric cov matrices
-	cat("inverting posterior distribution of parametric covariance matrices...\n\n")
-		pp.par.cov <- post.process.par.cov(geoStr.results,samples)
-	#calc likelioods of nth data chunk across all sampled MCMC iterations
-	cat("calculating likelihood of each site across posterior distribution of parameters...\n\n")
-		chunk.lnls <- lapply(chunks,function(x){calc.lnl.x.MCMC(x,pp.par.cov=pp.par.cov)})
-	#calculate log pointwise predictive density
-	cat("calculating wAIC score...\n\n\n")
-		lpd <- calculate.lpd(chunk.lnls,n.iter)
-	#calculate effective number of parameters
-	pwaic <- calculate.pwaic(chunk.lnls)
-	elpd <- lpd - pwaic
-	waic <- -2 * elpd
-	return(waic)
-}
-
+# PLOTTING FUNCTION
 plot.prob <- function(geoStr.results,burnin=0){
 	n.iter <- length(geoStr.results$post$posterior)
 	z <- (burnin+1):n.iter
@@ -614,7 +560,7 @@ plot.admix.props <- function(data.block,geoStr.results,cluster.colors,burnin){
 
 plot.model.fit <- function(data.block,std.freq.list,geoStr.results,burnin){
 	n.iter <- length(geoStr.results$post$posterior)
-	z <- (burnin+1):n.iter
+	z <- seq((burnin+1),n.iter,length.out=50)
 	index.mat <- upper.tri(data.block$geoDist, diag = TRUE)
 	cov.range <- range(c(std.freq.list$std.cov.list$std.cov,geoStr.results$post$mc.par.cov[z, , ]))
     plot(data.block$geoDist,std.freq.list$std.cov.list$std.cov,
@@ -779,6 +725,12 @@ get.cluster.order <- function(K,admix.props,ref.admix.props){
 	return(matchups)
 }
 
+get.n.cluster.cov.params <- function(geoStr.results){
+	n.params <- length(names(geoStr.results$post$cluster.params$Cluster_1)[
+					!names(geoStr.results$post$cluster.params$Cluster_1)=="cluster.cov"])
+	return(n.params)
+}
+
 make.all.chain.plots <- function(geoStr.results,chain.no,data.block,std.freq.list,prefix,burnin,cluster.colors,...){
 	pdf(file=paste0(prefix,"_trace.plots.chain_",chain.no,".pdf"),...)
 		plot.prob(geoStr.results,burnin)
@@ -798,7 +750,7 @@ make.all.chain.plots <- function(geoStr.results,chain.no,data.block,std.freq.lis
 	}
 	if(data.block$K > 1){
 		pdf(file=paste0(prefix,"_pie.map.chain_",chain.no,".pdf"),width=6,height=6)	
-			make.admix.pie.plot(data.block,geoStr.results,cluster.colors,stat="median",radii=2.7,add=FALSE,title=NULL,x.lim=NULL,y.lim=NULL)
+			make.admix.pie.plot(data.block,geoStr.results,cluster.colors,stat="MAP",radii=2.7,add=FALSE,title=NULL,x.lim=NULL,y.lim=NULL)
 		dev.off()
 		pdf(file=paste0(prefix,"_structure.plot.chain_",chain.no,".pdf"),width=10,height=5)
 			make.structure.plot(data.block,geoStr.results,mar=c(2,4,2,2),sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL,cluster.colors=cluster.colors)
@@ -817,14 +769,97 @@ make.all.the.plots <- function(geoStr.results,n.chains,data.block,std.freq.list,
 	return(invisible("made chain plots!"))
 }
 
-random.switcharoo <- function(x){
-	x <- ifelse(rep(runif(1) < 0.5,length(x)),
-					x,
-					1-x)
-	return(x)
+# MODEL COMPARISON
+get.proj.par.cov <- function(model.fit,chain.no,N){
+	par.cov <- array(NA,dim=c(length(get_logposterior(model.fit)[[chain.no]]),N-1,N-1))
+	for(i in 1:(N-1)){
+		for(j in 1:(N-1)){
+			my.par <- sprintf("projSigma[%s,%s]",i,j)
+			par.cov[,i,j] <- extract(model.fit,pars=my.par,inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
+		}
+	}
+	return(par.cov)
 }
 
-switcharoo.data <- function(frequencies){
-	frequencies <- apply(frequencies,2,random.switcharoo)
-	return(frequencies)
+post.process.par.cov <- function(geoStr.results,samples){
+	pp.cov.list <- lapply(samples,
+							function(i){
+								list("inv" = chol2inv(chol(geoStr.results$post$proj.par.cov[i,,])),
+									 "log.det" = determinant(geoStr.results$post$proj.par.cov[i,,])$modulus[[1]])
+							})
+	return(pp.cov.list)
+}
+
+calculate.likelihood <- function(obsSigma,inv.par.cov,log.det,n.loci){
+	#recover()
+	lnL <- -0.5 * (sum( inv.par.cov * obsSigma) + n.loci * log.det)
+	return(lnL)
+}
+
+determine.log.shift <- function(chunk.lnls){
+	if(diff(range(unlist(chunk.lnls))) > 700){
+		message("the difference between the min and max lnLs may be inducing underflow")
+	}
+	return(max(unlist(chunk.lnls)))
+}
+
+shift.chunk.lnls <- function(chunk.lnls,A,n.iter){
+	shift.chunk.lnls <- log(sum(exp(chunk.lnls-A))) + A - log(n.iter)
+	return(shift.chunk.lnls)
+}
+
+calc.lnl.x.MCMC <- function(cov.chunk,pp.par.cov){
+	#recover()
+	lnl.x.mcmc <- lapply(pp.par.cov,
+						function(x){
+							calculate.likelihood(cov.chunk,x$inv,x$log.det,n.loci=1)
+					})
+	return(unlist(lnl.x.mcmc))
+}
+
+chunk.freq.data <- function(freqs,data.block){
+	n.loci <- ncol(freqs)
+	chunks <- lapply(1:n.loci,
+					  function(i){
+					  	t(data.block$projMat) %*% freqs[,i,drop=FALSE] %*% t(freqs[,i,drop=FALSE]) %*% data.block$projMat
+					  })
+	return(chunks)
+}
+
+calculate.lpd <- function(chunk.lnls,n.iter){
+	#recover()
+	#subtract max lnL from log likelihood to avoid overflow
+		A <- determine.log.shift(chunk.lnls)
+		chunk.lnls.shifted <- lapply(chunk.lnls,function(x){shift.chunk.lnls(x,A,n.iter)})
+	lpd <- sum(unlist(chunk.lnls.shifted))
+	return(lpd)
+}
+
+calculate.pwaic <- function(chunk.lnls){
+	pwaic <- lapply(chunk.lnls,var)
+	return(sum(unlist(pwaic)))
+}
+
+calculate.waic <- function(freqs,data.block,geoStr.results,samples=NULL){
+	# recover()
+	cat("breaking data into locus-by-locus covariances...\n\n")
+	chunks <- chunk.freq.data(freqs,data.block)
+	if(is.null(samples)){
+		samples <- 1:length(geoStr.results$post$posterior)
+	}
+	n.iter <- length(samples)
+	#invert the posterior distn of parametric cov matrices
+	cat("inverting posterior distribution of parametric covariance matrices...\n\n")
+		pp.proj.par.cov <- post.process.par.cov(geoStr.results,samples)
+	#calc likelioods of nth data chunk across all sampled MCMC iterations
+	cat("calculating likelihood of each site across posterior distribution of parameters...\n\n")
+		chunk.lnls <- lapply(chunks,function(x){calc.lnl.x.MCMC(x,pp.par.cov=pp.proj.par.cov)})
+	#calculate log pointwise predictive density
+	cat("calculating wAIC score...\n\n\n")
+		lpd <- calculate.lpd(chunk.lnls,n.iter)
+	#calculate effective number of parameters
+	pwaic <- calculate.pwaic(chunk.lnls)
+	elpd <- lpd - pwaic
+	waic <- -2 * elpd
+	return(waic)
 }
