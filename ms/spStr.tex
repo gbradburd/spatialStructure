@@ -14,7 +14,6 @@
 \usepackage{longtable}
 \usepackage{geometry}
 
-
 \bibliographystyle{plainnat}
 
 \setlength{\parskip}{\baselineskip}
@@ -152,6 +151,47 @@ job describing and quantifying both.
 \section*{Introduction}
 
 \section*{Methods}
+\paragraph{Data}
+The statistical framework of our approach is conceptually similar to \cite{Wasser2004} and \cite{spacemix}.
+The genetic data modeled consist of allele frequencies at $L$ unlinked, bi-allelic single nucleotide polymorphisms (SNPs) genotyped across $K$ samples.
+The sample frequency at locus $\ell$ in sample $k$, $f_{\ell,k}$, is calculated by first arbitrarily choosing an allele segregating 
+at locus $\ell$ to count, 
+then dividing the total number of observations of that counted allele by the total number of chromosomes genotyped at that locus
+in sample $k$.
+Following \cite{spacemix}, 
+we standardize allele frequencies by subtracting off the mean and normalizing the variance. 
+Specifically, we compute the standardized allele frequency at locus $\ell$ in sample $k$, $X_{\ell,k}$, as follows:
+\begin{equation}
+\hat{X}_{\ell,k} = (\hat{f}_{k,\ell}  - \bar{f}_{\ell})/\sqrt{\bar{f}'_{\ell}(1-\bar{f}'_{\ell})}\text{,}
+\end{equation}
+
+where $\hat{f}_{\ell,k}$ is the sample allele frequency at locus $\ell$ in sample $k$,
+$\bar{f}_{\ell}$ is the mean allele frequency across all samples at locus $\ell$.
+With $\bar{f}'_{\ell}$ we make a slight adjustment to the mean to avoid extreme values:
+
+\begin{align}
+\bar{f}_{\ell} &= \frac{1}{K}\sum\limits_{K}\hat{f}_{\ell,k}\\
+\bar{f}'_{\ell} &= \frac{1}{K+1}\left(\sum\limits_{K}\hat{f}_{\ell,k}+ 0.5\right)
+\end{align}
+
+This standardization procedure gives each locus roughly unit variance, 
+and makes the result invariant to which allele (major or minor) is chosen to be counted at each locus.
+We then calculate the sample standardized allele frequency covariance between all samples:
+\begin{equation}
+\widehat{\Omega} = \frac{1}{L}  \hat{X}\hat{X}^T
+\end{equation}
+
+\paragraph{Continuous and discrete differentiation}
+We describe the observed patterns of genetic variation as a combination of discrete population clusters,
+within each of which genetic variation is continuously distributed.
+Each of these discrete clusters is modeled as a spatial process
+in which migration between neighboring demes acts 
+to homogenize allele frequency changes that arise locally due to drift,
+and this interplay between drift and migration 
+results in a continuous pattern of isolation by distance.
+Multiple population cluster processes can co-occur in space, 
+leading to discrete patterns of population structure
+
 
 \section*{Results}
 
@@ -171,7 +211,7 @@ and the National Science Foundation under award numbers NSF \# 1148897 and \# 14
 
 \newpage
 
-%\bibliography{../spacemix.refs}
+\bibliography{reference.library.tex}
 
 \newpage
 
