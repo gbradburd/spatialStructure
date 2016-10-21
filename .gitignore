@@ -9,3 +9,15 @@ sandbox/extensive_tests/*
 sandbox/old_sims/*
 datasets/HumanData/analyses/old/*
 datasets/Poplar/trichocarpa/old/*
+.Rhistory
+.RData
+.Rproj.user
+code/.Rapp.history
+code/.Rbuildignore
+code/geoStructure.Rproj
+ms/*.mp
+ms/*.bbl
+ms/*.top
+ms/*.tui
+ms/spStr.pdf
+ms/*.blg
