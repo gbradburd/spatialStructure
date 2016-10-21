@@ -11,8 +11,8 @@ drainage.sample.sizes <- numeric(length(drainages))
 
 for(i in 1:length(drainages)){
 	ind.drainage.indices <- which(pop.metadata$Drainage.Location.name==drainages[i])
-	drainage.sample.sizes[i] <- length(ind.drainage.indices)
-	drainage.freqs[i,] <- colSums(ind.freqs[ind.drainage.indices,,drop=FALSE],na.rm=TRUE)/length(ind.drainage.indices)
+	drainage.sample.sizes[i] <- 2 * mean(apply(ind.freqs[ind.drainage.indices,,drop=FALSE],2,function(x){length(which(!is.na(x)))})) #length(ind.drainage.indices) 
+	drainage.freqs[i,] <- colSums(ind.freqs[ind.drainage.indices,,drop=FALSE],na.rm=TRUE)/apply(ind.freqs[ind.drainage.indices,,drop=FALSE],2,function(x){length(which(!is.na(x)))}) #colSums(ind.freqs[ind.drainage.indices,,drop=FALSE],na.rm=TRUE)/length(ind.drainage.indices)
 	drainage.long[i] <- mean(as.numeric(pop.metadata$Longitude[ind.drainage.indices]))
 	drainage.lat[i] <- mean(as.numeric(pop.metadata$Latitude[ind.drainage.indices]))
 	if(length(unique(pop.metadata$Species[ind.drainage.indices])) < 2){
@@ -23,6 +23,21 @@ for(i in 1:length(drainages)){
 }
 
 drainage.coords <- cbind(drainage.long,drainage.lat)
+
+poplar.data <- list("freqs" = drainage.freqs,
+					"coords" = drainage.coords,
+					"sp.ID" = drainage.sp,
+					"sample.sizes" = drainage.sample.sizes)
+
+trichocarpa.data <- list("freqs" = drainage.freqs[drainage.sp=="Populus trichocarpa",],
+						 "coords" = drainage.coords[drainage.sp=="Populus trichocarpa",],
+						 "sp.ID" = drainage.sp[drainage.sp=="Populus trichocarpa"],
+						 "sample.sizes" = drainage.sample.sizes[drainage.sp=="Populus trichocarpa"])
+
+save(poplar.data,file="poplar.spStr.dataset.Robj")
+save(trichocarpa.data,file="trichocarpa.spStr.dataset.Robj")
+
+
 if(FALSE){
 	require(maps)
 	map(xlim=range(drainage.coords[,1]),ylim=range(drainage.coords[,2]))
