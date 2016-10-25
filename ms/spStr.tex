@@ -183,14 +183,23 @@ We then calculate the sample standardized allele frequency covariance between al
 
 \paragraph{Continuous and discrete differentiation}
 We describe the observed patterns of genetic variation as a combination of discrete population clusters,
-within each of which genetic variation is continuously distributed.
+within which genetic variation is continuously distributed, 
+and between which sampled individuals or populations can draw admixture.
 Each of these discrete clusters is modeled as a spatial process
 in which migration between neighboring demes acts 
-to homogenize allele frequency changes that arise locally due to drift,
-and this interplay between drift and migration 
-results in a continuous pattern of isolation by distance.
+to homogenize allele frequency changes that arise locally due to drift;
+this interplay between drift and migration 
+results in a continuous pattern of isolation by distance within each cluster.
 Multiple population cluster processes can co-occur in space, 
-leading to discrete patterns of population structure
+leading to discrete jumps in allele frequencies across many loci over small geographic distances,
+and the genotyped samples can be admixed between different clusters.
+
+The continuous decay of allele frequency covariance with distance 
+within a cluster is described using a simple and flexible powered exponential function.
+The covariance in cluster $k$ between samples $i$ and $j$ is given by:
+\begin{equation}
+F^{(k)}_{i,j} = \alpha_0 \;\text{exp} \left( -(\alpha_D D_{i,j}) ^ \alpha_2	\right)
+\end{equation}
 
 
 \section*{Results}

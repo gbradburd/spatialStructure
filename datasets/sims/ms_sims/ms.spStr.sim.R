@@ -29,6 +29,23 @@ within.cluster.merge <- function(sample.inds,shallow.split){
 	return(merge.vector)
 }
 
+write.admixture.event.calls <- function(admix.list,n.pops){
+# recover()
+	admixture.call <- c()
+	for(i in 1:length(admix.list$sources)){
+		admixture.call <- c(admixture.call,
+							sprintf("-es %s %s %s",
+										admix.list$time.point,
+										admix.list$targets[i],
+										1 - admix.list$admixture.proportions[i]),
+							sprintf("-ej %s %s %s",
+										admix.list$time.point + 0.000001,
+										n.pops+1+(i-1),
+										admix.list$sources[i]))							
+	}
+	return(admixture.call)
+}
+
 btwn.cluster.merge <- function(K,n.pops,deep.split){
 	if(K > 1){
 		merge.vector <- unlist(lapply(2:K,
@@ -44,7 +61,7 @@ btwn.cluster.merge <- function(K,n.pops,deep.split){
 	return(merge.vector)
 }
 
-write.migration.rates <- function(K,sampling.coords,migration.rate,shallow.split,deep.split){
+write.migration.rates <- function(K,sampling.coords,migration.rate,shallow.split,deep.split,admix.list=NULL){
 	# recover()
 	pop.dist <- fields::rdist(sampling.coords)
 	pop.dist[which(pop.dist > sqrt(2) | pop.dist < 1)] <- Inf
@@ -63,6 +80,10 @@ write.migration.rates <- function(K,sampling.coords,migration.rate,shallow.split
 	}
 	migration.rate.vector <- c(migration.rate.vector,
 									btwn.cluster.merge(K,n.pops,deep.split))
+	if(!is.null(admix.list)){
+		migration.rate.vector <- c(migration.rate.vector,
+									write.admixture.event.calls(admix.list,n.pops*K))
+	}
 	return(migration.rate.vector)
 }
 
@@ -94,7 +115,7 @@ read.ms.haplotype.matrices <- function(nsam, ndraws, ms.output.file) {
 }
 
 # function that actually calls ms with the call put together by all these R functions
-ms <- function(sampling.coords,K,n.chromo,theta,migration.rate,shallow.split,deep.split){
+ms <- function(sampling.coords,K,n.chromo,theta,migration.rate,shallow.split,deep.split,admix.list=NULL){
 		ms.output.file <- "ms_output"
 		random.seeds <- c(sample(1:100000,3,replace=TRUE))
 		sampled.pops <- nrow(sampling.coords)
@@ -109,7 +130,8 @@ ms <- function(sampling.coords,K,n.chromo,theta,migration.rate,shallow.split,dee
 														 sampling.coords,
 														 migration.rate,
 														 shallow.split,
-														 deep.split),
+														 deep.split,
+														 admix.list),
 														 collapse=" "),
 							random.seeds[1],
 							random.seeds[2],
@@ -154,29 +176,51 @@ sim.spCor.admix.props <- function(N,K,geoDist){
 	return(ad.props)
 }
 
-admix.freqs <- function(K,admix.props,allele.counts,sample.sizes){
-	sample.freqs <- lapply(1:K,function(k){allele.counts[[k]]/sample.sizes[[k]]})
-	weighted.freqs <- lapply(1:K,
-						function(k){
-							apply(sample.freqs[[k]],2,
-									function(f){
-										f * admix.props[,k]
-									})
-						})
-	admixed.freqs <- Reduce("+",weighted.freqs)
-	return(admixed.freqs)	
+
+make.par.list <- function(K,sampling.coords,sampled.pops,admix.list,drop,allele.counts,sample.sizes){
+	#simulation parameters
+		cluster.indices <- unlist(lapply(1:K,function(k){rep(k,nrow(sampling.coords))}))
+		admix.props <- rep(0,sampled.pops)
+		admix.props[admix.list$targets] <- admix.list$admixture.proportions
+		cluster.indices[admix.list$targets] <- "admixed"
+		coords <- sampling.coords
+		for(k in 1:(K-1)){
+			coords <- rbind(coords,sampling.coords)
+		}
+	#prune for analysis
+		if(drop=="nobody"){
+			to.drop <- FALSE
+		} else if(drop == "admix.sources"){
+			to.drop <- 1:sampled.pops %in% admix.list$sources
+		}
+		cluster.indices <- cluster.indices[!to.drop]
+		admix.props <- admix.props[!to.drop]
+		allele.counts <- allele.counts[!to.drop,]
+		sample.sizes <- sample.sizes[!to.drop,]
+		coords <- 	coords[!to.drop,]
+		geoDist <- fields::rdist(sampling.coords)
+	#make parameter list
+		par.list <- list("cluster.indices" = cluster.indices,
+					 	 "admix.props" = admix.props)
+		data.list <- list("allele.freqs" = allele.counts/sample.sizes,
+						  "sample.sizes" = sample.sizes,
+						  "coords"	= coords,
+						  "geoDist" = geoDist)
+		sim.list <- list("par.list" = par.list,
+						 "data.list" = data.list)
+		return(sim.list)
 }
 
 # make dataset for use by, e.g., spatialStructure
-generate.spStr.dataset <- function(n.loci,K,sampling.coords,n.chromo,sim.sample.sizes,theta,migration.rate,shallow.split,deep.split){
-	#recover()
-	#Allele Counts
+generate.spStr.dataset <- function(n.loci,K,sampling.coords,n.chromo,theta,migration.rate,shallow.split,deep.split,admix.list=NULL,drop="nobody"){
+#	recover()
+	#Allele Counts & Sample sizes
 		migration.rate <- check.param(migration.rate,K)
 		shallow.split <- check.param(shallow.split,K)
 		data.matrix <- do.call(cbind,
 							replicate(n.loci,
-								ms(sampling.coords,K,n.chromo,theta,migration.rate,shallow.split,deep.split)))
-		sampled.pops <- K*nrow(sampling.coords)
+								ms(sampling.coords,K,n.chromo,theta,migration.rate,shallow.split,deep.split,admix.list)))
+		sampled.pops <- K * nrow(sampling.coords)
 		population.membership <- c()
 			for(i in 1:sampled.pops){
 				population.membership <- c(population.membership,rep(i,n.chromo))
@@ -184,41 +228,13 @@ generate.spStr.dataset <- function(n.loci,K,sampling.coords,n.chromo,sim.sample.
 		allele.counts <- matrix(0,nrow=sampled.pops,ncol=n.loci)
 		for(i in 1:sampled.pops){
 			allele.counts[i,] <- colSums(data.matrix[which(population.membership==i),,drop=FALSE])
-		}	
-	#Sample sizes
+		}
 		sample.sizes <- matrix(n.chromo,nrow=sampled.pops,ncol=n.loci)
-	#Broken up by cluster
-		cluster.indices <- lapply(1:K,function(k){1:nrow(sampling.coords) + (k-1)*nrow(sampling.coords)})
-		cluster.allele.counts <- lapply(cluster.indices,function(x){allele.counts[x,]})
-		cluster.sample.sizes <- lapply(cluster.indices,function(x){sample.sizes[x,]})
-	#Create admixed sample
-		D <- fields::rdist(sampling.coords)
-		admix.props <- sim.spCor.admix.props(nrow(sampling.coords),K,D)
-		admix.freqs <- admix.freqs(K,admix.props,cluster.allele.counts,cluster.sample.sizes)
-		sample.admix.allele.counts <- matrix(rbinom(nrow(sampling.coords)*n.loci,sim.sample.sizes,admix.freqs),nrow=nrow(sampling.coords),ncol=n.loci)
-		sample.admix.freqs <- sample.admix.allele.counts/sim.sample.sizes
-	#Return sim dataset
-#		freqs <- switcharoo.data(sample.admix.allele.counts/sim.sample.sizes)
-		freqs <- sample.admix.freqs
-		sample.cov <- cov(t(freqs))
-		spStr.dataset <- list("freqs.list" = list(
-									"cluster.allele.counts" = cluster.allele.counts,
-									"cluster.sample.sizes" = cluster.sample.sizes,
-									"admix.freqs" = admix.freqs,
-									"sample.admix.allele.counts" = sample.admix.allele.counts),
-							  "par.list" = list(
-							  		"n.loci" = n.loci,
-							  		"admix.props" = admix.props,
-							  		"n.chromo" = n.chromo,
-							  		"theta" = theta,
-							  		"migration.rate" = migration.rate,
-							  		"shallow.split" = shallow.split,
-							  		"deep.split" = deep.split,
-							  		"sim.sample.sizes" = sim.sample.sizes),
-							  "data.list" = list(
-							  		"allele.freqs" = freqs,	
-							  		"sample.cov" = sample.cov,
-							  		"D" = D,
-							  		"sampling.coords" = sampling.coords))
-	return(spStr.dataset)
+	#Return sim output
+		sim.dataset <- make.par.list(K,sampling.coords,sampled.pops,admix.list,drop,allele.counts,sample.sizes)
+		sim.dataset$par.list[["theta"]] <- theta
+		sim.dataset$par.list[["migration.rate"]] <- migration.rate
+		sim.dataset$par.list[["shallow.split"]] <- shallow.split
+		sim.dataset$par.list[["deep.split"]] <- deep.split
+	return(sim.dataset)
 }
