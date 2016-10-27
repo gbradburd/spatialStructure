@@ -153,25 +153,25 @@ job describing and quantifying both.
 \section*{Methods}
 \paragraph{Data}
 The statistical framework of our approach is conceptually similar to \cite{Wasser2004} and \cite{spacemix}.
-The genetic data modeled consist of allele frequencies at $L$ unlinked, bi-allelic single nucleotide polymorphisms (SNPs) genotyped across $K$ samples.
-The sample frequency at locus $\ell$ in sample $k$, $f_{\ell,k}$, is calculated by first arbitrarily choosing an allele segregating 
+The genetic data modeled consist of allele frequencies at $L$ unlinked, bi-allelic single nucleotide polymorphisms (SNPs) genotyped across $M$ samples.
+The sample frequency at locus $\ell$ in sample $m$, $f_{m,\ell}$, is calculated by first arbitrarily choosing an allele segregating 
 at locus $\ell$ to count, 
 then dividing the total number of observations of that counted allele by the total number of chromosomes genotyped at that locus
-in sample $k$.
+in sample $m$.
 Following \cite{spacemix}, 
 we standardize allele frequencies by subtracting off the mean and normalizing the variance. 
-Specifically, we compute the standardized allele frequency at locus $\ell$ in sample $k$, $X_{\ell,k}$, as follows:
+Specifically, we compute the standardized allele frequency at locus $\ell$ in sample $m$, $X_{m,\ell}$, as follows:
 \begin{equation}
-\hat{X}_{\ell,k} = (\hat{f}_{k,\ell}  - \bar{f}_{\ell})/\sqrt{\bar{f}'_{\ell}(1-\bar{f}'_{\ell})}\text{,}
+\hat{X}_{m,\ell} = (\hat{f}_{m,\ell}  - \bar{f}_{\ell})/\sqrt{\bar{f}'_{\ell}(1-\bar{f}'_{\ell})}\text{,}
 \end{equation}
 
-where $\hat{f}_{\ell,k}$ is the sample allele frequency at locus $\ell$ in sample $k$,
+where $\hat{f}_{m,\ell}$ is the sample allele frequency at locus $\ell$ in sample $m$,
 $\bar{f}_{\ell}$ is the mean allele frequency across all samples at locus $\ell$.
 With $\bar{f}'_{\ell}$ we make a slight adjustment to the mean to avoid extreme values:
 
 \begin{align}
-\bar{f}_{\ell} &= \frac{1}{K}\sum\limits_{K}\hat{f}_{\ell,k}\\
-\bar{f}'_{\ell} &= \frac{1}{K+1}\left(\sum\limits_{K}\hat{f}_{\ell,k}+ 0.5\right)
+\bar{f}_{\ell} &= \frac{1}{M}\sum\limits_{M}\hat{f}_{m,\ell}\\
+\bar{f}'_{\ell} &= \frac{1}{M+1}\left(\sum\limits_{M}\hat{f}_{m,\ell}+ 0.5\right)
 \end{align}
 
 This standardization procedure gives each locus roughly unit variance, 
@@ -179,6 +179,7 @@ and makes the result invariant to which allele (major or minor) is chosen to be 
 We then calculate the sample standardized allele frequency covariance between all samples:
 \begin{equation}
 \widehat{\Omega} = \frac{1}{L}  \hat{X}\hat{X}^T
+\label{sample_covariance}
 \end{equation}
 
 \paragraph{Continuous and discrete differentiation}
@@ -194,12 +195,79 @@ Multiple population cluster processes can co-occur in space,
 leading to discrete jumps in allele frequencies across many loci over small geographic distances,
 and the genotyped samples can be admixed between different clusters.
 
-The continuous decay of allele frequency covariance with distance 
-within a cluster is described using a simple and flexible powered exponential function.
-The covariance in cluster $k$ between samples $i$ and $j$ is given by:
+The continuous decay of allele frequency covariance with geographic distance 
+within a cluster is described using a simple and flexible powered exponential function;
+the within-cluster covariance between samples $i$ and $j$ is given by:
+
 \begin{equation}
-F^{(k)}_{i,j} = \alpha_0 \;\text{exp} \left( -(\alpha_D D_{i,j}) ^ \alpha_2	\right)
+F_{i,j} = \alpha_0 \left( \text{exp} \left( -(\alpha_D D_{i,j}) ^ {\alpha_2}	\right) + \mu \right)
+\label{within_cluster_covariance}
 \end{equation}
+
+where $F_{i,j}$ is the covariance function within a cluster,
+$D_{i,j}$ is the observed geographic distance between samples $i$ and $j$,
+the $\alpha$ parameters control the shape of the decay of covariance with distance,
+and $\mu$ is a parameter that describes the amount of shared drift within a cluster.
+The shared drift parameter $\mu$ can be interpreted as the branch length connecting 
+the population described by the spatial cluster to the population ancestral to all modeled clusters.
+
+Genotyped samples can be admixed between these different clusters. 
+The admixture proportion of the $i$th sample in the $k$th cluster, $w^{(k)}_i$,
+is the probability that an allele in sample $i$ was derived from cluster $k$, 
+and that sample's admixture proportions in each cluster must sum to one.
+
+We can then describe the covariance across all clusters between samples $i$ and $j$, $\Omega_{i,j}$,
+by summing the within-cluster spatial covariances ($F^{(k)}$ in cluster $k$) they have with each other across all $K$ clusters
+and weighting the product of those samples' admixture proportions in each cluster:
+
+\begin{equation}
+\Omega_{i,j} = \sum\limits_K w^{(k)}_i w^{(k)}_j F^{(k)}_{i,j}
+\label{cross_cluster_covariance}
+\end{equation}
+
+The within-sample variance, $\Omega_{i,i}$, follows the same form as Eqn. \refeq{cross_cluster_covariance},
+with an additional component to describe both sampling noise from the finite number of chromosomes genotyped 
+and sample-specific drift due to, e.g., inbreeding.  
+Thus, the form of the covariance generalized across all sample pairs is given by:
+
+\begin{equation}
+\Omega_{i,j} = \sum\limits_K w^{(k)}_i w^{(k)}_j F^{(k)}_{i,j} + 
+\delta_{i=j} \left(	 \frac{1}{S_i}\left(1 - \sum\limits_K w^{(k)}_i w^{(k)}_j F^{(k)}_{i,j} \right) + \eta_i 	\right)
+\label{cross_cluster_vcv}
+\end{equation}
+
+where $\delta_{i=j}$ is an indictor variable that evaluates to 1 when $i$ is equal to $j$, and zero otherwise,
+$S_i$ is the number of chromosomes genotyped in the $i$th sample (e.g., S = 2 for a diploid), 
+and $\eta_i$ describes the sample-specific drift or inbreeding.
+
+\paragraph{Likelihood and inference}
+If we assume that the standardized allele frequencies $\widehat{X}$ are multivariate normally distributed, 
+their sample covariance will be Wishart distributed with degrees of freedom equal to $L$, the number of loci genotyped.
+We also assume that the observed loci are independent;
+linkage disequilibrium (LD) between loci will decrease the effective number of degrees of freedom.
+The likelihood of the sample standardized allele frequency covariance is given by
+\begin{equation}
+P(\widehat{\Omega} \; | \; \Omega) = \mathcal{W} \left( L\widehat{\Omega} \; | \; \Omega,L\right)
+\end{equation}
+
+We estimate the values of the parameters of the model using a Bayesian approach.
+Acknowledging the dependence of the parametric covariance matrix $\Omega$ on its constituent parameters
+$w,\alpha,\mu,\eta$ and on observed quantities $D$ and $S$ with the notation $\Omega(w,\alpha,\mu,\eta,D,S)$,
+we denote the posterior probability of the parameters as:
+
+\begin{equation}
+P\left( w,\alpha,\mu,\eta \;	| \; \widehat{\Omega}, L \right) \propto
+P\left(\widehat{\Omega} \; | \; \Omega(w,\alpha,\mu,\eta,D,S) \right)
+P(w)P(\alpha)P(\mu)P(\eta)
+\end{equation}
+
+The priors, $P(w),P(\alpha),P(\mu),P(\eta)$, are detailed in the Appendix,
+and the constant of proportionality is the normalization constant.
+We use a Hamiltonian Monte Carlo sampling algorithm implemented in the statistical language STAN
+\citep{stan, NUTS, stan_lib, rstan} to estimate the posterior distribution on the parameters.
+We also present an R package \citep{R} called \texttt{geoStructure} that functions as a wrapper 
+around this inference machinery.
+
 
 
 \section*{Results}
@@ -233,4 +301,7 @@ and the National Science Foundation under award numbers NSF \# 1148897 and \# 14
 \renewcommand{\theequation}{S\arabic{table}}
 \setcounter{equation}{0}
 
+\section{Appendix}
+\subsection{Priors}
+\subsection{Mean-centering procedure and implications}
 \end{document}
