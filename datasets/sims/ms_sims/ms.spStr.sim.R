@@ -178,11 +178,19 @@ sim.spCor.admix.props <- function(N,K,geoDist){
 
 
 make.par.list <- function(K,sampling.coords,sampled.pops,admix.list,drop,allele.counts,sample.sizes){
+#	recover()
 	#simulation parameters
 		cluster.indices <- unlist(lapply(1:K,function(k){rep(k,nrow(sampling.coords))}))
-		admix.props <- rep(0,sampled.pops)
-		admix.props[admix.list$targets] <- admix.list$admixture.proportions
 		cluster.indices[admix.list$targets] <- "admixed"
+		admix.props  <- matrix(NA,nrow=sampled.pops,ncol=K)
+		for(i in 1:sampled.pops){
+			admix.props[i,] <- switch(cluster.indices[i],
+										"1" = c(1,0),
+										"2" = c(0,1),
+										"admixed"=c(NA,NA))
+		}
+		admix.props[admix.list$targets,] <- cbind(admix.list$admixture.proportions,
+													1 - admix.list$admixture.proportions)
 		coords <- sampling.coords
 		for(k in 1:(K-1)){
 			coords <- rbind(coords,sampling.coords)
@@ -194,11 +202,11 @@ make.par.list <- function(K,sampling.coords,sampled.pops,admix.list,drop,allele.
 			to.drop <- 1:sampled.pops %in% admix.list$sources
 		}
 		cluster.indices <- cluster.indices[!to.drop]
-		admix.props <- admix.props[!to.drop]
+		admix.props <- admix.props[!to.drop,]
 		allele.counts <- allele.counts[!to.drop,]
 		sample.sizes <- sample.sizes[!to.drop,]
 		coords <- 	coords[!to.drop,]
-		geoDist <- fields::rdist(sampling.coords)
+		geoDist <- fields::rdist(coords)
 	#make parameter list
 		par.list <- list("cluster.indices" = cluster.indices,
 					 	 "admix.props" = admix.props)
