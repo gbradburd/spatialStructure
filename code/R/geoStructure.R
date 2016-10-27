@@ -146,6 +146,9 @@ print.freq.data <- function(freq.data){
 }
 
 standardize.freqs <- function(freqs,sample.sizes){
+	if(class(sample.sizes) == "matrix"){
+		stop("object \"sample.sizes\" must be a vector")
+	}
 	invars <- apply(freqs,2,function(x){length(unique(x))==1})
 	freqs <- freqs[,!invars]
 	n.loci <- ncol(freqs)
