@@ -1,0 +1,82 @@
+
+R version 3.2.1 (2015-06-18) -- "World-Famous Astronaut"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> require(geoStructure)
+Loading required package: geoStructure
+> load(list.files(pattern="dataset"))
+> geoStructure(spatial = TRUE,
++ 			 K = 1,
++ 			 freqs = bear.dataset$sample.freqs,
++ 			 D = fields::rdist.earth(bear.dataset$sample.coords),
++ 			 coords = bear.dataset$sample.coords,
++ 			 sample.sizes = bear.dataset$sample.sizes,
++ 			 prefix = "bears_K=1")
+
+checking data.block
+
+	reading 94 samples
+	reading 21994 loci
+
+checking specified model
+
+	reading 1 cluster(s)
+
+user has specified a spatial model
+
+Loading required package: rstan
+Loading required package: Rcpp
+Loading required package: ggplot2
+rstan (Version 2.8.0, packaged: 2015-09-19 14:48:38 UTC, GitRev: 05c3d0058b6a)
+For execution on a local, multicore CPU with excess RAM we recommend calling
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+
+SAMPLING FOR MODEL '95d16037043bc6a2b1066dcc20dfb82c' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 10000 [  0%]  (Warmup)
+Chain 1, Iteration: 1000 / 10000 [ 10%]  (Warmup)
+Chain 1, Iteration: 2000 / 10000 [ 20%]  (Warmup)
+Chain 1, Iteration: 3000 / 10000 [ 30%]  (Warmup)
+Chain 1, Iteration: 4000 / 10000 [ 40%]  (Warmup)
+Chain 1, Iteration: 5000 / 10000 [ 50%]  (Warmup)
+Chain 1, Iteration: 5001 / 10000 [ 50%]  (Sampling)
+Chain 1, Iteration: 6000 / 10000 [ 60%]  (Sampling)
+Chain 1, Iteration: 7000 / 10000 [ 70%]  (Sampling)
+Chain 1, Iteration: 8000 / 10000 [ 80%]  (Sampling)
+Chain 1, Iteration: 9000 / 10000 [ 90%]  (Sampling)
+Chain 1, Iteration: 10000 / 10000 [100%]  (Sampling)
+#  Elapsed Time: 728.862 seconds (Warm-up)
+#                1033.45 seconds (Sampling)
+#                1762.31 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 45: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+$chain_1
+List of 2
+ $ post :List of 6
+ $ point:List of 6
+ - attr(*, "class")= chr "geoStructure.results"
+NULL
+
+> 
+> proc.time()
+    user   system  elapsed 
+1866.634   20.643 1956.230 
