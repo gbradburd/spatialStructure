@@ -1,0 +1,3766 @@
+
+R version 3.2.1 (2015-06-18) -- "World-Famous Astronaut"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> deep.split.times <- seq(5e3,5e2,length.out=10)
+> for(i in 1:length(deep.split.times)){
++ 	dir.name <- paste0("sim_", deep.split.times[i])
++ 	setwd(dir.name)
++ 		for(j in 1:10){
++ 			dir.name <- paste0("sim_", j)
++ 			setwd(dir.name)
++ 				source("~/Dropbox/InspectorSpaceTime/spatialStructure/datasets/sims/ms_sims/exe.spStr.R")
++ 			setwd("..")
++ 		}
++ 	setwd("..")
++ }
+Loading required package: geoStructure
+
+checking data.block
+
+	reading 25 samples
+	reading 8037 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+Loading required package: rstan
+Loading required package: Rcpp
+Loading required package: ggplot2
+rstan (Version 2.8.0, packaged: 2015-09-19 14:48:38 UTC, GitRev: 05c3d0058b6a)
+For execution on a local, multicore CPU with excess RAM we recommend calling
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 94.1936 seconds (Warm-up)
+#                71.7421 seconds (Sampling)
+#                165.936 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Loading required package: caroline
+
+checking data.block
+
+	reading 25 samples
+	reading 7979 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 104.201 seconds (Warm-up)
+#                109.583 seconds (Sampling)
+#                213.784 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+validate transformed params: Sigma is not symmetric. Sigma[1,2] = nan, but Sigma[2,1] = nan              1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8038 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 67.7985 seconds (Warm-up)
+#                50.9467 seconds (Sampling)
+#                118.745 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+ 14.441 6.74267 14.7268 13.8637 3.72797 4.63662 7.55446 2.56382 8.93225 6.02482 4.46648 3.40385  5.6     1
+ 27.005 12.2463 27.5396  24.585 6.74267 8.22222 12.9454 4.35783 15.3064 10.1419 7.48873 5.72987  9.3     1
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8016 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 156.466 seconds (Warm-up)
+#                176.563 seconds (Sampling)
+#                333.028 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8036 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 108.132 seconds (Warm-up)
+#                146.615 seconds (Sampling)
+#                254.747 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8046 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 227.795 seconds (Warm-up)
+#                148.126 seconds (Sampling)
+#                375.921 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+ 3.5533e+15  2.2421e+12 1.35532e+10 6.15081e+13 3.79814e+10 4.81816e+11 3.41384e+15 3.01386e+11 2.36     2
+validate transformed params: Sigma is not symmetric. Sigma[1,2] = nan, but Sigma[2,1] = nan              2
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7964 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 123.5 seconds (Warm-up)
+#                237.098 seconds (Sampling)
+#                360.598 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  2.8629  1.52228  5.56254  1.17623  7.04583  2.40631  6.02396  6.92037  3.68797  1.64974  3.12531       1
+ 0.55431 0.310429  1.04276 0.468427  1.31056 0.469081  1.12323   1.2857 0.700288  0.33027 0.597021       1
+ 0.68322 0.374882  1.30087 0.297246  1.64311 0.577693  1.41083   1.6154 0.872561 0.408265 0.745422       1
+ 1.05243 0.569686  2.01662 0.445996  2.54511 0.883247  2.17613  2.49485  1.33892 0.610772  1.13631       1
+ 1.10765  0.60334  2.13932 0.469081  2.69324  1.12078  2.29696   2.6416  1.42395 0.644495  1.20424       1
+ 1.41351 0.712354  2.53738  0.55431  3.19992  1.10765  2.73054  3.13606  1.68196 0.760251  1.42399       1
+ 1.42399 0.767177  2.75663 0.597021  3.48266  1.20424  2.97644  3.42178  1.83609 0.831384  1.98409       1
+ 1.68196 0.904351  3.26714 0.700288  4.12315  1.42395  3.51673  4.04751   2.2773 0.973645  1.83609       1
+ 2.05226  1.09498  3.97288 0.849377  5.03253  1.72398  4.30677  4.94284  2.63708  1.18715  2.23775       1
+ 2.20255   1.1741  4.26388 0.909188  5.39508  1.84666   4.6102  5.29153  2.82197  1.26619  2.39059       1
+ 2.31776  1.23574  4.49502 0.956924  5.68857  1.94742  4.86172  5.58346  2.97877  1.33589  2.52371       1
+ 2.35534  1.25517  4.57128 0.971903  5.79183  1.98207  4.95564  5.69251  3.03667  1.36332  2.57637       1
+ 2.38644  1.27178  4.62632 0.982562  5.84677   2.0009  4.98844  5.73022  3.05668  1.36668  2.58533       1
+ 2.49217  1.32745  4.83439  1.02659  6.11466   2.0915  5.22102  5.99705  3.19819  1.43061  2.70685       1
+ 2.53738  1.35584  4.91647  1.04276  6.23765  2.13932  5.30942   6.1128  3.26714  1.45279  2.75663       1
+ 2.73054  1.45405  5.30942  1.12323  6.71692  2.29696   5.6049    6.593  3.51673  1.57083  2.97644       1
+ 2.96049  1.57571  5.76939  1.21588  7.30316  2.49688  6.23858  7.17833  3.83045  1.70832  3.24416       1
+ 3.01432  1.60297  5.86713  1.23765  7.43177  2.53859  6.35297  7.30452  3.89455  1.73945  3.30039       1
+ 3.13606  1.66866   6.1128   1.2857  7.72946   2.6416    6.593   7.5167  4.04751   1.8008  3.42178       1
+ 3.18492  1.69524  6.21773  1.30561  7.86128   2.6881  6.70522  7.72176  4.12266  1.83215  3.48519       1
+ 3.19992  1.70267  6.23765  1.31056  7.71423  2.69324  6.71692  7.72946  4.12315  1.83242  3.48266       1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8032 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 91.5916 seconds (Warm-up)
+#                125.755 seconds (Sampling)
+#                217.347 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+   2.423  1.53269  1.26104  2.15292  4.51242  4.01692  4.22994   2.4857  3.69588  4.06912  4.14831       1
+ 0.75369 0.496385 0.461105 0.655859  1.39116  1.26203  1.24969 0.751655  1.13254  1.17353  1.21848       1
+ 0.91864 0.669568 0.496385    0.798  1.67749  1.50673  1.51478 0.905102  1.35439  1.42096  1.46736       1
+ 1.24741 0.788776 0.647113  1.10351  2.29349  2.03757  2.13502  1.25417  1.85691  2.02485  2.06248       1
+ 1.25201    0.798 0.655859  1.10361  2.29415  2.04519  2.10432  1.24701   1.8527   1.9808  2.03275       1
+ 1.29241 0.814032 0.666964  1.14832  2.39333  2.12191  2.25274  1.31807  1.95091  2.16535  2.19682       1
+ 1.41064 0.905102 0.751655  1.24701  2.63306  2.36477  2.41487  1.44233  2.15932  2.29038  2.36853       1
+ 1.42861  0.91864  0.75369  1.25201  2.61765  2.33593  2.38306  1.41064  2.10349  2.23522  2.29527       1
+ 2.10349  1.35439  1.13254   1.8527   3.9501  3.57593  3.59635  2.15932  3.16127  3.41413   3.5517       1
+ 2.17579  1.39838  1.16799  1.92485  4.10131  3.70925  3.75977  2.25405  3.40814  3.59212   3.7398       1
+ 2.23522  1.42096  1.17353   1.9808  4.16771  3.72397   3.8749  2.29038  3.41413  3.57767  3.80025       1
+ 2.29527  1.46736  1.21848  2.03275  4.30542  3.86915  3.97428  2.36853   3.5517  3.80025  3.80084       1
+ 2.33593  1.50673  1.26203  2.04519   4.3642  3.81083  3.94526  2.36477  3.57593  3.72397  3.86915       1
+ 2.36908   1.4907  1.22048  2.09561  4.36717  3.86885  4.09388  2.39227  3.54091  3.91121  3.96822       1
+ 2.38306  1.51478  1.24969  2.10432  4.42034  3.94526  3.93882  2.41487  3.59635   3.8749  3.97428       1
+ 2.59171  1.63537  1.34146  2.27148   4.7414  4.21146  4.37639  2.56917  3.81604  4.12625  4.21163       1
+ 2.60638  1.66499  1.38277  2.31566  4.90623  4.41062  4.55002   2.7065  4.06567  4.37676  4.52474       1
+ 2.61765  1.67749  1.39116  2.29415   4.6756   4.3642  4.42034  2.63306   3.9501  4.16771  4.30542       1
+ 2.63356  1.65411  1.35211  2.30542  4.79726  4.24601  4.44902  2.59966  3.84827  4.19958  4.26669       1
+ 2.69977  1.70671  1.40302  2.39021  5.00456  4.45093  4.67465  2.74405  4.07634   4.4694  4.55322       1
+ 2.80396  1.78219   1.4729  2.49173   5.2508  4.69584  4.89813  2.89469  4.32448  4.71487   4.8364       1
+ 2.81541  1.80705  1.50825  2.49941  5.32415  4.81255  4.90746  2.93504  4.43775  4.71489  4.90389       1
+ 3.01024  1.89229  1.54807   2.6498  5.51908  4.88623  5.14822  3.00683  4.45048   4.8874  4.96135       1
+ 3.19792   2.0077  1.64097  2.78117  5.79343  5.12915  5.33991  3.12252  4.62635  5.01729  5.10247       1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7959 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 76.9351 seconds (Warm-up)
+#                215.343 seconds (Sampling)
+#                292.278 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8042 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 259.987 seconds (Warm-up)
+#                141.258 seconds (Sampling)
+#                401.246 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7856 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 123.048 seconds (Warm-up)
+#                135.313 seconds (Sampling)
+#                258.36 seconds (Total)
+
+
+checking data.block
+
+	reading 25 samples
+	reading 7991 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 109.334 seconds (Warm-up)
+#                147.135 seconds (Sampling)
+#                256.47 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8000 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 131.767 seconds (Warm-up)
+#                115.106 seconds (Sampling)
+#                246.873 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8059 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 74.7977 seconds (Warm-up)
+#                133.642 seconds (Sampling)
+#                208.44 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8107 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 151.368 seconds (Warm-up)
+#                337.191 seconds (Sampling)
+#                488.558 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7978 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 116.873 seconds (Warm-up)
+#                108.245 seconds (Sampling)
+#                225.118 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7763 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 110.804 seconds (Warm-up)
+#                77.7061 seconds (Sampling)
+#                188.51 seconds (Total)
+
+
+checking data.block
+
+	reading 25 samples
+	reading 7849 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 125.89 seconds (Warm-up)
+#                379.295 seconds (Sampling)
+#                505.185 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7913 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 140.592 seconds (Warm-up)
+#                144.734 seconds (Sampling)
+#                285.326 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8020 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 181.689 seconds (Warm-up)
+#                115.372 seconds (Sampling)
+#                297.061 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+validate transformed params: Sigma is not symmetric. Sigma[1,2] = nan, but Sigma[2,1] = nan              1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7948 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 175.337 seconds (Warm-up)
+#                100.883 seconds (Sampling)
+#                276.22 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7937 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 77.9022 seconds (Warm-up)
+#                55.2181 seconds (Sampling)
+#                133.12 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8024 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 148.69 seconds (Warm-up)
+#                183.883 seconds (Sampling)
+#                332.573 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7881 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 137.686 seconds (Warm-up)
+#                106.028 seconds (Sampling)
+#                243.714 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7842 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 106.841 seconds (Warm-up)
+#                159.934 seconds (Sampling)
+#                266.775 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7886 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 88.5514 seconds (Warm-up)
+#                122.167 seconds (Sampling)
+#                210.719 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 8004 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 124.955 seconds (Warm-up)
+#                184.209 seconds (Sampling)
+#                309.165 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7953 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 126.191 seconds (Warm-up)
+#                178.623 seconds (Sampling)
+#                304.814 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7902 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 152.963 seconds (Warm-up)
+#                253.161 seconds (Sampling)
+#                406.124 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7825 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 97.765 seconds (Warm-up)
+#                87.0041 seconds (Sampling)
+#                184.769 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7760 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 175.076 seconds (Warm-up)
+#                126.769 seconds (Sampling)
+#                301.845 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7731 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 85.7939 seconds (Warm-up)
+#                81.0601 seconds (Sampling)
+#                166.854 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7822 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 108.337 seconds (Warm-up)
+#                187.085 seconds (Sampling)
+#                295.421 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7796 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 163.236 seconds (Warm-up)
+#                131.845 seconds (Sampling)
+#                295.08 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7918 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 113.816 seconds (Warm-up)
+#                170.652 seconds (Sampling)
+#                284.468 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7883 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 85.4427 seconds (Warm-up)
+#                114.417 seconds (Sampling)
+#                199.859 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7783 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 88.5468 seconds (Warm-up)
+#                345.893 seconds (Sampling)
+#                434.44 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7866 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 94.8373 seconds (Warm-up)
+#                46.0144 seconds (Sampling)
+#                140.852 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  32.95 32.7809 29.9215 18.2153 33.4482 31.2355 14.1813 32.0261 30.8651 11.9437 30.1307 28.8702 28.6     1
+ 7.8928 7.36964 6.40636 4.68731 7.72447 6.87222 3.67676 7.72603 7.04751 3.25455  7.6235 6.87474 8.11     1
+ 8.3993 8.17072 7.37326 5.29996 9.11306 8.40701 4.47713 9.78455 9.21314 4.32115 10.4215 9.62701 11.7     1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7917 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 234.366 seconds (Warm-up)
+#                123.222 seconds (Sampling)
+#                357.588 seconds (Total)
+
+
+checking data.block
+
+	reading 25 samples
+	reading 7852 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 116.446 seconds (Warm-up)
+#                162.459 seconds (Sampling)
+#                278.906 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+validate transformed params: Sigma is not positive definite:                                             2
+  0.9293  1.25025 0.775979  1.87718  1.74098  1.41899  1.60303  1.75781  1.49682  1.56646  1.57621       1
+  1.0235  1.37702 0.854627  2.06753  1.91752  1.56287  1.76557  1.89208  1.64858  1.72526  1.75781       1
+  1.0347  1.39207 0.863941  2.09016  1.93848  1.57992  1.78489  1.95719  1.66657  1.74414  1.77701       1
+  1.1855    1.595 0.989831  2.39493  2.22111  1.81025   2.0451  2.24255  1.90952  1.99841  2.03607       1
+  3.357e+38 3.35699e+38 3.35697e+38 2.60812e-30 2.60366e-30 3.35701e+38 2.63684e-30 3.35706e+38 2.61     1
+ 0.63629 0.855965 0.531367  1.28504  1.19183 0.971467  1.09742  1.20336  1.02475   1.0724  1.09264 0     1
+ 1.01375  1.36389 0.846488  2.04778  1.86879  1.54794  1.74868  1.91752  1.63281  1.70875  1.74098       1
+ 1.01697  1.36821 0.849132  2.05434  1.90525  1.55284  1.75429  1.92365    1.638  1.71425  1.74655       1
+ 1.01752  1.36897  0.84961   2.0555  1.90634  1.55373   1.7553  1.92476  1.63895  1.71526  1.74758       1
+ 1.09303  1.47056 0.912643  2.26277  2.04778    1.669  1.88549  2.06753  1.76052  1.84244  1.87718       1
+ 2.3616e-31  1.2849e-44 5.34467e-60 4.34193e-14        0.05 2.43797e-57 4.31962e-14 1.76716e-20 4.31     1
+ 2.3738e-31  1.2783e-44 5.29407e-60 1.26597e+17 4.34193e-14 2.40888e-57 4.34193e-14 1.75808e-20 4.27     1
+validate transformed params: Sigma is not symmetric. Sigma[1,2] = inf, but Sigma[2,1] = inf              1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7771 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 109.293 seconds (Warm-up)
+#                127.964 seconds (Sampling)
+#                237.258 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7817 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 136.949 seconds (Warm-up)
+#                101.049 seconds (Sampling)
+#                237.998 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7792 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 114.57 seconds (Warm-up)
+#                145.714 seconds (Sampling)
+#                260.284 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7794 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 113.635 seconds (Warm-up)
+#                113.854 seconds (Sampling)
+#                227.489 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7804 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 99.6577 seconds (Warm-up)
+#                165.517 seconds (Sampling)
+#                265.174 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7786 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 204.455 seconds (Warm-up)
+#                95.0721 seconds (Sampling)
+#                299.527 seconds (Total)
+
+
+checking data.block
+
+	reading 25 samples
+	reading 7809 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 141.992 seconds (Warm-up)
+#                172.342 seconds (Sampling)
+#                314.334 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7746 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 141.233 seconds (Warm-up)
+#                117.638 seconds (Sampling)
+#                258.871 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  4.3285e-12   4.3285e-12  9.49843e-26   4.3285e-12   4.3285e-12   4.3285e-12   4.3285e-12   4.3285e    15
+  4.3285e-12         0.05  9.49843e-26   4.3285e-12   4.3285e-12   4.3285e-12   4.3285e-12   4.3285e     1
+  4.3285e-12   4.3285e-12  9.49843e-26   4.3285e-12         0.05   4.3285e-12   4.3285e-12   4.3285e     1
+  4.3285e-12   4.3285e-12  9.49843e-26   4.3285e-12   4.3285e-12         0.05   4.3285e-12   4.3285e     1
+  4.3285e-12   4.3285e-12  9.49843e-26   4.3285e-12   4.3285e-12   4.3285e-12         0.05   4.3285e     1
+  4.3285e-12   4.3285e-12  9.49843e-26   4.3285e-12   4.3285e-12   4.3285e-12   4.3285e-12         0     1
+ 1.0344e+282  4.32839e-12 5.71222e+290 9.88058e+277  4.32839e-12  4.32839e-12  4.32839e-12  4.32839e     1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7845 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 172.986 seconds (Warm-up)
+#                150.552 seconds (Sampling)
+#                323.538 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7884 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 170.192 seconds (Warm-up)
+#                84.561 seconds (Sampling)
+#                254.753 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7600 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 228.389 seconds (Warm-up)
+#                425.937 seconds (Sampling)
+#                654.326 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7746 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 126.805 seconds (Warm-up)
+#                131.784 seconds (Sampling)
+#                258.589 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7692 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 165.183 seconds (Warm-up)
+#                209.847 seconds (Sampling)
+#                375.03 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7768 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 123.315 seconds (Warm-up)
+#                136.871 seconds (Sampling)
+#                260.187 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7528 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 114.982 seconds (Warm-up)
+#                131.059 seconds (Sampling)
+#                246.041 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  0.23518  0.894124  0.462115  0.255404  0.829125   1.03747  0.357472   1.10802   1.01557  0.209762      1
+ 0.105383  0.392659  0.200119  0.116399  0.357472  0.455516  0.221875  0.501551  0.452768  0.098797      1
+ 0.125117  0.459991  0.230765  0.138044  0.418658   0.52562   0.19606   0.58757  0.522433  0.117087      1
+ 0.135963  0.523498  0.421241  0.145301  0.462115  0.607301  0.200119  0.629046  0.585457  0.115785      1
+ 0.143056  0.519148  0.256404  0.160148  0.479663  0.593281  0.231104  0.683661  0.598707  0.140045      1
+ 0.148717  0.266362  0.135963 0.0770254   0.23518  0.299494  0.105383  0.319803  0.288741 0.0611249      1
+ 0.170063  0.625888  0.313855  0.184709  0.560984  0.704429  0.258262  0.775568  0.689581   0.15165      1
+ 0.176169  0.649865  0.325787  0.200232  0.609601  0.765625  0.293507  0.882274  0.784458  0.180531      1
+ 0.188373  0.705656  0.359159  0.214107  0.661939  0.844097  0.313873  0.958046  0.864871  0.193096      1
+ 0.192874  0.711406  0.356633  0.215938  0.657277  0.825485  0.311762  0.936921  0.833035  0.188872      1
+ 0.205945  0.748217  0.369405  0.227063  0.680838  0.842209  0.322812  0.955885  0.837084  0.192405      1
+ 0.222572  0.808617  0.399206  0.241661   0.72469  0.896466   0.33835   1.00212   0.87757  0.198561      1
+ 0.245098    0.8907  0.439694  0.262061  0.786193  0.972584  0.361424   1.07081  0.937724  0.208852      1
+ 0.250467  0.953472  0.492593  0.284665  0.894353   1.15805  0.417394   1.29456   1.18655  0.256402      1
+ 0.259315   1.00243  0.525796  0.294712  0.940266   1.23617  0.432133   1.36104   1.26659  0.265358      1
+ 0.266037   1.02829  0.539392    0.2978  0.949998   1.24894  0.430055   1.35436   1.26041  0.260113      1
+ 0.266362   1.02131  0.523498  0.284744  0.894124   1.15763  0.392659   1.21769   1.11609  0.226878      1
+ 0.267072   1.01661  0.525224  0.298976  0.939222   1.21612  0.431769     1.339   1.22727  0.261243      1
+ 0.288544   1.04989  0.518166   0.32793  0.984744   1.21833  0.480875   1.42545   1.24827  0.295225      1
+ 0.288741   1.11609  0.585457  0.318338   1.01557   1.33516  0.452768   1.42599   1.31668   0.26967      1
+ 0.299494   1.15763  0.607301  0.325195   1.03747   1.35358  0.455516    1.4347   1.33516  0.267187      1
+ 0.300951   1.11082  0.556678  0.321766  0.980467   1.23153  0.443825   1.33546   1.18738  0.256399      1
+ 0.319803   1.21769  0.629046  0.352607   1.10802    1.4347  0.501551   1.53345   1.42599  0.298693      1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7580 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 114.948 seconds (Warm-up)
+#                159.808 seconds (Sampling)
+#                274.756 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+validate transformed params: Sigma is not symmetric. Sigma[1,2] = inf, but Sigma[2,1] = inf              1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7496 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 78.962 seconds (Warm-up)
+#                72.8814 seconds (Sampling)
+#                151.843 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7629 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 118.305 seconds (Warm-up)
+#                144.477 seconds (Sampling)
+#                262.782 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7811 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 84.4592 seconds (Warm-up)
+#                121.762 seconds (Sampling)
+#                206.221 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+validate transformed params: Sigma is not symmetric. Sigma[1,2] = nan, but Sigma[2,1] = nan              1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7669 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 91.1085 seconds (Warm-up)
+#                129.428 seconds (Sampling)
+#                220.536 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7524 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 131.23 seconds (Warm-up)
+#                183.001 seconds (Sampling)
+#                314.231 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!                 1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7541 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 76.2098 seconds (Warm-up)
+#                168.164 seconds (Sampling)
+#                244.374 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7629 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 147.633 seconds (Warm-up)
+#                153.39 seconds (Sampling)
+#                301.023 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7686 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 184.901 seconds (Warm-up)
+#                242.859 seconds (Sampling)
+#                427.76 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7583 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 90.8419 seconds (Warm-up)
+#                151.763 seconds (Sampling)
+#                242.605 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  11.177    13.75  13.3194  9.24812  13.0426  12.8966  12.2404  13.4001  13.2702  10.5346  13.2512       1
+  9.3634  11.5183  11.1571  7.74774  10.9259  10.8032  10.2547  11.2257  11.1163  8.82606  11.1012       1
+ 1.20247  1.47876  1.43232   0.9954  1.40278  1.38692  1.31692  1.44122  1.42706   1.1338  1.42523       1
+ 10.2427  12.5999  12.2047  8.47507  11.9515  11.8171  10.7271  12.2788   12.159   9.6534  12.1419       1
+ 10.7916  13.2758  12.8601  8.92882  12.5923  11.8966  11.8171  12.9367  12.8113  10.1698  12.7922       1
+ 10.8537  13.3522   12.934  8.98075  12.6655  12.5237  11.8868  13.0129  12.8867  10.2305  12.8686       1
+ 10.9143  13.4264  13.0056  9.03041  12.1584  12.5923  11.9515  13.0835  12.9562  10.2854  12.9373       1
+ 10.9997  13.5316  13.1075  9.10162  12.8357  12.6917  12.0468  13.1878  13.0595  10.3682  13.0415       1
+ 11.0871   13.639  13.2116  9.17373  12.9373  12.7922  12.1419   13.292  13.1627  10.4499  12.5562       1
+ 11.1032  13.6592  13.2315  9.18689  12.9562  12.8113   12.159  13.3111  12.5929  10.4643  13.1627       1
+ 11.1461   13.712  12.6948  9.22189  13.0056  12.8601  12.2047  13.3611  13.2315  10.5031  13.2116       1
+ 11.2125  13.7934  13.3611  9.27739  13.0835  12.9367  12.2788   12.831  13.3111  10.5673   13.292       1
+ 11.5071  13.5201   13.712  9.52053  13.4264  13.2758  12.5999  13.7934  13.6592  10.8432   13.639       1
+ 3.05527  3.75782  3.63988  2.52859  3.56455  3.52434  3.34588  3.66214  3.62628   2.8798  3.62133       1
+ 3.85559  4.74218  4.59324  3.19025  4.49795  4.44717   4.2215  4.62085  4.57559  3.63303  4.56915       1
+ 4.64205  5.70998  5.53079  3.84133   5.4163  5.35528  5.08382  5.56476  5.51034  4.37579  5.50293       1
+ 4.80121  5.90576  5.72032  3.97293  5.60206  5.53887  5.25823  5.75572  5.69936  4.52583  5.69189       1
+ 5.00397  6.15529  5.96214  4.14074  5.83879  5.77304  5.48035  5.99897  5.94033  4.71713  5.93246       1
+ 5.17547  6.36573   6.1659  4.28225  6.03785   5.9698  5.66657  6.20282   6.1422   4.8766   6.1334       1
+ 5.40861  6.65269  6.44375  4.47531  6.31018  6.23896  5.92248  6.48279   6.4193  5.09698  6.41041       1
+ 5.77675  7.10565   6.8825  4.78001  6.73997  6.66391  6.32603  6.92452  6.85669  5.44446  6.84737       1
+ 5.87554  7.22709  7.00024  4.86182  6.85504  6.77778  6.43375  7.04253  6.97368  5.53694  6.96387       1
+ 7.73968  9.52053  9.22189   6.1546  9.03041  8.92882  8.47507  9.27739  9.18689  7.29363  9.17373       1
+ 8.81465  10.8432  10.5031  7.29363  10.2854  10.1698   9.6534  10.5673  10.4643  7.96194  10.4499       1
+ 8.96142  11.5071  11.1461  7.73968  10.9143  10.7916  10.2427  11.2125  11.1032  8.81465  11.0871       1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7584 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 89.7947 seconds (Warm-up)
+#                71.229 seconds (Sampling)
+#                161.024 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7577 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 117.711 seconds (Warm-up)
+#                122.032 seconds (Sampling)
+#                239.743 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     2
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7573 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 136.311 seconds (Warm-up)
+#                105.973 seconds (Sampling)
+#                242.284 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7657 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 122.672 seconds (Warm-up)
+#                85.692 seconds (Sampling)
+#                208.364 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7574 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 148.449 seconds (Warm-up)
+#                164.322 seconds (Sampling)
+#                312.77 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7490 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 124.775 seconds (Warm-up)
+#                191.286 seconds (Sampling)
+#                316.06 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  0.6256 0.775351 0.579744 0.710257  0.31179 0.246326 0.245939 0.498939 0.659214 0.426749  0.74055 0     1
+ 0.23076 0.277989 0.214357 0.257218 0.128783 0.106791 0.107813 0.187975 0.238499 0.164719 0.264438 0     1
+ 1.00088  1.24494 0.923148  1.13756 0.483487  0.37582 0.374961 0.787898  1.04871 0.669148  1.18035       1
+ 1.00258  1.24721 0.924833  1.14027 0.484569 0.376641 0.376087 0.790318  1.05193 0.671697  1.18476       1
+ 1.00703  1.25215 0.927937  1.14529 0.486207  0.37762 0.377477 0.793223  1.05544 0.674507  1.18936       1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7466 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 109.151 seconds (Warm-up)
+#                77.8295 seconds (Sampling)
+#                186.98 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7483 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 93.5937 seconds (Warm-up)
+#                214.964 seconds (Sampling)
+#                308.558 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7303 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 78.1591 seconds (Warm-up)
+#                234.058 seconds (Sampling)
+#                312.217 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  0.11096  0.349072  0.310854  0.129583  0.316805  0.313251  0.201385   0.33485   0.32131  0.258895      1
+  0.30455  0.957555  0.852716  0.405371  0.869069  0.859291   0.55251   0.91854  0.881395  0.710155      1
+  0.32533  0.819966  0.730185   0.30455   0.74417  0.735811   0.47303   0.78654  0.754738  0.608099      1
+  0.47303   1.48809   1.32517   0.55251   1.35055   1.33539  0.891606   1.42747   1.36975   1.10367      1
+  0.74417   2.34109   2.08478  0.869069   2.09884   2.10086   1.35055    2.2457    2.1549   1.73622      1
+  0.78654   2.47443   2.20352   0.91854    2.2457   2.22051   1.42747   2.33084   2.27764   1.83511      1
+ 0.122714  0.386008  0.343746  0.143313  0.350326  0.346396  0.222692  0.370279  0.355307  0.286277      1
+ 0.154901   0.48731  0.433957  0.180896  0.442264  0.437303  0.281126  0.467456  0.448555  0.361413      1
+ 0.168522  0.530158  0.472114  0.196813  0.481152  0.475754  0.305898  0.508559  0.487995  0.393276      1
+ 0.185313  0.582716  0.518917  0.216508  0.528854  0.522918  0.336215  0.558972   0.53637  0.432165      1
+ 0.199577  0.627861   0.55912   0.23307  0.569823  0.563432  0.362214  0.602281  0.577928   0.46568      1
+ 0.203703  0.640188  0.570096  0.237721  0.581009   0.57449  0.369321  0.614099  0.589269   0.47478      1
+ 0.215528  0.678032  0.603797  0.251705  0.615356  0.608453  0.391162  0.650405  0.624106  0.502856      1
+ 0.269722  0.848498  0.755601  0.315041  0.770066  0.761426  0.489608  0.813927  0.781015  0.629305      1
+ 0.292949  0.921607  0.820706  0.342112  0.836416  0.827035  0.531676  0.884059  0.848314  0.683573      1
+ 0.608099   1.91306   1.70361  0.710155   1.73622   1.71674   1.10367   1.83511   1.76091   1.41422      1
+ 0.672095   2.11439    1.8829  0.784884   1.91894   1.89743   1.21976   2.02825   1.94624   1.56811      1
+ 0.730185   2.29713   2.02519  0.852716   2.08478   2.06141   1.32517   2.20352   2.11443   1.70361      1
+ 0.735811   2.31484   2.06141  0.859291   2.10086   2.05356   1.33539   2.22051   2.13074   1.71674      1
+ 0.748394   2.35442   2.09665  0.873987   2.13679   2.11282   1.35824    2.2585   2.16718   1.74613      1
+ 0.754738   2.37438   2.11443  0.881395    2.1549   2.13074   1.36975   2.27764    2.1532   1.76091      1
+ 0.755874   2.37796   2.11761  0.882721   2.15814   2.13394   1.37181   2.28107   2.18885   1.76357      1
+ 0.770157   2.42289   2.15763  0.899403   2.19892   2.17426   1.39774   2.32417    2.2302   1.79691      1
+ 0.819966   2.53155   2.29713  0.957555   2.34109   2.31484   1.48809   2.47443   2.37438   1.91306      1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7417 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 110.186 seconds (Warm-up)
+#                48.6198 seconds (Sampling)
+#                158.806 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7502 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 164.281 seconds (Warm-up)
+#                158.623 seconds (Sampling)
+#                322.904 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7408 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 131.032 seconds (Warm-up)
+#                196.756 seconds (Sampling)
+#                327.788 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7470 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 740.542 seconds (Warm-up)
+#                1263.82 seconds (Sampling)
+#                2004.36 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7476 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 226.267 seconds (Warm-up)
+#                104.219 seconds (Sampling)
+#                330.486 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7381 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 151.826 seconds (Warm-up)
+#                83.9382 seconds (Sampling)
+#                235.764 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7304 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 119.424 seconds (Warm-up)
+#                160.969 seconds (Sampling)
+#                280.393 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7286 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 105.682 seconds (Warm-up)
+#                114.807 seconds (Sampling)
+#                220.489 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7247 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 107.619 seconds (Warm-up)
+#                179.517 seconds (Sampling)
+#                287.136 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7292 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 93.5112 seconds (Warm-up)
+#                83.6956 seconds (Sampling)
+#                177.207 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7347 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 99.1165 seconds (Warm-up)
+#                111.075 seconds (Sampling)
+#                210.191 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7341 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 148.832 seconds (Warm-up)
+#                134.303 seconds (Sampling)
+#                283.135 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7315 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 91.8751 seconds (Warm-up)
+#                106.92 seconds (Sampling)
+#                198.796 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7238 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 97.6712 seconds (Warm-up)
+#                105.067 seconds (Sampling)
+#                202.738 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7257 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 90.2436 seconds (Warm-up)
+#                114.627 seconds (Sampling)
+#                204.871 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7299 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 123.109 seconds (Warm-up)
+#                111.104 seconds (Sampling)
+#                234.214 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+     111.79     125.454    0.249319     483.663     459.872     123.445     49.0738     742.156          1
+     18.433     123.857     13.1194     13.3196      75.828     121.874    0.249319     20.4382          1
+     50.965     82.1475    0.527037     337.584     344.812     142.058     193.845     2810.93          1
+    1614.45     10773.4     121.874     2832.35     16236.1     24819.6     123.445     10644.3          1
+    1621.07     4416.81     20.4382     6965.37     16302.6     10644.3     742.156     25023.6          1
+    206.802     528.144     2.60734     1845.37     4289.45     2820.06     478.255     16954.3          1
+    25.0389     29.9783   0.0869295     238.372     228.216     64.4376     62.2052     895.835          1
+    2557.21     528.846    0.648152     1847.82     347.812     81.5354      34.588     143.881          1
+    4005.04     1835.13     1.66954     7074.99     2746.63     332.767     306.237     1813.15          1
+    41.5517     69.8622    0.501474     92.4019     74.1994     68.7436     34.0842     141.786          1
+    42.7439     40.2331    0.262357     261.405     71.7937      37.237     64.4068     183.621          1
+    45.7563     14.7304   0.0537749     186.912      35.182     8.24749     19.7784     52.8533          1
+    450.841     2860.19     32.1334     1841.66     10484.5     16851.1     194.879     16920.2          1
+    6014.32     16500.3      75.828     10624.4     23651.2     16236.1     459.872     16302.6          1
+    6325.47     7049.81     13.3196     10627.9     10624.4     2832.35     483.663     6965.37          1
+    78.1597     54.9653     0.21333     697.447     286.773     54.0852     180.754      1070.2          1
+    8.87454     4.27723  0.00567781      38.132     14.9059     1.92668     4.06294     23.8903          1
+    83.0245     360.985     3.80137     507.746     2748.07     4386.44     125.102     10787.2          1
+    8302.96      3778.3     3.22192     5958.44     2329.17      301.06     106.032     660.348          1
+    8383.58     9823.77      18.433     6325.47     6014.32     1614.45      111.79     1621.07          1
+    9823.77       25634     123.857     7049.81     16500.3     10773.4     125.454     4416.81          1
+   0.222955    0.346905  0.00240502     1.09698     0.65813     0.36291    0.590415     3.67698    0     1
+   0.304371    0.598135  0.00467864    0.676855     2.51066     3.75631    0.249671      20.467          1
+   0.609663    0.134513 0.000221944     1.06958    0.188706   0.0328592   0.0466166    0.132902   0.     1
+   0.685829     1.30102  0.00864687     3.37439     7.35194     5.15668     1.81617     63.9412          1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7014 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 137.954 seconds (Warm-up)
+#                112.846 seconds (Sampling)
+#                250.799 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                             count
+validate transformed params: Sigma is not positive definite:     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 6974 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 151.29 seconds (Warm-up)
+#                74.8272 seconds (Sampling)
+#                226.117 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7007 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 127.777 seconds (Warm-up)
+#                161.982 seconds (Sampling)
+#                289.759 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7048 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 133.725 seconds (Warm-up)
+#                237.115 seconds (Sampling)
+#                370.84 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[2] is 0, but must be > 0!                 1
+Exception thrown at line 64: wishart_log: LDLT_Factor of scale parameter is not positive definite. l     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7026 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 126.569 seconds (Warm-up)
+#                231.829 seconds (Sampling)
+#                358.398 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7009 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 123.903 seconds (Warm-up)
+#                87.5942 seconds (Sampling)
+#                211.497 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+  11.421  5.73124  1.65166  13.6773  6.55254  11.4735  7.10016  10.5023  5.98708  24.0556  16.5347       1
+  13.636  9.42256  3.70382  13.2304  8.79567  20.2121  5.51651  11.3478  8.92459  15.0445  14.3497       1
+  7.0824  4.39362  1.54083  6.89094  3.97264  8.79567  2.86522  5.29132  3.71273  7.77528  6.67246       1
+ 12.1685  6.76732   2.1518  14.6019  7.77528  15.0445  7.60132  12.5241  7.88925  24.6043  19.7728       1
+ 12.8627  6.39123  1.82103   12.515  5.94941  10.3454  5.20366  7.69709  4.38789  14.1211  9.78169       1
+ 13.2181  5.97315  1.55796  14.2546  6.14965  9.75934  6.62478  8.85022  4.58693  20.0808  12.5261       1
+ 13.3378  7.38207  2.32418  12.4299  6.89094  13.2304  5.39588  8.89037  5.60027  14.6019  11.2423       1
+ 14.7036  8.50411  2.66999  13.3378   7.0824   13.636  4.96493  8.20317  5.19308  12.1685  9.38762       1
+ 14.7551  6.63492  1.72183  14.3162  6.16381  9.76417  5.96924  7.99056  4.14887  16.2792  10.2048       1
+ 14.9471  7.46388  2.13716  16.1993  7.72237  13.4554  7.54959   11.136  6.33554  22.8203  15.7295       1
+ 15.6498  7.02308  1.81928  13.6229  5.87714  9.32686   5.1105   6.8748  3.58766  12.6125  7.95743       1
+ 17.5544  8.69817  2.47335  15.2383  7.26425  12.6572   5.6882  8.45563  4.84412  13.9693  9.72432       1
+ 2.66999  1.85013 0.755163  2.32418  1.54083  3.70382 0.871894  1.78466  1.39966   2.1518  2.04235       1
+ 3.95166   2.4353 0.859714  5.19584   3.0776  6.63202  2.98046   5.4888  3.86205  11.2479  9.67946       1
+ 4.31803  2.93951  1.14785  5.64888  3.70811  8.87077  3.22441  6.59998  5.17618  12.1083  11.6066       1
+ 4.80931  2.67945 0.856309  6.33493  3.38005  6.57239   3.6412  6.01607  3.80852  13.7798  10.5798       1
+ 4.96493  2.75561 0.871894  5.39588  2.86522  5.51651  2.45091  4.14331  2.60271  7.60132  5.83608       1
+ 5.19308  3.57069  1.39966  5.60027  3.71273  8.92459  2.60271  5.36887  4.08605  7.88925  7.56235       1
+ 6.81182  3.12269  0.83023  8.91127  3.88843  6.25137   5.0866  6.84266  3.57088  19.1012   11.915       1
+ 8.01211  4.04103  1.17381  10.5347   5.0719  8.93833  6.04296  8.98299  5.14624  22.8054  15.7192       1
+ 8.20317  5.07472  1.78466  8.89037  5.29132  11.3478  4.14331  7.34979  5.36887  12.5241  10.7777       1
+ 8.50411   5.0911  1.85013  7.38207  4.39362  9.42256  2.75561  5.07472  3.57069  6.76732  5.79577       1
+ 9.14946  6.26014  2.44894  10.9032  7.19257  17.2412  5.63207  11.5855  9.11154  19.0285   18.291       1
+ 9.19375  4.18143  1.09929   10.956  4.74992  7.57625  5.65933   7.5757  3.93346  19.1206  11.9031       1
+ 9.38762  5.79577  2.04235  11.2423  6.67246  14.3497  5.83608  10.7777  7.56235  19.7728  16.2805       1
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!                 1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7044 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 109.674 seconds (Warm-up)
+#                123.986 seconds (Sampling)
+#                233.661 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7022 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 97.9178 seconds (Warm-up)
+#                163.161 seconds (Sampling)
+#                261.079 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+ 0.052444 0.0376973 0.0446508    0.1659 0.0355877 0.0965859 0.0459729  0.042559 0.0446415 0.0814636      1
+ 0.121439 0.0864671  0.102957  0.390494 0.0814645 0.0814636  0.106093 0.0979968  0.102935  0.237461      1
+ 0.133618 0.0556173 0.0660747  0.248424 0.0524446  0.052444 0.0680633 0.0629289 0.0660606  0.121439      1
+ 0.248424  0.176229  0.210271  0.815046  0.165901    0.1659  0.216744   0.20003  0.210225  0.390494      1
+ 0.268806  0.190636  0.227495   0.87021  0.179454  0.179452  0.234504  0.216407  0.227446  0.422633      1
+ 0.384498  0.272415  0.325264   1.24681  0.256381  0.256378  0.335315  0.309366  0.325194  0.605061      1
+ 0.385641  0.273223  0.326231   1.25054  0.257141  0.257139  0.336311  0.310285   0.32616  0.606864      1
+ 0.388103  0.274963  0.328311   1.25855  0.258778  0.258775  0.338456  0.312263   0.32824  0.610745      1
+ 0.392635  0.278167  0.332141    1.2733  0.261792  0.261789  0.342405  0.315905  0.332069  0.617892      1
+ 0.393852  0.279027  0.333169   1.27726  0.262601  0.262598  0.343465  0.316882  0.333097   0.61981      1
+ 0.395597   0.28026  0.334644   1.28294  0.263761  0.263758  0.344986  0.318284  0.334571  0.622562      1
+ 0.396245  0.280719  0.335192   1.28505  0.264192   0.26419  0.345551  0.318805  0.335119  0.623585      1
+ 0.397131  0.281345   0.33594   1.28794  0.264781  0.264778  0.346322  0.319517  0.335867  0.624981      1
+ 0.398103  0.282032  0.336762    1.2911  0.265428  0.265425   0.34717  0.320299  0.336689  0.626515      1
+ 0.403384  0.285765  0.341225   1.30829  0.268939  0.268937  0.351772  0.324542  0.341151  0.634842      1
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+validate transformed params: Sigma is not positive definite:                                             1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 6954 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 110.573 seconds (Warm-up)
+#                108.558 seconds (Sampling)
+#                219.131 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+
+checking data.block
+
+	reading 25 samples
+	reading 7031 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 119.474 seconds (Warm-up)
+#                132.675 seconds (Sampling)
+#                252.15 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                         count
+Exception thrown at line 61: dirichlet_log: prior sample sizes[1] is 0, but must be > 0!     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+There were 50 or more warnings (use warnings() to see the first 50)
+> 
+> proc.time()
+     user    system   elapsed 
+32054.772   298.261 32825.224 

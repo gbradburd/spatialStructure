@@ -1,0 +1,131 @@
+
+R version 3.2.1 (2015-06-18) -- "World-Famous Astronaut"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> require(geoStructure)
+Loading required package: geoStructure
+> load(list.files(pattern="dataset.Robj"))
+> 						
+> geoStructure(spatial = TRUE,
++ 			 K = 2,
++ 			 freqs = sim.dataset$data.list$allele.freqs,
++ 			 D = fields::rdist(sim.dataset$data.list$coords),
++ 			 coords = sim.dataset$data.list$coords,
++ 			 sample.sizes = rowMeans(sim.dataset$data.list$sample.sizes),
++ 			 prefix = tail(strsplit(getwd(),"/")[[1]],1),
++ 			 n.iter = 5e3)
+
+checking data.block
+
+	reading 25 samples
+	reading 7470 loci
+
+checking specified model
+
+	reading 2 cluster(s)
+
+user has specified a spatial model
+
+Loading required package: rstan
+Loading required package: Rcpp
+Loading required package: ggplot2
+rstan (Version 2.8.0, packaged: 2015-09-19 14:48:38 UTC, GitRev: 05c3d0058b6a)
+For execution on a local, multicore CPU with excess RAM we recommend calling
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 5000 [  0%]  (Warmup)
+Chain 1, Iteration:  500 / 5000 [ 10%]  (Warmup)
+Chain 1, Iteration: 1000 / 5000 [ 20%]  (Warmup)
+Chain 1, Iteration: 1500 / 5000 [ 30%]  (Warmup)
+Chain 1, Iteration: 2000 / 5000 [ 40%]  (Warmup)
+Chain 1, Iteration: 2500 / 5000 [ 50%]  (Warmup)
+Chain 1, Iteration: 2501 / 5000 [ 50%]  (Sampling)
+Chain 1, Iteration: 3000 / 5000 [ 60%]  (Sampling)
+Chain 1, Iteration: 3500 / 5000 [ 70%]  (Sampling)
+Chain 1, Iteration: 4000 / 5000 [ 80%]  (Sampling)
+Chain 1, Iteration: 4500 / 5000 [ 90%]  (Sampling)
+Chain 1, Iteration: 5000 / 5000 [100%]  (Sampling)
+#  Elapsed Time: 264.724 seconds (Warm-up)
+#                87.1414 seconds (Sampling)
+#                351.866 seconds (Total)
+
+The following numerical problems occured the indicated number of times on chain 1
+                                                                                                     count
+Exception thrown at line 61: Error in function boost::math::lgamma<double>(double): numeric overflow     1
+If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Loading required package: caroline
+$chain_1
+List of 2
+ $ post :List of 7
+ $ point:List of 7
+ - attr(*, "class")= chr "geoStructure.results"
+NULL
+
+There were 25 warnings (use warnings() to see them)
+> 			 
+> load(list.files(pattern="geoStr.results"))
+> load(list.files(pattern="data.block"))
+> 
+> cluster.order <- get.cluster.order(data.block$K,geoStr.results[[1]]$post$admix.proportions,ref.admix.props=sim.dataset$par.list$admix.props)
+> 
+> plot.admix.prop.post <- function(K,N,admix.props,sim.admix.props,K.cols,cluster.order){
++ #	recover()
++ 	qs <- lapply(1:K,function(i){
++ 				apply(admix.props[,,i],2,
++ 					function(x){quantile(x,c(0.025,0.975))})
++ 			})
++ 	mean.props <- lapply(1:K,function(i){
++ 						apply(admix.props[,,i],2,
++ 							function(x){mean(x)})
++ 					})
++ 	cluster.cols <- K.cols[cluster.order[,2]]
++ 	par(mfrow=c(1,2))
++ 	plot(0,ylim=c(0,1),type='n',xlim=c(0,N),ylab="admix proportion",xlab="Sample")
++ 		lapply(1:K,function(i){segments(x0=1:N,x1=1:N,
++ 									    y0=apply(qs[[i]],2,min),
++ 									    y1=apply(qs[[i]],2,max),
++ 										col=cluster.cols[i],lwd=2)})
++ 		lapply(1:K,function(i){points(mean.props[[i]],col=cluster.cols[i])})
++ 		lapply(1:K,function(i){points(sim.admix.props[,i],col=K.cols[i],pch=18)})
++ 	plot(0,xlim=c(0,1),ylim=c(0,1))
++ 		abline(0,1,col=1)
++ 		lapply(1:K,function(k){
++ 				lapply(seq(1,dim(geoStr.results[[1]]$post$admix.proportions)[1],length.out=100),function(i){
++ 						points(sim.admix.props[,cluster.order[k,2]],
++ 								admix.props[i,,k],
++ 								col=adjustcolor(K.cols[cluster.order[k,2]],0.1),
++ 								pch=20)
++ 					})
++ 			})
++ 	return(invisible("plotted"))
++ }
+> 	
+> 
+> pdf(file="admix.prop.fit.pdf",width=9,height=5)
+> 	plot.admix.prop.post(data.block$K,data.block$N,geoStr.results[[1]]$post$admix.proportions,sim.dataset$par.list$admix.props,c("blue","red"),cluster.order=cluster.order)
+> dev.off()
+null device 
+          1 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+386.048   5.365 408.357 
