@@ -203,7 +203,7 @@ check.call <- function(args){
 	if(length(args[["K"]]) > 1 | class(args[["K"]]) != "numeric"){
 		stop("\nyou have specified an invalid value for the \"K\" argument \n")
 	}
-	if(class(args[["freqs"]]) != "matrix" | any(args[["freqs"]] > 1) | any(args[["freqs"]] < 0)){	
+	if(class(args[["freqs"]]) != "matrix" | any(args[["freqs"]] > 1,na.rm=TRUE) | any(args[["freqs"]] < 0,na.rm=TRUE)){	
 		stop("\nyou have specified an invalid value for the \"freqs\" argument \n")
 	}
 	if(class(args[["D"]]) != "matrix" | length(unique(dim(args[["D"]]))) > 1 | any(args[["D"]] < 0)){	
