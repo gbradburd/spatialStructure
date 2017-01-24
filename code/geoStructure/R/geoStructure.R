@@ -1,3 +1,4 @@
+#'@export
 validate.data.list <- function(data.block){
 	if(!"spatial" %in% names(data.block)){
 		stop("\nUser must specify a \"spatial\" option\n\n")
@@ -26,6 +27,7 @@ validate.data.list <- function(data.block){
 	return(invisible("list elements validated"))	
 }
 
+#'@export
 validate.n.samples <- function(data.block){
 	n.samples <- data.block$N
 	n.samples <- c(data.block$N,nrow(data.block$obsSigma)+1)
@@ -40,6 +42,7 @@ validate.n.samples <- function(data.block){
 	return(invisible("n.samples validated"))
 }
 
+#'@export
 validate.model <- function(data.block){
 	if(data.block$spatial){
 		if(is.null(data.block$geoDist)){
@@ -61,16 +64,19 @@ validate.model <- function(data.block){
 	return(invisible("model validated"))
 }
 
+#'@export
 make.data.block.S3 <- function(data.block){
 	data.block <- data.block
 	class(data.block) <- "data.block"
 	return(data.block)
 }
 
+#'@export
 print.data.block <- function(data.block){
 	print(str(data.block,max.level=1))
 }
 
+#'@export
 validate.data.block <- function(data.block){
 	message("\nchecking data.block\n")
 		validate.data.list(data.block)
@@ -90,6 +96,7 @@ validate.data.block <- function(data.block){
 	return(data.block)
 }
 
+#'@export
 make.stan.code.block <- function(spatial,n.clusters){
 	stan.code.block.name <- "stan.block"
 	if(n.clusters == 1){
@@ -104,6 +111,7 @@ make.stan.code.block <- function(spatial,n.clusters){
 	return(get(stan.code.block.name))
 }
 
+#'@export
 get.projection.matrix <- function(mean.sample.sizes){
 	k <- length(mean.sample.sizes)
 	transformation.matrix <- get.transformation.matrix(mean.sample.sizes)
@@ -113,6 +121,7 @@ get.projection.matrix <- function(mean.sample.sizes){
 	return(projection.matrix)
 }
 
+#'@export
 get.transformation.matrix <- function(mean.sample.sizes){
 	k <- length(mean.sample.sizes)
 #	transformation.matrix <- diag(k) - matrix(1/k,nrow=k,ncol=k,byrow=TRUE)
@@ -120,12 +129,14 @@ get.transformation.matrix <- function(mean.sample.sizes){
 	return(transformation.matrix)
 }
 
+#'@export
 project.sample.covariance <- function(sample.covariance,mean.sample.sizes){
 	projection.matrix <- get.projection.matrix(mean.sample.sizes)
 	sample.covariance <- t(projection.matrix) %*% sample.covariance %*% projection.matrix
 	return(sample.covariance)
 }
 
+#'@export
 get.norm.factor <- function(freqs,n.loci,sample.sizes){	#
 	pseudo.freqs <- rbind(freqs,rep(0.5,n.loci))
 	pseudo.means <- apply(pseudo.freqs,2,function(x){sum((x * c(sample.sizes,1))/sum(c(sample.sizes,1)))})
@@ -135,6 +146,7 @@ get.norm.factor <- function(freqs,n.loci,sample.sizes){	#
 	return(norm.factor)
 }
 
+#'@export
 get.mean.freqs <- function(freqs,n.loci,sample.sizes){	#
 	mean.freqs <- matrix(
 					apply(freqs,2,function(x){
@@ -145,16 +157,19 @@ get.mean.freqs <- function(freqs,n.loci,sample.sizes){	#
 	return(mean.freqs)
 }
 
+#'@export
 make.freq.data.list.S3 <- function(freq.data){
 	freq.data <- freq.data
 	class(freq.data) <- "freq.data"
 	return(freq.data)
 }
 
+#'@export
 print.freq.data <- function(freq.data){
 	print(str(freq.data,max.level=1))
 }
 
+#'@export
 standardize.freqs <- function(freqs,sample.sizes){
 	if(class(sample.sizes) == "matrix"){
 		stop("object \"sample.sizes\" must be a vector")
@@ -192,6 +207,7 @@ standardize.freqs <- function(freqs,sample.sizes){
 	return(freq.data.list)
 }
 
+#'@export
 standardize.distances <- function(D){
 	if(!is.null(D)){
 		stdev.D <- sd(D[upper.tri(D)])
@@ -202,6 +218,7 @@ standardize.distances <- function(D){
 	return(std.D)
 }
 
+#'@export
 make.data.block <- function(K,std.freq.list,D,coords,sample.sizes,prefix,spatial){
 	data.block <- list( "K" = K,
 						"N" = nrow(D),
@@ -216,6 +233,7 @@ make.data.block <- function(K,std.freq.list,D,coords,sample.sizes,prefix,spatial
 	return(data.block)
 }
 
+#'@export
 check.call <- function(args){
 	if(args[["spatial"]] != TRUE & args[["spatial"]] != FALSE){
 		stop("\nyou have specified an invalid value for the \"spatial\" argument \n")
@@ -235,6 +253,8 @@ check.call <- function(args){
 	return(invisible("args checked"))		
 }
 
+#'@export
+#'@export
 geoStructure <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.sizes,prefix,n.chains=1,n.iter=1e4,...){
 	call.check <- check.call(args <- as.list(environment()))
 #	recover()
@@ -265,6 +285,7 @@ geoStructure <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.sizes,prefix,
 	return(geoStr.results)
 }
 
+#'@export
 geoStructure.multirun <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.sizes,prefix,n.chains=1,n.iter=1e4,...){
 	for(k in K){
 		dir <- paste0(prefix,"_K=",k)
@@ -284,6 +305,7 @@ geoStructure.multirun <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.size
 	}
 }
 
+#'@export
 get.geoStructure.results <- function(data.block,model.fit,n.chains){
 	geoStr.results <- setNames(
 						lapply(1:n.chains,
@@ -294,12 +316,14 @@ get.geoStructure.results <- function(data.block,model.fit,n.chains){
 	return(geoStr.results)
 }
 
+#'@export
 get.MAP.iter <- function(model.fit,chain.no){
 	logpost <- get_logposterior(model.fit)
 	MAP.iter <- lapply(logpost,which.max)[[chain.no]]
 	return(MAP.iter)
 }
 
+#'@export
 get.admix.props <- function(model.fit,chain.no,N,n.clusters){
 	# recover()
 	admix.props <- array(1,dim=c(length(get_logposterior(model.fit)[[chain.no]]),N,n.clusters))
@@ -313,6 +337,7 @@ get.admix.props <- function(model.fit,chain.no,N,n.clusters){
 	return(admix.props)
 }
 
+#'@export
 get.par.cov <- function(model.fit,chain.no,N){
 	par.cov <- array(NA,dim=c(length(get_logposterior(model.fit)[[chain.no]]),N,N))
 	for(i in 1:N){
@@ -324,11 +349,13 @@ get.par.cov <- function(model.fit,chain.no,N){
 	return(par.cov)
 }
 
+#'@export
 get.nuggets <- function(model.fit,chain.no,N){
 	nuggets <- extract(model.fit,pars="nugget",inc_warmup=TRUE,permuted=FALSE)[,chain.no,]
 	return(nuggets)
 }
 
+#'@export
 get.alpha.params <- function(model.fit,chain.no,cluster,n.clusters){
 	alpha.pars <- model.fit@model_pars[grepl("alpha",model.fit@model_pars)]
 	if(n.clusters > 1){
@@ -351,6 +378,7 @@ get.alpha.params <- function(model.fit,chain.no,cluster,n.clusters){
 	return(alpha.params)
 }
 
+#'@export
 get.cluster.mu <- function(model.fit,chain.no,cluster){
 	mu <- extract(model.fit,
 					pars=paste0("mu","[",cluster,"]"),
@@ -358,12 +386,14 @@ get.cluster.mu <- function(model.fit,chain.no,cluster){
 	return(mu)
 }
 
+#'@export
 get.mu <- function(model.fit,chain.no){
 	mu <- extract(model.fit,pars="mu",
 					inc_warmup=TRUE,permute=FALSE)[,chain.no,]
 	return(mu)
 }
 
+#'@export
 get.cluster.DirichAlpha <- function(model.fit,chain.no,cluster){
 	DirichAlpha <- extract(model.fit,
 						   pars=paste0("DirichAlpha","[",cluster,"]"),
@@ -371,6 +401,7 @@ get.cluster.DirichAlpha <- function(model.fit,chain.no,cluster){
 	return(DirichAlpha)
 }
 
+#'@export
 get.cluster.dirichHP <- function(model.fit,chain.no,cluster){
 	dirichHP <- extract(model.fit,
 						 pars=paste0("dirichHP","[",cluster,"]"),
@@ -378,6 +409,7 @@ get.cluster.dirichHP <- function(model.fit,chain.no,cluster){
 	return(dirichHP)
 }
 
+#'@export
 get.cov.function <- function(data.block){
 	if(data.block$K == 1){
 		if(data.block$spatial){
@@ -408,6 +440,7 @@ get.cov.function <- function(data.block){
 	return(cov.func)
 }
 
+#'@export
 get.cluster.cov <- function(cluster.params,data.block,n.iter){
 	cov.function <- get.cov.function(data.block)
 	cluster.cov <- lapply(1:n.iter,
@@ -419,6 +452,7 @@ get.cluster.cov <- function(cluster.params,data.block,n.iter){
 	return(cluster.cov)
 }
 
+#'@export
 get.cluster.params <- function(model.fit,data.block,chain.no,cluster,n.clusters,n.iter){
 	# recover()
 	cluster.params <- list()
@@ -436,6 +470,7 @@ get.cluster.params <- function(model.fit,data.block,chain.no,cluster,n.clusters,
 	return(cluster.params)
 }
 
+#'@export
 get.cluster.params.list <- function(model.fit,data.block,chain.no,n.iter){
 	cluster.params <- setNames(
 						lapply(1:data.block$K,
@@ -447,16 +482,19 @@ get.cluster.params.list <- function(model.fit,data.block,chain.no,n.iter){
 	return(cluster.params)
 }
 
+#'@export
 make.cluster.params.S3 <- function(cluster.params){
 	cluster.params <- cluster.params
 	class(cluster.params) <- "cluster.params"
 	return(cluster.params)
 }
 
+#'@export
 print.cluster.params <- function(cluster.params){
 	print(str(cluster.params,max.level=1))
 }
 
+#'@export
 index.MAP <- function(param,MAP.iter){
 	if(class(param) == "numeric"){
 		MAP.param <- param[MAP.iter]
@@ -476,31 +514,37 @@ index.MAP <- function(param,MAP.iter){
 	return(MAP.param)
 }
 
+#'@export
 index.MAP.cluster.params <- function(cluster.params,MAP.iter){
 	MAP.cluster.params <- lapply(cluster.params,index.MAP,MAP.iter)
 	return(MAP.cluster.params)
 }
 
+#'@export
 index.MAP.cluster.params.list <- function(cluster.params.list,MAP.iter){
 	MAP.cluster.params.list <- lapply(cluster.params.list,index.MAP.cluster.params,MAP.iter)
 	return(MAP.cluster.params.list)
 }
 
+#'@export
 get.n.iter <- function(model.fit,chain.no){
 	n.iter <- length(get_logposterior(model.fit)[[chain.no]])
 	return(n.iter)
 }
 
+#'@export
 make.geoStructure.results.S3 <- function(geoStructure.results){
 	geoStructure.results <- geoStructure.results
 	class(geoStructure.results) <- "geoStructure.results"
 	return(geoStructure.results)
 }
 
+#'@export
 print.geoStructure.results <- function(geoStructure.results){
 	print(str(geoStructure.results,max.level=1))
 }
 
+#'@export
 mc.par.cov.post <- function(sample.sizes,par.cov.post){
 	MC.mat <- get.transformation.matrix(sample.sizes)
 	mc.par.cov <- array(NA,dim=dim(par.cov.post))
@@ -510,6 +554,7 @@ mc.par.cov.post <- function(sample.sizes,par.cov.post){
 	return(mc.par.cov)
 }
 
+#'@export
 get.geoStructure.chain.results <- function(data.block,model.fit,chain.no){
 	n.iter <- get.n.iter(model.fit,chain.no)
 	post <- list("posterior" = get_logposterior(model.fit)[[chain.no]],
@@ -530,6 +575,7 @@ get.geoStructure.chain.results <- function(data.block,model.fit,chain.no){
 	return(geoStructure.results)
 }
 
+#'@export
 # PLOTTING FUNCTION
 plot.prob <- function(geoStr.results,burnin=0){
 	n.iter <- length(geoStr.results$post$posterior)
@@ -540,6 +586,7 @@ plot.prob <- function(geoStr.results,burnin=0){
 	return(invisible(0))
 }
 
+#'@export
 plot.nuggets <- function(geoStr.results,burnin){
 	n.iter <- length(geoStr.results$post$posterior)
 	z <- (burnin+1):n.iter
@@ -550,6 +597,7 @@ plot.nuggets <- function(geoStr.results,burnin){
 	return(invisible("nuggets"))
 }
 
+#'@export
 get.ylim <- function(cluster.params,n.clusters,param,z){
 	y.lim <- range(unlist(
 				lapply(
@@ -564,11 +612,13 @@ get.ylim <- function(cluster.params,n.clusters,param,z){
 	return(y.lim)
 }
 
+#'@export
 plot.cluster.param <- function(cluster.param,clst.col,z){
 	points(cluster.param[z],type='l',col=clst.col)
 	return(invisible(0))
 }
 
+#'@export
 plot.cluster.cov.params <- function(data.block,geoStr.results,burnin,cluster.colors){
 	#recover()
 	n.clusters <- data.block$K
@@ -589,6 +639,7 @@ plot.cluster.cov.params <- function(data.block,geoStr.results,burnin,cluster.col
 	return(invisible(0))
 }
 
+#'@export
 plot.admix.props <- function(data.block,geoStr.results,cluster.colors,burnin){
 #	recover()
 	n.clusters <- data.block$K
@@ -601,6 +652,7 @@ plot.admix.props <- function(data.block,geoStr.results,cluster.colors,burnin){
 	return(invisible(0))
 }
 
+#'@export
 plot.model.fit <- function(data.block,std.freq.list,geoStr.results,burnin){
 	n.iter <- length(geoStr.results$post$posterior)
 	z <- seq((burnin+1),n.iter,length.out=50)
@@ -622,6 +674,7 @@ plot.model.fit <- function(data.block,std.freq.list,geoStr.results,burnin){
 	return(invisible("plotted"))
 }
 
+#'@export
 plot.cluster.covs <- function(data.block,geoStr.results,cluster.colors,burnin){
 	order.mat <- order(data.block$geoDist)
 	n.iter <- length(geoStr.results$post$posterior)
@@ -641,6 +694,7 @@ plot.cluster.covs <- function(data.block,geoStr.results,cluster.colors,burnin){
 	return(invisible("cluster covs"))	
 }
 
+#'@export
 plot.cluster.covariances <- function(data.block,geoStr.results,cluster.colors){
 	ind.mat <- upper.tri(data.block$geoDist,diag=TRUE)
 	y.range <- range(unlist(lapply(seq_along(1:data.block$K),
@@ -658,6 +712,7 @@ plot.cluster.covariances <- function(data.block,geoStr.results,cluster.colors){
 	return(invisible("plotted"))
 }
 
+#'@export
 structure.polygon <- function(plotting.admix.props,i,j,use.colors){
 	polygon(x = c(j-1,j,j,j-1),
 			y = c(plotting.admix.props[i,j],
@@ -668,6 +723,7 @@ structure.polygon <- function(plotting.admix.props,i,j,use.colors){
 	return(invisible(j))
 }
 
+#'@export
 make.structure.polygon.layer <- function(plotting.admix.props,i,use.colors,sample.order){
 	# recover()
 		lapply(1:ncol(plotting.admix.props),function(j){
@@ -676,6 +732,7 @@ make.structure.polygon.layer <- function(plotting.admix.props,i,use.colors,sampl
 	return(invisible(i))
 }
 
+#'@export
 make.structure.plot <- function(data.block,geoStr.results,mar=c(2,4,2,2),sample.order=NULL,cluster.order=NULL,sample.names=NULL,sort.by=NULL,cluster.colors=NULL){
 	# recover()
 	# quartz(width=10,height=5)
@@ -707,6 +764,7 @@ make.structure.plot <- function(data.block,geoStr.results,mar=c(2,4,2,2),sample.
 	return(invisible("plotted"))
 }
 
+#'@export
 make.admix.pie.plot <- function(data.block,geoStr.results,cluster.colors,stat,radii=2.7,add=FALSE,title=NULL,x.lim=NULL,y.lim=NULL){
 	# recover()
 	if(is.null(data.block$coords)){
@@ -748,6 +806,7 @@ make.admix.pie.plot <- function(data.block,geoStr.results,cluster.colors,stat,ra
 	return(invisible(0))
 }
 
+#'@export
 get.cluster.order <- function(K,admix.props,ref.admix.props){
 	K.combn <- expand.grid(1:K,1:K)
 	mean.props <- lapply(1:K,function(i){
@@ -768,12 +827,14 @@ get.cluster.order <- function(K,admix.props,ref.admix.props){
 	return(matchups)
 }
 
+#'@export
 get.n.cluster.cov.params <- function(geoStr.results){
 	n.params <- length(names(geoStr.results$post$cluster.params$Cluster_1)[
 					!names(geoStr.results$post$cluster.params$Cluster_1)=="cluster.cov"])
 	return(n.params)
 }
 
+#'@export
 make.all.chain.plots <- function(geoStr.results,chain.no,data.block,std.freq.list,prefix,burnin,cluster.colors,...){
 	pdf(file=paste0(prefix,"_trace.plots.chain_",chain.no,".pdf"),...)
 		plot.prob(geoStr.results,burnin)
@@ -802,6 +863,7 @@ make.all.chain.plots <- function(geoStr.results,chain.no,data.block,std.freq.lis
 	return(invisible("made chain plots!"))
 }
 
+#'@export
 make.all.the.plots <- function(geoStr.results,n.chains,data.block,std.freq.list,prefix,burnin,cluster.colors=NULL,...){
 	if(is.null(cluster.colors)){
 		cluster.colors <- c("blue","red","green","yellow","purple","orange","lightblue","darkgreen","lightblue","gray")
@@ -812,6 +874,7 @@ make.all.the.plots <- function(geoStr.results,n.chains,data.block,std.freq.list,
 	return(invisible("made chain plots!"))
 }
 
+#'@export
 # MODEL COMPARISON
 get.proj.par.cov <- function(model.fit,chain.no,N){
 	par.cov <- array(NA,dim=c(length(get_logposterior(model.fit)[[chain.no]]),N-1,N-1))
@@ -824,6 +887,7 @@ get.proj.par.cov <- function(model.fit,chain.no,N){
 	return(par.cov)
 }
 
+#'@export
 post.process.par.cov <- function(geoStr.results,samples){
 	pp.cov.list <- lapply(samples,
 							function(i){
@@ -833,12 +897,14 @@ post.process.par.cov <- function(geoStr.results,samples){
 	return(pp.cov.list)
 }
 
+#'@export
 calculate.likelihood <- function(obsSigma,inv.par.cov,log.det,n.loci){
 	#recover()
 	lnL <- -0.5 * (sum( inv.par.cov * obsSigma) + n.loci * log.det)
 	return(lnL)
 }
 
+#'@export
 determine.log.shift <- function(chunk.lnls){
 	if(diff(range(unlist(chunk.lnls))) > 700){
 		message("the difference between the min and max lnLs may be inducing underflow")
@@ -846,11 +912,13 @@ determine.log.shift <- function(chunk.lnls){
 	return(max(unlist(chunk.lnls)))
 }
 
+#'@export
 shift.chunk.lnls <- function(chunk.lnls,A,n.iter){
 	shift.chunk.lnls <- log(sum(exp(chunk.lnls-A))) + A - log(n.iter)
 	return(shift.chunk.lnls)
 }
 
+#'@export
 calc.lnl.x.MCMC <- function(cov.chunk,pp.par.cov){
 	#recover()
 	lnl.x.mcmc <- lapply(pp.par.cov,
@@ -860,6 +928,7 @@ calc.lnl.x.MCMC <- function(cov.chunk,pp.par.cov){
 	return(unlist(lnl.x.mcmc))
 }
 
+#'@export
 chunk.freq.data <- function(freqs,data.block){
 	n.loci <- ncol(freqs)
 	chunks <- lapply(1:n.loci,
@@ -869,6 +938,7 @@ chunk.freq.data <- function(freqs,data.block){
 	return(chunks)
 }
 
+#'@export
 calculate.lpd <- function(chunk.lnls,n.iter){
 	#recover()
 	#subtract max lnL from log likelihood to avoid overflow
@@ -878,11 +948,13 @@ calculate.lpd <- function(chunk.lnls,n.iter){
 	return(lpd)
 }
 
+#'@export
 calculate.pwaic <- function(chunk.lnls){
 	pwaic <- lapply(chunk.lnls,var)
 	return(sum(unlist(pwaic)))
 }
 
+#'@export
 calculate.waic <- function(freqs,data.block,geoStr.results,samples=NULL){
 	# recover()
 	cat("breaking data into locus-by-locus covariances...\n\n")

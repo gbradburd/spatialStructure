@@ -1,8 +1,0 @@
-Package: geoStructure
-Title: Runs geoStructure: a method for modeling continuous and discrete population structure
-Version: 0.1
-Authors@R: person("Gideon", "Bradburd", email = "gbradburd@ucdavis.edu", role = c("aut", "cre"))
-Description: This package contains the scripts necessary to run geoStructure, a statistical method for modeling discrete population structure above and beyond a null model of continuous differentiation with distance in space and/or time.
-Depends: R (>= 3.2.1)
-License: BSD
-LazyData: true
