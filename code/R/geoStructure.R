@@ -45,7 +45,17 @@ validate.model <- function(data.block){
 		if(is.null(data.block$geoDist)){
 			stop("\nyou have specified a spatial model,
 				  but you have not specified a matrix 
-				  of pairwise geographic distances")
+				  of pairwise geographic distances\n\n")
+		}
+		if(any(data.block$geoDist < 0)){
+			stop("\nyou have specified an invalid 
+				  distance matrix that contains 
+				  negative values\n\n")
+		}
+		if(any(is.na(data.block$geoDist))){
+			stop("\nyou have specified an invalid 
+				  distance matrix that contains 
+				  non-numeric values\n\n")			
 		}
 	}
 	return(invisible("model validated"))
@@ -182,6 +192,16 @@ standardize.freqs <- function(freqs,sample.sizes){
 	return(freq.data.list)
 }
 
+standardize.distances <- function(D){
+	if(!is.null(D)){
+		stdev.D <- sd(D[upper.tri(D)])
+		std.D <- D/stdev.D
+	} else {
+		std.D <- NULL
+	}
+	return(std.D)
+}
+
 make.data.block <- function(K,std.freq.list,D,coords,sample.sizes,prefix,spatial){
 	data.block <- list( "K" = K,
 						"N" = nrow(D),
@@ -200,7 +220,7 @@ check.call <- function(args){
 	if(args[["spatial"]] != TRUE & args[["spatial"]] != FALSE){
 		stop("\nyou have specified an invalid value for the \"spatial\" argument \n")
 	}
-	if(length(args[["K"]]) > 1 | class(args[["K"]]) != "numeric"){
+	if(length(args[["K"]]) > 1 | class(args[["K"]]) == "character"){
 		stop("\nyou have specified an invalid value for the \"K\" argument \n")
 	}
 	if(class(args[["freqs"]]) != "matrix" | any(args[["freqs"]] > 1,na.rm=TRUE) | any(args[["freqs"]] < 0,na.rm=TRUE)){	
@@ -221,7 +241,8 @@ geoStructure <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.sizes,prefix,
 	#validate data block
 	std.freq.list <- standardize.freqs(freqs,sample.sizes)
 		save(std.freq.list,file=paste0(prefix,"_std.freq.list.Robj"))
-	data.block <- make.data.block(K,std.freq.list,D,coords,sample.sizes,prefix,spatial)
+	std.distance <- standardize.distances(D)
+	data.block <- make.data.block(K,std.freq.list,std.distance,coords,sample.sizes,prefix,spatial)
 		save(data.block,file=paste0(prefix,"_data.block.Robj"))
 	#validate model specification
 	#make.stan.code.block
@@ -242,6 +263,25 @@ geoStructure <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.sizes,prefix,
 	save(geoStr.results,file=paste(prefix,"geoStr.results.Robj",sep="_"))
 	make.all.the.plots(geoStr.results,n.chains,data.block,std.freq.list,prefix,burnin=100,cluster.colors=NULL)
 	return(geoStr.results)
+}
+
+geoStructure.multirun <- function(spatial=TRUE,K,freqs,D,coords=NULL,sample.sizes,prefix,n.chains=1,n.iter=1e4,...){
+	for(k in K){
+		dir <- paste0(prefix,"_K=",k)
+		dir.create(dir)
+		setwd(dir)
+			geoStructure(spatial = spatial,
+						 K = k,
+						 freqs = freqs,
+						 D = D,
+						 coords = coords,
+						 sample.sizes = sample.sizes,
+						 prefix = prefix,
+						 n.chains = n.chains,
+						 n.iter = n.iter,
+						 ...)
+		setwd("..")
+	}
 }
 
 get.geoStructure.results <- function(data.block,model.fit,n.chains){
