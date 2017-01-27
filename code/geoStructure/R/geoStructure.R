@@ -929,11 +929,20 @@ calc.lnl.x.MCMC <- function(cov.chunk,pp.par.cov){
 }
 
 #'@export
-chunk.freq.data <- function(freqs,data.block){
+data.chunkification <- function(n.loci,chunk.size){
+	chunk.intervals <- seq(1,n.loci,by=chunk.size)
+	n.chunks <- length(chunk.intervals)	
+	chunk.indices <- cbind(chunk.intervals[1:(n.chunks-1)],chunk.intervals[2:n.chunks])
+	return(chunk.indices)
+}
+
+#'@export
+chunk.freq.data <- function(freqs,data.block,chunk.size){
 	n.loci <- ncol(freqs)
-	chunks <- lapply(1:n.loci,
+	chunk.indices <- data.chunkification(n.loci,chunk.size)
+	chunks <- lapply(1:nrow(chunk.indices),
 					  function(i){
-					  	t(data.block$projMat) %*% freqs[,i,drop=FALSE] %*% t(freqs[,i,drop=FALSE]) %*% data.block$projMat
+					  	t(data.block$projMat) %*% freqs[,chunk.indices[i,],drop=FALSE] %*% t(freqs[,chunk.indices[i,],drop=FALSE]) %*% data.block$projMat
 					  })
 	return(chunks)
 }
@@ -955,10 +964,10 @@ calculate.pwaic <- function(chunk.lnls){
 }
 
 #'@export
-calculate.waic <- function(freqs,data.block,geoStr.results,samples=NULL){
-	# recover()
+calculate.waic <- function(freqs,data.block,geoStr.results,chunk.size=1,samples=NULL){
+	#recover()
 	cat("breaking data into locus-by-locus covariances...\n\n")
-	chunks <- chunk.freq.data(freqs,data.block)
+	chunks <- chunk.freq.data(freqs,data.block,chunk.size)
 	if(is.null(samples)){
 		samples <- 1:length(geoStr.results$post$posterior)
 	}
@@ -976,5 +985,6 @@ calculate.waic <- function(freqs,data.block,geoStr.results,samples=NULL){
 	pwaic <- calculate.pwaic(chunk.lnls)
 	elpd <- lpd - pwaic
 	waic <- -2 * elpd
-	return(waic)
+	waic.list <- list("chunk.lnls" = chunk.lnls,"lpd" = lpd,"pwaic" = pwaic,"elpd" = elpd,"waic" = waic)
+	return(waic.list)
 }
