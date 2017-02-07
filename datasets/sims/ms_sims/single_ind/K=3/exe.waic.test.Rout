@@ -1,0 +1,111 @@
+
+R version 3.3.2 (2016-10-31) -- "Sincere Pumpkin Patch"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> require(geoStructure)
+Loading required package: geoStructure
+> load(list.files(pattern="dataset.Robj"))
+> 						
+> geoStructure(spatial = TRUE,
++ 					  K = as.numeric(tail(strsplit(getwd(),"=")[[1]],1)),
++ 					  freqs = sim.dataset$data.list$allele.freqs,
++ 					  D = fields::rdist(sim.dataset$data.list$coords),
++ 					  coords = sim.dataset$data.list$coords,
++ 					  sample.sizes = rowMeans(sim.dataset$data.list$sample.sizes),
++ 					  prefix = tail(strsplit(getwd(),"/")[[1]],1),
++ 					  n.iter = 1e4)
+
+checking data.block
+
+	reading 25 samples
+	reading 6929 loci
+
+checking specified model
+
+	reading 3 cluster(s)
+
+user has specified a spatial model
+
+Loading required package: rstan
+Loading required package: ggplot2
+Loading required package: StanHeaders
+rstan (Version 2.14.1, packaged: 2016-12-28 14:55:41 UTC, GitRev: 5fa1e80eb817)
+For execution on a local, multicore CPU with excess RAM we recommend calling
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+DIAGNOSTIC(S) FROM PARSER:
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+Warning (non-fatal): assignment operator <- deprecated in the Stan language; use = instead.
+
+In file included from file777728b0a9d2.cpp:8:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:12:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/gevv_vvv_vari.hpp:5:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/var.hpp:7:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/math/tools/config.hpp:13:
+In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/config.hpp:39:
+/Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/config/compiler/clang.hpp:196:11: warning: 'BOOST_NO_CXX11_RVALUE_REFERENCES' macro redefined [-Wmacro-redefined]
+#  define BOOST_NO_CXX11_RVALUE_REFERENCES
+          ^
+<command line>:6:9: note: previous definition is here
+#define BOOST_NO_CXX11_RVALUE_REFERENCES 1
+        ^
+1 warning generated.
+
+SAMPLING FOR MODEL 'e419d95392b66aae8f1ebe637a0dcf11' NOW (CHAIN 1).
+
+Chain 1, Iteration:    1 / 10000 [  0%]  (Warmup)
+Chain 1, Iteration: 1000 / 10000 [ 10%]  (Warmup)
+Chain 1, Iteration: 2000 / 10000 [ 20%]  (Warmup)
+Chain 1, Iteration: 3000 / 10000 [ 30%]  (Warmup)
+Chain 1, Iteration: 4000 / 10000 [ 40%]  (Warmup)
+Chain 1, Iteration: 5000 / 10000 [ 50%]  (Warmup)
+Chain 1, Iteration: 5001 / 10000 [ 50%]  (Sampling)
+Chain 1, Iteration: 6000 / 10000 [ 60%]  (Sampling)
+Chain 1, Iteration: 7000 / 10000 [ 70%]  (Sampling)
+Chain 1, Iteration: 8000 / 10000 [ 80%]  (Sampling)
+Chain 1, Iteration: 9000 / 10000 [ 90%]  (Sampling)
+Chain 1, Iteration: 10000 / 10000 [100%]  (Sampling)
+ Elapsed Time: 848.811 seconds (Warm-up)
+               475.153 seconds (Sampling)
+               1323.96 seconds (Total)
+
+Loading required package: caroline
+$chain_1
+List of 2
+ $ post :List of 7
+ $ point:List of 7
+ - attr(*, "class")= chr "geoStructure.results"
+NULL
+
+There were 25 warnings (use warnings() to see them)
+> 
+> proc.time()
+    user   system  elapsed 
+1357.835    5.090 1438.251 
