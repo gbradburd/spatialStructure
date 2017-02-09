@@ -148,3 +148,39 @@ sim.mean.var.comp <- function(n.reps,N,K,n.loci,sample.size){
 sim.mean.var.comp(n.reps=100,N=25,K=2,n.loci=1e4,sample.size=100)
 sim.mean.var.comp(n.reps=100,N=25,K=2,n.loci=1e4,sample.size=10)
 sim.mean.var.comp(n.reps=100,N=25,K=2,n.loci=1e4,sample.size=2)
+
+load("/Users/gburd/Dropbox/InspectorSpaceTime/spatialStructure/sandbox/wishart_mean_var/mean.var.comp.output_nChromo=2.Robj")
+mean.var.comp.output2 <- mean.var.comp.output
+load("/Users/gburd/Dropbox/InspectorSpaceTime/spatialStructure/sandbox/wishart_mean_var/mean.var.comp.output_nChromo=10.Robj")
+mean.var.comp.output10 <- mean.var.comp.output
+load("/Users/gburd/Dropbox/InspectorSpaceTime/spatialStructure/sandbox/wishart_mean_var/mean.var.comp.output_nChromo=100.Robj")
+mean.var.comp.output100 <- mean.var.comp.output
+im <- upper.tri(matrix(NA,nrow=25,ncol=25))
+
+pdf(file="all_comparisons_NoDiag.pdf",width=6,height=8)
+par(mfrow=c(3,2))
+			plot(mean.var.comp.output2$wish.comp$var[im],mean.var.comp.output2$wish.comp$mean[im],
+					pch=20,col=adjustcolor(1,0.5),
+					xlab="var(W[i,j])",ylab="mean(W[i,j])",
+					main="sims under wishart - samp.size = 2")
+			plot(mean.var.comp.output2$sim.comp$var[im],mean.var.comp.output2$sim.comp$mean[im],
+					pch=20,col=adjustcolor(1,0.5),
+					xlab="var(U[i,j])",ylab="mean(U[i,j])",
+					main="sims under model - samp.size = 2")
+			plot(mean.var.comp.output10$wish.comp$var[im],mean.var.comp.output10$wish.comp$mean[im],
+					pch=20,col=adjustcolor(1,0.5),
+					xlab="var(W[i,j])",ylab="mean(W[i,j])",
+					main="sims under wishart - samp.size = 10")
+			plot(mean.var.comp.output10$sim.comp$var[im],mean.var.comp.output10$sim.comp$mean[im],
+					pch=20,col=adjustcolor(1,0.5),
+					xlab="var(U[i,j])",ylab="mean(U[i,j])",
+					main="sims under model - samp.size = 10")
+			plot(mean.var.comp.output100$wish.comp$var[im],mean.var.comp.output100$wish.comp$mean[im],
+					pch=20,col=adjustcolor(1,0.5),
+					xlab="var(W[i,j])",ylab="mean(W[i,j])",
+					main="sims under wishart - samp.size = 100")
+			plot(mean.var.comp.output100$sim.comp$var[im],mean.var.comp.output100$sim.comp$mean[im],
+					pch=20,col=adjustcolor(1,0.5),
+					xlab="var(U[i,j])",ylab="mean(U[i,j])",
+					main="sims under model - samp.size = 100")
+dev.off()
