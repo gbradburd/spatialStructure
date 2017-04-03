@@ -33,36 +33,191 @@
 
 \geometry{a4paper}
 
-\title{Inference of Continuous and Discrete Population Structure Through Space and Time}
+\title{Inference of Continuous and Discrete Population Structure}
 \date{\vspace{-5ex}}
-\author{Gideon S. Bradburd$^{1,a}$, Peter L. Ralph$^{2,b}$, Graham M. Coop$^{1,c}$}
+\author{Gideon S. Bradburd$^{1,a}$, Peter L. Ralph$^{2,b}$, Graham M. Coop$^{3,c}$}
 
 \begin{document}
 
 \maketitle
 
-\textsuperscript{1}Center for Population Biology, Department of Evolution and Ecology, University of California, Davis, CA 95616
+\textsuperscript{1}Ecology, Evolutionary Biology, and Behavior Group, Department of Integrative Biology, Michigan State University, East Lansing, MI 48823
 
-\textsuperscript{2}Department of Molecular and Computational Biology, University of Southern California, Los Angeles, CA 90089
+\textsuperscript{2}Institute of Ecology and Evolution, Department of Mathematics, University of Oregon, Eugene, OR 97403
 
-\textsuperscript{a}gbradburd@ucdavis.edu; 
-\textsuperscript{b}pralph@usc.edu;
+\textsuperscript{3}Center for Population Biology, Department of Evolution and Ecology, University of California, Davis, CA 95616
+
+\textsuperscript{a}bradburd@msu.edu; 
+\textsuperscript{b}plr@uoregon.edu;
 \textsuperscript{c}gmcoop@ucdavis.edu\\\\\
 
 \newpage
 
-\section{Data}
-At each variable, bi-allelic locus, we have picked an allele to count in each sample, and we also know the number of chromosomes genotyped in each sample.  We can then define the sample allele frequency at locus $\ell$ in sample $n$ as 
-the quotient of the allele counts ($C$) and the sample size ($S$):
+\section{Conceptual framework} \label{big_idea}
+We wish to model covariance in allele frequencies between individuals or demes as a mixture of spatial processes,
+with each process representing a discrete cluster or population,
+within which relatedness decays with distance between samples.
+
+\section{Drift, admixture, and allele frequencies}
+We imagine the allele frequencies at each locus in each sample to be the sum of 3 components: 
+the ancestral allele frequency $\epsilon$ shared by all samples,
+the deviation from that ancestral mean in the $k$th population, $\Delta^{(k)}$,
+which is shared by all samples with 100\% ancestry in that population,
+the deviation specific to the $i$th sample, $\Delta^{(i)}$,
+which captures drift not shared by all samples at the population level
+(i.e., inbreeding or subpopulation-specific drift).
+
+If all samples drew all of their ancestry from any one of the $K$ clusters,
+the  allele frequency in the $i$th sample at the $\ell$th locus is therefore given by:
 \begin{equation}
-\hat{F}_{\ell,n} = \frac{C_{\ell,n}}{S_{\ell,n}}
-\label{sample_freqs}
+F_{i,\ell} = \epsilon_{\ell} + \Delta^{(k)}_{\ell} + \Delta^{(i)}_{\ell}
+\label{drift_terms_no_admix}
 \end{equation}
 
-Our inference framework proceeds by modeling the covariance in allele frequencies 
-as a Wishart-distributed random variable, 
-but the sample allele frequencies are not multivariate normally distributed.
-so we standardize the allele frequencies.
+\section{Normal approximation to drift - MVN and Wishart}
+We can model the allele frequencies at each locus across populations as multivariate normal.
+This will be a good approximation if the amount of elapsed drift in each sample is relatively small,
+as would be expected if time since divergence from a common ancestral population is short,
+or effective population sizes are large.
+
+Beginning with the simplest case of two clusters ($K=2$),
+with all samples drawing 100\% of their ancestry from either one or the other cluster, 
+we can model allele frequencies at locust $\ell$ as:
+%
+\begin{equation}
+F_{\ell} \sim MVN\left(\mu = \epsilon_{\ell} + \iota^{(k)}\Delta_{\ell}^{(k)}, \Sigma = \Omega	\right)
+\label{MVN_mean}
+\end{equation}
+%
+where $\iota^{(k)}$ is an indicator variable that equals 1 for samples with 100\% membership in cluster $k$
+and 0 otherwise.
+In Eqn. \eqref{MVN_mean}, all entries of the covariance $\Omega$ have value 0 except the diagonals,
+which describe sample-specific drift, and have the following value:
+%
+\begin{equation}
+\Omega_{i,i} = \text{Var}\left( \Delta^{(i)} \right)
+\label{MVN_mean_diag}
+\end{equation}
+
+We can describe the covariance induced by both 
+the shared ancestral allele frequency and shared population-level drift
+with the mean of the multivariate normal,
+or, alternatively, we can describe it directly within the MVN covariance as follows:
+\begin{equation}
+F_{\ell} \sim MVN\left(\mu = 0, \Sigma = \Omega	\right)
+\label{MVN_covar}
+\end{equation}
+%
+Here, the covariance $\Omega$ is parameterized as:
+\begin{equation}
+	\Omega_{i,j} = 
+	\begin{cases}
+	      \text{Var}(\epsilon) +  \text{Var}\left( \Delta^{(i)} \right) + \text{Var}\left( \Delta^{(i)} \right), & \text{if}\ i=j\ \text{and}\ \iota^{(k)}_i = 1 \\
+      	      \text{Var}(\epsilon) +  \text{Var}\left( \Delta^{(k)} \right), & \text{if}\ \iota^{(k)}_i = \iota^{(k)}_j = 1\ \text{and}\ i \neq j \\
+	      \text{Var}(\epsilon) +  \text{Var}\left( \Delta^{(i)} \right), & \text{if}\ i=j\ \text{and}\ \iota^{(k)}_i \neq 1 \\
+	      \text{Var}(\epsilon), & \text{otherwise}
+	\end{cases}
+\label{MVN_covar}
+\end{equation}
+
+This then implies that the covariance of the sampled allele frequencies should be Wishart-distributed.
+\begin{equation}
+FF^{T} \sim \mathcal{W}\left( \Omega, L	\right)
+\label{wishart}
+\end{equation}
+%
+where $\Omega$ is parameterized as given in Eqn. \eqref{MVN_covar} 
+and the degrees of freedom of the Wishart is $L$, the number of loci, 
+if all loci are independent, and $L\phi$ otherwise, 
+where $\phi$ is some fudge factor that is less than 1, 
+and describes non-independence between loci due to LD.
+
+\section{Admixture model} \label{admixture_model}
+The model above describes the simple case 
+when samples draw 100\% of their ancestry from only a single cluster each.
+
+To accommodate admixture between clusters, 
+we can model allele frequencies within samples as linear combinations of the population-specific 
+drift terms across the clusters from which they draw ancestry.
+Here, we introduce a term $w^{(k)}_{i}$ that describes the admixture proportion of sample $i$ in cluster $k$,
+which can be interpreted as the probability an allele sampled in the $i$th sample came from the $k$th cluster.
+The allele frequency in the $i$th sample at the $\ell$th locus is therefore given by:
+%
+\begin{equation}
+F_{i,\ell} = \epsilon_{\ell} + \sum\limits_{K} \left( w^{(k)}_{i} \Delta^{(k)}_{\ell} \right) + \Delta^{(i)}_{\ell}	
+\label{drift_terms_admix}
+\end{equation}
+%
+where
+%
+\begin{equation}
+\sum\limits_{K}w^{(k)}_{i} = 1
+\end{equation}
+
+The form of the parametric covariance of samples that are admixed between $K$ clusters is given by:
+\begin{equation}
+\Omega_{i,j} = \text{Var}(\epsilon) + \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j \text{Var}(\Delta^{(k)}) 	\right) + 
+\delta_{i=j} \text{Var}(\Delta^{(i)})
+\label{admixed_discrete_covariance}
+\end{equation}
+
+\section{Modeling spatial differentiation}
+Equation \eqref{admixed_discrete_covariance} describes a model in which 
+samples can be continuously admixed between a set of $K$ discrete clusters.
+In this model, any pair of samples with 100\% ancestry in a cluster 
+have exactly the same covariance with each other (namely $\text{Var}(\Delta^{(k)})$).
+However, as described in Section \ref{big_idea},
+we also wish to model continuous decay of covariance with spatial separation between samples.
+That is, we expect (and want our model to reflect) that samples within the same cluster 
+to have higher covariance if they are sampled closer together than if they are sampled farther apart.
+To describe this spatial pattern, we build in a spatial component to our covariance model.
+
+Specifically, we write that the covariance between a pair of samples $i$ and $j$
+that draw all their ancestry from a single cluster $k$ decays exponentially as a function 
+of the distance between their sampling locations as follows:
+\begin{equation}
+H^{(k)}_{i,j} = \alpha^{(k)}_0 \times \text{exp} \left( \left( -(\alpha^{(k)}_D D_{i,j})^{\alpha^{(k)}_2}\right) + \mu^{(k)}	\right)
+\label{spatial_cov}
+\end{equation}
+where the $\alpha$ parameters control: 
+the sill of the covariance ($\alpha_0$), 
+the rate at which covariance decays with distance $D_{i,j}$ ($\alpha_D$),
+and the shape of that decay ($\alpha_2$)
+in the $k$th cluster.
+The parameter $\mu^{(k)}$ describes the covariance shared by all samples in the $k$th cluster,
+and is included to describe the quantity $\text{Var}(\Delta^{(k)})$ from Eqn. \eqref{admixed_discrete_covariance}.
+
+We can then build a parametric covariance that accommodates 
+\begin{enumerate}
+\item continuous decay of covariance within a cluster
+\item a discrete amount of covariance shared within a cluster
+\item continuous admixture between clusters.
+\end{enumerate}
+
+\begin{equation}
+\Omega_{i,j} = \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j H^{(k)}_{\theta} 	\right) +
+\delta_{i=j} \text{Var}(\Delta_i)
+\label{admixed_spatial_cov}
+\end{equation}
+%
+where $H^{(k)}_{\theta}$ denotes the dependence of the spatial covariance within a cluster 
+on other quantities $\theta$: 
+specifically, the parameters $\vec{\alpha}$ and $\mu$, as well as on the observed quantity $D$,
+the matrix of pairwise distances between all samples.
+
+A quick note that following Section \ref{admixture_model}, 
+I've switched notation so that, at each locus, 
+there is a global mean in addition to $K$ population-specific deviates from that mean,
+rather than a global mean that incorporates one population-specific deviate and another $K-1$ deviates.
+
+
+\section{Standardization}
+It would be tempting to model the sample covariance of the raw allele frequency data ($FF^T$)
+as Wishart-distributed with a parametric scale matrix $\Omega$ taken from Eqn. \eqref{admixed_spatial_cov}.
+However, the raw allele frequency data are probably not well fit by a multivariate normal, 
+so their covariance is probably not well described by the Wishart.
+
+We therefore standardize the data by mean-centering the observations at each locus and normalizing their variance.
 The standardization we use proceeds as follows:
 \begin{align}
 &\bar{F}_{\ell} = \frac{1}{N}\sum\limits_NF_{\ell,n} \\ \notag
@@ -71,391 +226,32 @@ The standardization we use proceeds as follows:
 \label{std_freqs}
 \end{align}
 
-We then can define the covariance of the standardized allele frequencies 
-across all $L$ variable, and we model that covariance.
-
+We then define the sample covariance of the standardized frequencies $X$,
+and proceed by modeling that quantity:
 \begin{equation}
-\widehat{\Omega} = \frac{1}{L} X^TX
+\widehat{\Omega} = XX^T
 \label{sample_std_cov}
 \end{equation}
 
-\newpage
-\section{Model}
-We define a parametric covariance, $\Omega$, which will serve as 
-the mean of the Wishart distribution from which we are treating 
-the sample covariance of the standardized sample allele frequencies 
-as a draw.  This parametric covariance is a function both discrete population 
-structure (i.e., samples can draw ancestry from one or more discrete clusters) 
-as well as a continuous decay of covariance with distance within each cluster 
-(i.e., a pair of samples drawing all of their ancestry from a single cluster are expected 
-to have lower covariance with each other the farther apart they occur).
-
-We begin by defining the spatial covariance function in the $k^{\text{th}}$ cluster, $F^{(k)}$, 
-as a function of the geographic distance $D_{i,j}$ between a pair of samples, $i$ and $j$:
-\begin{equation}
-F^{(k)}_{i,j} = \alpha^{(k)}_0 \times \text{exp} \left(-\left( \alpha^{(k)}_D * D_{i,j}	\right)^{\alpha^{(k)}_2}	\right) + \mu^{(k)}
-\label{spatial_cov}
-\end{equation}
-
-We can then define the admixed covariance function between the same pair of samples, 
-which incorporates both the discrete, between-cluster structure, as well as the continuous 
-differentiation within each cluster.
-\begin{equation}
-\Omega_{i,j} = \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,j} \right) + 
-	\delta_{i=j} \left[
-		\left(1-\sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,i}\right)\right) \times 
-		\left( \eta_i + \frac{1}{S_i} \right)
-			\right]
-\label{ad_cov_spMultiK}
-\end{equation}
-
-Above, $\delta_{i=j}$ is an indicator variable that has value 1 when $i=j$ and 0 otherwise.
-The variable $\eta_i$ is the nugget in the $i^{\text{th}}$ sample, and, as in Eqn. \refeq{sample_freqs}, 
-$S_i$ gives the number of genotyped chromosomes in the $i^{\text{th}}$ sample.
-
-There are 4 models in this conceptual framework (3 others in addition to the one listed above):
-\begin{enumerate}
-\item spatial model with multiple clusters
-	\begin{equation}
-	\Omega_{i,j} = \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,j} \right) + 
-		\delta_{i=j} \left[
-			\left(1-\sum\limits_K \left(	w^{(k)}_iw^{(k)}_j F^{(k)}_{i,i}\right)\right) \times 
-			\left( \eta_i + \frac{1}{S_i} \right)
-				\right] \notag
-	\end{equation}
-\item nonspatial model with multiple clusters
-	\begin{equation}
-	\Omega_{i,j} = \sum\limits_K \left(	w^{(k)}_iw^{(k)}_j \mu^{(k)} \right) + 
-		\delta_{i=j} \left[
-			\left(1-\sum\limits_K \left(	w^{(k)}_iw^{(k)}_j \mu^{(k)}\right)\right) \times 
-			\left( \eta_i + \frac{1}{S_i} \right)
-				\right] \notag
-	\end{equation}
-\item spatial model with a single cluster
-	\begin{equation}
-	\Omega_{i,j} = F_{i,j}  + 
-		\delta_{i=j} \left[
-			\left(1-F_{i,i}\right) \times 
-			\left( \eta_i + \frac{1}{S_i} \right)
-				\right] \notag
-	\end{equation}
-\item nonspatial model with a single cluster
-	\begin{equation}
-	\Omega_{i,j} = \mu + 
-		\delta_{i=j} \left[
-			\left(1-\mu \right) \times 
-			\left( \eta_i + \frac{1}{S_i} \right)
-				\right] \notag
-	\end{equation}
-\end{enumerate}
-
-\newpage
 \section{Likelihood}
-The sample covariance of the standardized allele frequencies has rank $N-1$, 
+The sample covariance of the standardized allele frequencies ($\widehat{\Omega}$) has rank $N-1$, 
 so we compute the likelihood of an ($N-1$)-dimensional projection of the data.
-Following SpaceMix, we create a mean-centering matrix $T$, where 
+Following SpaceMix, we create a mean-centering matrix $T$: 
 \begin{equation}
-T = \delta_{i,j} - \frac{1}{N}
+T_{i,j} = \delta_{i=j} - \frac{1}{N}
 \label{mc_matrix}
 \end{equation}
-and we choose a projection matrix $\Psi$ by dropping the last column 
+where $\delta_{i=j}$ is an indicator variable that equals 1 when $i=j$ and 0 otherwise.
+We choose a projection matrix $\Psi$ by dropping the last column 
 of the orthogonal matrix in the QR decomposition of $T$.
 
 We then calculate the likelihood of the data as
 \begin{equation}
-P(\widehat{\Omega} \; | \; \Omega) = \mathcal{W}(L\Psi^T \Omega \Psi \; , \; L)
+P(\Psi^T\widehat{\Omega}\Psi \; | \; \Omega) = \mathcal{W}(\Psi^T \Omega \Psi \; , \; L)
 \label{likelihood}
 \end{equation} 
 
+where $L$ is the number of loci across which $\widehat{\Omega}$ is calculated,
+and $\Omega$ is the parametric covariance described above in Eqn. \eqref{admixed_spatial_cov}.  
+
 \end{document}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-\section{Model}
-Ok so we have $N$ individuals sampled throughout time and space, 
-and, for each individual, we have the genotype at each of $L$ loci.
-We are interested in modeling both continuous patterns of population differentiation 
-(isolation across space and over time), as well as discrete population structure.
-In space, discrete structure might be due to a barrier to dispersal, 
-or to a recent expansion event that has brought relatively differentiated groups into geographic contact.
-In time, discrete structure might correspond to population replacement, 
-or the sudden influx of gene flow from somewhere not nearby.
-
-To model these dual patterns of structure (continuous in time and space, as well as discrete), 
-we say that there are $K$ populations in space-time.  
-Within each population (which are roughly analogous to the clusters in STRUCTURE),
-covariance decays continuously with spatial and temporal distance. 
-The spatiotemporal covariance between individuals $i$ and $k$ takes the following form in population $k$:
-\begin{equation}
-\label{eq:pop_cov}
-F^{(k)}_{i,j} = \alpha^{(k)}_0 \text{exp} \left(	  \left( \frac{D_{i,j}}{\alpha^{(k)}_D} + \frac{\tau_{i,j}}{\alpha^{(k)}_{\tau}} \right) ^{\alpha^{(k)}_2} \right)
-\end{equation}
-
-\gb{Peter, this form of covariance is a placeholder.  
-I've been looking into different forms from Gneiting 2002, 
-but would love some feedback on considerations 
-when choosing which properties of which Matern functions are desirable}.
-
-Individuals are then admixed between those populations, 
-choosing membership $w^{(k)}$ in population $k$, 
-where $w^{(k)}$ is the probability that a sampled allele came from population $k$.
-
-We model the covariance in allele frequencies, $\Omega$, across loci between individuals $i$ and $j$
-as a sum of their spatiotemporal covariances within each cluster, weighted by their
-membership proportions in each cluster.
-
-\begin{equation}
-\label{eq:total_cov}
-\Omega_{i,j} = \sum\limits_K \left(w_i^{(k)}w_j^{(k)} \left( F^{(k)}_{i,j} + \mu^{(k)} \right)\right) + \gamma + \delta_{i=j} \eta_i
-\end{equation}
-
-Here, $\mu^{(k)}$ is the population-level effect of sharing some deviation away from an ancestral allele frequency, 
-$\gamma$ is the global effect of sharing an ancestral allele frequency, $\delta$ is an indicator variable that takes the value 1 when index $i$ is equal to index $j$, and $\eta$ is the sample-specific nugget on the diagonal of the covariance matrix.
-\newpage
-\gb{Graham, I have two questions for you:
-\begin{itemize}
-\item First, do you remember the conversation we had in your office about short-term and 
-long-term tweaks to spatialStructure's current model?  I remember that we discussed two 
-short-term tweaks: (1) one that involved incorporating a sample size effect onto the diagonal of the 
-covariance matrix, and (2) \textbf{something else}.  To my shame, I can neither remember what the other 
-thing was nor (since I moved out of the office) can I find the notes that I took on it.  So, question 1 is: 
-do you remember what the other thing was?
-\item Question 2 has to do with the sample size effect.  I've been playing around with it a little bit and 
-hitting a conceptual wall.  Here are my thoughts:
-From the binomial, the variance of $f$ is $\frac{f(1-f)}{N}$, where $N$ is the sample size.  So, if the 
-allele frequencies across all loci in a sample were identical, their variance would be just given by 
-$\frac{f(1-f)}{N}$.
-
-Now, if we allow $f$ to vary across loci, and if we say that $f_{i}$ denotes the vector 
-of allele frequencies in sample $i$ across all $L$ loci, then I think, when we had talked 
-about it, that we arrived at the following:
-
-\begin{equation}
-Var(f_{i}) =  Var(\epsilon) + \frac{1}{L}\sum\limits_{L}\left(f_{\ell}(1-f_{\ell})/N_{i}\right)
-\end{equation}
-where $\epsilon_{\ell}$ gives the ancestral allele frequency at locus $\ell$, 
-and $Var(\epsilon)$ is hopefully captured by our $\gamma$ parameter. 
-This equation appears to hold true in tests, both from simulated 
-and empirical datasets.
-
-So, the question is, how do we incorporate information about sample sizes 
-into the model?  Considerations are: 
-\begin{itemize}
-\item We don't want the sample size effect 
-to be greater than the actual variance in any sample, 
-as the model will not be able fit the data with any parameter 
-(nuggets are all positive).  Also note that we're adding 
-($+ \gamma + \sum\limits_{K}w^{(k)}_i\mu^{(k)} + \eta_{i}$),
-so really that presents the hard limit we don't want to be greater than 
-$Var(f_{i})$
-\item We may want to accommodate different sample sizes 
-across loci, as those could be highly variable.  Although, maybe that's 
-just too unwieldy.
-\end{itemize}
-Options seem to be:
-\begin{itemize}
-\item We make the prior of the nugget centered around $1/N$.  The upside 
-here is that the model retains the flexibility to have a diagonal element on the 
-parametric covariance matrix that's equal to (or, at least, not necessarily greater 
-than) the true sample variance.  The downside is that maybe we don't want it to have 
-that flexibility.  This option would look like:
-\begin{equation}
-\Omega_{i,j} = \gamma + 
-			\e{\bar{f}(1-\bar{f})} 
-			\left( 
-			\sum\limits_{K}
-				\left(w^{(k)}_{i}w^{(k)}_{j}\left( F^{(k)}_{i,j} + 
-				\mu^{(k)} \right)\right) + 
-			\delta_{i=j} \left(\eta_i(\frac{1}{N_{i}})\right)
-			\right) 
-\end{equation}
-\item We just add a hard $1/N$ to the diagonal element.
-This option would look like:
-\begin{equation}
-\Omega_{i,j} = \gamma + 
-			\e{\bar{f}(1-\bar{f})}
-			\left( 
-			\sum\limits_{K}
-				\left(w^{(k)}_{i}w^{(k)}_{j}\left( F^{(k)}_{i,j} + 
-				\mu^{(k)} \right)\right) + 
-			\delta_{i=j} \left(\eta_i + \frac{1}{N_{i}}\right)
-			\right)
-\end{equation}
-\end{itemize}
-\end{itemize}
-Do you have any thoughts or opinions about these options?  
-And also, am I missing something here?  I don't think the 
-$\e{\bar{f}(1-\bar{f})}$ should be square-rooted, but maybe I'm wrong?
-}
-\newpage
-\subsection*{shared mean business}
-
-Our thoughts proceed as follows:\\
-say $f_i$ is the allele frequency at a given locus in population $i$,\\
-and $\epsilon$ is the ancestral frequency at that locus,\\
-and $X_i$ is the deviation in population $i$ from $\epsilon$ at that locus (i.e., $\epsilon + X_i = f_i$):\\
-\begin{align}
-\text{Cov}(f_i,f_j) =& \e{f_if_j} - \e{f_i}\e{f_j}	\notag\\
-			=& \e{( X_i + \epsilon) ( X_j +
-                         		 \epsilon)} - \e{  X_i+ \epsilon}\e{ X_j+ \epsilon} \notag\\
-			=& \e{( X_i  X_j +  X_i\epsilon +  X_j\epsilon + \epsilon^2)} -(\e{ X_i}+ \e{\epsilon})(\e{ X_j}+ \e{\epsilon}) \notag\\
-			=& \e{( X_i  X_j +  X_i\epsilon +  X_j\epsilon + \epsilon^2)} -
-				(\e{ X_i}\e{ X_j}+ \e{\epsilon}\e{ X_i}+ \e{\epsilon}\e{ X_j} + \e{\epsilon}^2) \notag\\
-			=& \e{X_i  X_j} - \e{ X_i}\e{ X_j} \\ \notag 
-			     &+ \e{X_i\epsilon} - \e{\epsilon}\e{ X_i} \\ \notag 
-			     &+\e{X_j\epsilon} - \e{\epsilon}\e{ X_j} \\ \notag 
-			     &+\e{\epsilon^2} - \e{\epsilon}^2  \notag\\
-			&= \text{Cov}({ X_i,X_j})  + \text{Cov}(X_i,\epsilon) + 
-				\text{Cov}(X_j,\epsilon) + \var{\epsilon} \notag\\
-			&= \text{Cov}({ X_i,X_j}) + \var{\epsilon}
-\end{align}
-\\
-
-So in Eqn. \eqref{eq:total_cov}, the $\delta$ term is describing this $\var{\epsilon}$.
-If this math works, then it also means that we don't have to mean-center the loci;
-we can just model covariance in sample frequencies, 
-and add a single parameter to describe the increased covariance between samples across loci 
-due to the ancestral mean they share at each locus.
-
-\newpage
-\section*{Binomial variance and ancestral allele frequencies}
-\begin{align}
-\epsilon &\sim \text{Beta}(\alpha=\beta)\\\notag
-\text{Var}(X) &= \e{X^2} - \e{X}^2\\\notag
-\e{X^2} &= \text{Var}(X) + \e{X}^2\\\notag
-\e{(\epsilon)*(1-\epsilon)} &= \e{\epsilon - \epsilon^2}\\\notag
-&= \e{\epsilon} - \e{\epsilon^2}\\\notag
-&= 0.5 -  (\text{Var}(\epsilon) + \e{\epsilon}^2)\\\notag
-&= 0.5 -  (\text{Var}(\epsilon) + 0.25)\\\notag
-&= 0.25 -  \text{Var}(\epsilon)\\\notag
-\end{align}
-
-
-\newpage
-
-
-\section{WAIC}
-\begin{align}
-WAIC =& -2 \widehat{elpd_{waic}}\\
-\widehat{elpd_{waic}} =& \widehat{lpd} - \hat{p}_{waic}\\
-\widehat{lpd} =& \sum\limits_N log\left(\frac{1}{S}\sum\limits_S p(y_i | \theta^s)	\right)\\
-\hat{p}_{waic} =& \sum\limits_N Var_S\left( log \left( p(y_i | \theta^s) \right)	\right)\\
-WAIC =& -2 \left( \sum\limits_N \left[ log\left(\frac{1}{S}\sum\limits_S p(y_i | \theta^s)	\right) \right]-
-	\sum\limits_N \left[ Var_S\left( log \left( p(y_i | \theta^s) \right)	\right) \right]	\right)
-\end{align}
-
-
-And now, plugging in our likelihood function,
-
-\begin{align}
-p(y_i | \theta^s) =& \frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
-					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\\
-%%%%%%%%%%%%%%%%%%
-WAIC =& -2 \left( \sum\limits_N \left[ log\left(\frac{1}{S}\sum\limits_S 
-				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
-						{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}
-			\right)  \right ]\right.\\ \notag
-	&\hspace{0.4in}-\left.\sum\limits_N \left[ Var_S\left(
-			log \left( 
-				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
-						{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}
-			 \right)	\right) \right] \right)\\
-%%%%%%%%%%%%%%%%%%
-WAIC =& -2 \left(  \sum\limits_N \left[ 
-			log\left(	\frac{|X|^{\frac{n-p-1}{2}}}
-						{S 2^\frac{np}{2} \Gamma_p\left(\frac{n}{2}\right)}
-			\sum\limits_S 
-				\frac{e^{\frac{-tr(V_S^{-1}X)}{2}}}
-						{|V_S|^{\frac{n}{2}}}
-			\right)  \right] \right.\\ \notag
-	&\hspace{0.4in}-\left.\sum\limits_N \left[
-		Var_S \left( 
-			log \left(	|X|^{\frac{n-p-1}{2}}	\right) + 
-			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right) \right.\right.\right.\\ \notag
-				&\hspace{0.4in}-\left.\left.\left.
-			log \left(	2^\frac{np}{2}	\right) -
-			log \left(	|V_S|^{\frac{n}{2}}	\right) -
-			log \left(	\Gamma_p\left(\frac{n}{2}\right)	 \right)
-		\vphantom{
-			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right)
-		}
-		\right)
-		 \right]
-		\vphantom{
-			\sum\limits_N log\left(\frac{1}{S}\sum\limits_S 
-				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
-					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\right)
-		}
-\right) \\
-%%%%%%%%%%%%%%%%%%
-WAIC =& -2 \left(  \sum\limits_N \left[ 
-			log\left(	\frac{|X|^{\frac{n-p-1}{2}}}
-						{S 2^\frac{np}{2} \Gamma_p\left(\frac{n}{2}\right)}
-			\right) +
-			log\left(\sum\limits_S 
-				\frac{e^{\frac{-tr(V_S^{-1}X)}{2}}}
-						{|V_S|^{\frac{n}{2}}}
-			\right)  \right] \right.\\ \notag
-	&\hspace{0.4in}-\left.\sum\limits_N \left[
-		Var_S \left( 
-			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right) -
-			log \left(	|V_S|^{\frac{n}{2}}	\right)
-		\vphantom{
-			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right)
-		}
-		\right)
-		 \right]
-		\vphantom{
-			\sum\limits_N log\left(\frac{1}{S}\sum\limits_S 
-				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
-					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\right)
-		}
-\right) \\
-%%%%%%%%%%%%%%%%%%
-WAIC =& -2 \left( 
-	N \times log\left(	\frac{|X|^{\frac{n-p-1}{2}}}
-						{S 2^\frac{np}{2} \Gamma_p\left(\frac{n}{2}\right)}
-			\right) + 
-	\sum\limits_N \left[ 
-			log\left(\sum\limits_S 
-				\frac{e^{\frac{-tr(V_S^{-1}X)}{2}}}
-						{|V_S|^{\frac{n}{2}}}
-			\right)  \right] \right.\\ \notag
-	&\hspace{0.4in}-\left.\sum\limits_N \left[
-		Var_S \left( 
-			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right) -
-			log \left(	|V_S|^{\frac{n}{2}}	\right)
-		\vphantom{
-			log \left( 	e^{\frac{-tr(V_S^{-1}X)}{2}}\right)
-		}
-		\right)
-		 \right]
-		\vphantom{
-			\sum\limits_N log\left(\frac{1}{S}\sum\limits_S 
-				\frac{|X|^{\frac{n-p-1}{2}}e^{\frac{-tr(V_S^{-1}X)}{2}}}
-					{2^\frac{np}{2}|V_S|^{\frac{n}{2}}\Gamma_p\left(\frac{n}{2}\right)}\right)
-		}
-\right) \\
-\end{align}
-\end{document}
-
-
-\section*{spatialStructure + BayEnv?}
-
-\begin{equation}
-X_i \sim \text{MVN}	\left(	 \mu = \beta Y_i + \sum_K w^{(k)}_i \beta_{(k)}Y_i , \Omega = \widehat{\Omega}	\right)
-\end{equation}
-
-
-
-
-
-
-
-
-
